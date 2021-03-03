@@ -1,0 +1,10 @@
+/.classpath
+/.settings
+/.project
+.idea/
+/target
+
+/.idea
+*.iml
+*.DS_Store
+.java-version
