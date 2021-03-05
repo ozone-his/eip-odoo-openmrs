@@ -1,6 +1,6 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
-    <route id="odoo-event-listener">
+    <route id="odoo-event-listener" errorHandlerRef="watcherErrorHandler">
         <from uri="direct:odoo-event-listener" />
 
         <log message="Received DB event: ${body}" loggingLevel="DEBUG" />
