@@ -1,0 +1,37 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <route id="odoo-event-listener">
+        <from uri="direct:odoo-event-listener" />
+
+        <log message="Received DB event: ${body}" loggingLevel="DEBUG" />
+
+        <when>
+            <simple>${exchangeProperty.event.snapshot} == false &amp;&amp; ${exchangeProperty.event.operation} != 'd'</simple>
+            <log message="Loaded order -> ${body}" />
+            <when>
+                <simple>${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.event.tableName} == 'test_order' || ${exchangeProperty.event.tableName} == 'drug_order'</simple>
+
+                <log message="Loading Order from DB..." loggingLevel="DEBUG" />
+
+                <setBody>
+                    <simple>${camelContext.getRegistry().lookupByName("orderRepository").findByUuid(${exchangeProperty.event.identifier})}</simple>
+                </setBody>
+                
+                <log message="Loaded Order -> ${body}" loggingLevel="DEBUG" />
+
+                <choice>
+                    <when>
+                        <simple>${body} != null</simple>
+                        <log message="Patient -> ${body.patient}" />
+                        <log message="Concept -> ${body.concept}" />
+                        <log message="Action -> ${body.action}" />
+                    </when>
+                    <otherwise>
+                        <log message="No Order found with uuid: ${exchangeProperty.event.identifier}" loggingLevel="WARN" />
+                    </otherwise>
+                </choice>
+            </when>
+        </when>
+    </route>
+
+</routes>

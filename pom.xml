@@ -12,7 +12,7 @@
     <description>Contains integration logic between an OpenMRS and Odoo system</description>
 
     <properties>
-    <openmrsWatcherVersion>1.0-SNAPSHOT</openmrsWatcherVersion>
+    <openmrsWatcherVersion>2.0-SNAPSHOT</openmrsWatcherVersion>
     </properties>
 
     <dependencies>
