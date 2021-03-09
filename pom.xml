@@ -12,7 +12,10 @@
     <description>Contains integration logic between an OpenMRS and Odoo system</description>
 
     <properties>
-    <openmrsWatcherVersion>2.0-SNAPSHOT</openmrsWatcherVersion>
+        <openmrsWatcherVersion>2.0-SNAPSHOT</openmrsWatcherVersion>
+        <sprintBootVersion>2.2.7.RELEASE</sprintBootVersion>
+        <camelVersion>3.3.0</camelVersion>
+        <testContainersVersion>1.15.2</testContainersVersion>
     </properties>
 
     <dependencies>
@@ -25,9 +28,34 @@
         <!--Test dependencies -->
         <dependency>
             <groupId>org.openmrs.eip</groupId>
+            <artifactId>common</artifactId>
+            <version>${openmrsWatcherVersion}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openmrs.eip</groupId>
             <artifactId>openmrs-watcher</artifactId>
             <version>${openmrsWatcherVersion}</version>
             <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-test-spring</artifactId>
+            <version>${camelVersion}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
+            <version>${testContainersVersion}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+            <version>${sprintBootVersion}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

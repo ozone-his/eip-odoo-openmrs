@@ -3,13 +3,14 @@
     <route id="odoo-event-listener" errorHandlerRef="watcherErrorHandler">
         <from uri="direct:odoo-event-listener" />
 
-        <log message="Received DB event: ${body}" loggingLevel="DEBUG" />
+        <log message="Received DB event: ${exchangeProperty.event}" loggingLevel="TRACE" />
 
         <when>
             <simple>${exchangeProperty.event.snapshot} == false &amp;&amp; ${exchangeProperty.event.operation} != 'd'</simple>
-            <log message="Loaded order -> ${body}" />
             <when>
                 <simple>${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.event.tableName} == 'test_order' || ${exchangeProperty.event.tableName} == 'drug_order'</simple>
+
+                <log message="Received Order event: ${exchangeProperty.event}" loggingLevel="DEBUG" />
 
                 <log message="Loading Order from DB..." loggingLevel="DEBUG" />
 
