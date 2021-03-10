@@ -4,6 +4,9 @@ VALUES (1, 'admin', 1, '2020-03-05 00:00:00', 1, '2b2636af-6b8c-4c6f-ad23-c5709c
 INSERT INTO person (gender,dead,birthdate_estimated,deathdate_estimated,creator,date_created,voided,uuid)
 VALUES ('M', 0, 0, 0, 1, '2020-03-05 00:00:00', 0,'1d93d0cc-6534-48ed-bebc-4accda9471a5');
 
+INSERT INTO person_name (person_id,given_name,family_name,preferred,creator,date_created,voided,uuid)
+VALUES (1, 'John', 'Doe', 1, 1, '2020-03-05 00:00:00', 0, '348bcfc0-360a-44b5-9539-e8718cd6e46e');
+
 INSERT INTO patient (patient_id,creator,date_created,voided,allergy_status)
 VALUES (1, 1, '2020-03-05 00:00:00', 0, 'Unknown');
 
