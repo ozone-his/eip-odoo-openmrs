@@ -26,6 +26,36 @@
                         <log message="Patient -> ${body.patient}" />
                         <log message="Concept -> ${body.concept}" />
                         <log message="Action -> ${body.action}" />
+
+                        <setProperty name="order-instance">
+                            <simple>${body}</simple>
+                        </setProperty>
+
+                        <setProperty name="id-type">
+                            <simple>${camelContext.getRegistry().lookupByName("patientIdentifierTypeRepository").findByUuid({{odoo.patient.identifier.type.uuid}})}</simple>
+                        </setProperty>
+
+                        <log message="Odoo Identifier Type: ${exchangeProperty.id-type}" loggingLevel="DEBUG" />
+
+                        <toD uri="sql:SELECT p.identifier FROM patient_identifier p WHERE p.patient_id = ${exchangeProperty.order-instance.patient.id} AND p.identifier_type = ${exchangeProperty.id-type.id} AND p.voided = 0?dataSource=openmrsDataSource" />
+
+                        <choice>
+                            <when>
+                                <simple>${body.size()} == 1</simple>
+                                <setProperty name="odoo-id">
+                                    <simple>${body[0].get("identifier")}</simple>
+                                </setProperty>
+                            </when>
+                            <otherwise>
+                                <!-- Create patient in odoo -->
+                                <log message="Creating patient as customer in odoo" />
+                            </otherwise>
+                        </choice>
+
+                        <log message="Patient Odoo Id: ${exchangeProperty.odoo-id}" loggingLevel="DEBUG" />
+
+                        <toD uri="{{odoo.baseUrl}}/xmlrpc/2/object?is_customer=true&amp;odoo-id=${exchangeProperty.odoo-id}" />
+                        
                     </when>
                     <otherwise>
                         <log message="No Order found with uuid: ${exchangeProperty.event.identifier}" loggingLevel="WARN" />
