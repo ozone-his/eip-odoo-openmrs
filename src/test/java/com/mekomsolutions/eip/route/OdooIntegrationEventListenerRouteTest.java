@@ -22,7 +22,7 @@ import org.springframework.test.context.jdbc.SqlConfig;
 @TestPropertySource(properties = WatcherConstants.PROP_EVENT_DESTINATIONS + "=" + LISTENER_URI)
 @Sql(value = {
         "classpath:test_data.sql" }, config = @SqlConfig(dataSource = "openmrsDataSource", transactionManager = "openmrsTransactionManager"))
-public class OdooListenerRouteTest extends BaseWatcherRouteTest {
+public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest {
 	
 	private static final String TABLE_NAME = "orders";
 	
