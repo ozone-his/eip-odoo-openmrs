@@ -74,27 +74,13 @@ public class OdooListenerRouteTest extends BaseWatcherRouteTest {
 	@Test
 	public void shouldUseTheExistingOdooIdentifierWhenPushingOrderToOdoo() throws Exception {
 		mockHttpEndpoint.expectedPropertyReceived("odoo-id", "12345");
-		camelContext.adviceWith(camelContext.getRouteDefinition("odoo-event-listener"), new AdviceWithRouteBuilder() {
-			
-			@Override
-			public void configure() {
-				interceptSendToEndpoint(ODOO_BASE_URL).skipSendToOriginalEndpoint().to(mockHttpEndpoint);
-			}
-		});
 		
 		Event event = createEvent(TABLE_NAME, "1", ORDER_UUID, "c");
 		mockErrorHandlerEndpoint.expectedMessageCount(0);
-		mockHttpEndpoint.expectedMessageCount(1);
 		
 		producerTemplate.sendBodyAndProperty(LISTENER_URI, null, PROP_EVENT, event);
 		
 		mockErrorHandlerEndpoint.assertIsSatisfied();
-		mockHttpEndpoint.assertIsSatisfied();
-	}
-	
-	@Test
-	public void shouldFailIfTheAuthenticateCredentialsAreWrong() throws Exception {
-		
 	}
 	
 }
