@@ -1,0 +1,38 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <route id="odoo-create-customer" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:odoo-create-customer" />
+
+        <log message="Creating customer in odoo..." />
+
+        <setProperty name="xmlrpc-client-config">
+            <spel>#{new org.apache.xmlrpc.client.XmlRpcClientConfigImpl()}</spel>
+        </setProperty>
+        <setProperty name="xmlrpc-client">
+            <spel>#{new org.apache.xmlrpc.client.XmlRpcClient()}</spel>
+        </setProperty>
+        <script>
+            <spel>
+                #{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
+            </spel>
+        </script>
+        <setProperty name="method-params">
+            <spel>#{new java.util.ArrayList(4)}</spel>
+        </setProperty>
+        <script>
+            <spel>
+                #{getProperty('auth-params').add(getProperty('odoo-user-id'))}
+                #{getProperty('auth-params').add('{{odoo.password}}')}
+                #{getProperty('auth-params').add({})}
+            </spel>
+        </script>
+        <setProperty name="odoo-user-id">
+            <spel>
+                #{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), '', getProperty('auth-params'))}
+            </spel>
+        </setProperty>
+
+        <log message="Successfully created customer in odoo!" />
+    </route>
+
+</routes>

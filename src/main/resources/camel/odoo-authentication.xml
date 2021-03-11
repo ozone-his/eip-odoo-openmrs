@@ -1,7 +1,9 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
-    <route id="odoo-authentication">
+    <route id="odoo-authentication" errorHandlerRef="watcherErrorHandler">
         <from uri="direct:odoo-authentication" />
+
+        <log message="Authenticating with odoo as {{odoo.username}} to database: {{odoo.database}}" />
 
         <!-- TODO Register the client, config and odo user id in a custom spring bean so that we don't create them each time-->
 
@@ -37,6 +39,8 @@
             <simple>${body} == false</simple>
             <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Invalid odoo username, password or database" />
         </when>
+
+        <log message="Successfully authenticated with odoo!" />
     </route>
 
 </routes>

@@ -16,7 +16,7 @@ public class OdooAuthenticationRouteTest extends BaseCamelTest {
 	
 	@Test
 	public void shouldAuthenticateWithOdoo() throws Exception {
-		camelContext.adviceWith(camelContext.getRouteDefinition("odoo-event-listener"), new AdviceWithRouteBuilder() {
+		advise("odoo-event-listener", new AdviceWithRouteBuilder() {
 			
 			@Override
 			public void configure() {
