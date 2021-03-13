@@ -16,21 +16,33 @@
                 #{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
             </spel>
         </script>
-        <setProperty name="method-params">
-            <spel>#{new java.util.ArrayList(4)}</spel>
+		<setProperty name="patient-data">
+			<spel>#{new java.util.HashMap()}</spel>
+		</setProperty>
+		<script>
+			<spel>
+				#{getProperty('patient-data').put('name', '${exchangeProperty.patient-instance.name}')}
+				#{getProperty('patient-data').put('ref', '${exchangeProperty.order-instance.patient.uuid}')}
+			</spel>
+		</script>
+        <setProperty name="create-params">
+            <spel>#{new java.util.ArrayList()}</spel>
         </setProperty>
         <script>
             <spel>
-                #{getProperty('auth-params').add(getProperty('odoo-user-id'))}
-                #{getProperty('auth-params').add('{{odoo.password}}')}
-                #{getProperty('auth-params').add({})}
-            </spel>
+				#{getProperty('create-params').add('{{odoo.database}}')}
+				#{getProperty('create-params').add(getProperty('odoo-user-id'))}
+				#{getProperty('create-params').add('{{odoo.password}}')}
+				#{getProperty('create-params').add('res.partner')}
+				#{getProperty('create-params').add('create')}
+				#{getProperty('create-params').add(T(java.util.Collections).singletonList(getProperty('patient-data')))}
+			</spel>
         </script>
-        <setProperty name="odoo-user-id">
-            <spel>
-                #{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), '', getProperty('auth-params'))}
-            </spel>
-        </setProperty>
+		<setBody>
+			<spel>
+				#{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), 'execute_kw', getProperty('create-params'))}
+			</spel>
+		</setBody>
 
         <log message="Successfully created customer in odoo!" />
     </route>

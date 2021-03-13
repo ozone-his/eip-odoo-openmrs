@@ -42,20 +42,18 @@
                                 </setProperty>
                             </when>
                             <otherwise>
-                                <log message="Creating patient as customer in odoo" />
                                 <when>
                                     <simple>${exchangeProperty.odoo-user-id} == null</simple>
-                                    
+
                                     <toD uri="direct:odoo-authentication" />
                                 </when>
 
                                 <toD uri="direct:odoo-create-customer" />
-                            </otherwise>
+								
+							</otherwise>
                         </choice>
 
-                        <log message="Patient Odoo Id: ${exchangeProperty.odoo-id}" loggingLevel="DEBUG" />
-                        
-                        <log message="Odoo Response: ${body}" />
+                        <log message="Odoo Customer id: ${body}" loggingLevel="DEBUG" />
 
                     </when>
                     <otherwise>
