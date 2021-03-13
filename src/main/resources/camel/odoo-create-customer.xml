@@ -21,7 +21,7 @@
 		</setProperty>
 		<script>
 			<spel>
-				#{getProperty('patient-data').put('name', '${exchangeProperty.patient-instance.name}')}
+				#{getProperty('patient-data').put('name', '${exchangeProperty.patient-name}')}
 				#{getProperty('patient-data').put('ref', '${exchangeProperty.order-instance.patient.uuid}')}
 			</spel>
 		</script>

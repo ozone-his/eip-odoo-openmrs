@@ -1,0 +1,12 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+	<route id="openmrs-fetch-details" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:openmrs-fetch-details" />
+		
+		<log message="Fetching patient details from OpenMRS" />
+
+		<toD uri="{{openmrs.baseUrl}}/ws/rest/v1/patient/${exchangeProperty.order-instance.patient.uuid}?authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}" />
+
+		<log message="Successfully fetched patient details from OpenMRS" />
+	</route>
+</routes>

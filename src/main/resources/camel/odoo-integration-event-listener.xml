@@ -48,6 +48,12 @@
                                     <toD uri="direct:odoo-authentication" />
                                 </when>
 
+								<toD uri="direct:openmrs-fetch-details" />
+								
+								<setProperty name="patient-name">
+									<jsonpath>$.person.display</jsonpath>
+								</setProperty>
+								
                                 <toD uri="direct:odoo-create-customer" />
 								
 							</otherwise>
