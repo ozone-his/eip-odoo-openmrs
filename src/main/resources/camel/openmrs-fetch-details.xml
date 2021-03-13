@@ -5,8 +5,12 @@
 		
 		<log message="Fetching patient details from OpenMRS" />
 
-		<toD uri="{{openmrs.baseUrl}}/ws/rest/v1/patient/${exchangeProperty.order-instance.patient.uuid}?authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}" />
+		<setBody>
+			<simple>${null}</simple>
+		</setBody>
 
+		<toD uri="{{openmrs.baseUrl}}/ws/rest/v1/patient/${exchangeProperty.order-instance.patient.uuid}?httpMethod=GET&amp;authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}" />
+		
 		<log message="Successfully fetched patient details from OpenMRS" />
 	</route>
 </routes>
