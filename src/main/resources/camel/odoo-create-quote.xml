@@ -1,0 +1,50 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+	<route id="odoo-create-quote" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:odoo-create-quote" />
+
+		<log message="Creating quotation in odoo..." />
+
+		<setProperty name="xmlrpc-client-config">
+			<spel>#{new org.apache.xmlrpc.client.XmlRpcClientConfigImpl()}</spel>
+		</setProperty>
+		<setProperty name="xmlrpc-client">
+			<spel>#{new org.apache.xmlrpc.client.XmlRpcClient()}</spel>
+		</setProperty>
+		<script>
+			<spel>
+				#{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
+			</spel>
+		</script>
+		<setProperty name="qoute-data">
+			<spel>#{new java.util.HashMap()}</spel>
+		</setProperty>
+		<script>
+			<spel>
+				#{getProperty('quote-data').put('name', getProperty(''))}
+				#{getProperty('quote-data').put('ref', getProperty('')}
+			</spel>
+		</script>
+		<setProperty name="create-quote-params">
+			<spel>#{new java.util.ArrayList()}</spel>
+		</setProperty>
+		<script>
+			<spel>
+				#{getProperty('create-quote-params').add('{{odoo.database}}')}
+				#{getProperty('create-quote-params').add(getProperty('odoo-user-id'))}
+				#{getProperty('create-quote-params').add('{{odoo.password}}')}
+				#{getProperty('create-quote-params').add('sales.order')}
+				#{getProperty('create-quote-params').add('create')}
+				#{getProperty('create-quote-params').add(T(java.util.Collections).singletonList(getProperty('quote-data')))}
+			</spel>
+		</script>
+		<setBody>
+			<spel>
+				#{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), 'execute_kw', getProperty('create-quote-params'))}
+			</spel>
+		</setBody>
+
+		<log message="Successfully created quote in odoo!" />
+	</route>
+
+</routes>

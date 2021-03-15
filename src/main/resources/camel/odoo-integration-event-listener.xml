@@ -59,7 +59,7 @@
 							</otherwise>
                         </choice>
 
-                        <log message="Odoo Customer id: ${body}" loggingLevel="DEBUG" />
+						<toD uri="direct:odoo-create-quote" />
 
                     </when>
                     <otherwise>
