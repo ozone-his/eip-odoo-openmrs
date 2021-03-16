@@ -14,7 +14,6 @@
 		<script>
 			<spel>
 				#{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
-				<!--#{getProperty('xmlrpc-client-config').setEnabledForExtensions(true)}-->
 			</spel>
 		</script>
 		<setProperty name="quote-data">
@@ -24,7 +23,6 @@
 			<spel>
 				#{getProperty('quote-data').put('partner_id', T(java.lang.Integer).valueOf(getProperty('odoo-id')))}
 				#{getProperty('quote-data').put('client_order_ref', getProperty('order-instance').uuid)}
-				<!--#{getProperty('quote-data').put('date_order', getProperty('order-instance').dateActivated)}-->
 			</spel>
 		</script>
 		<setProperty name="create-quote-params">
