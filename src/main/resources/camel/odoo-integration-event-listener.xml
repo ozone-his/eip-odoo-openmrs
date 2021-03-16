@@ -26,6 +26,9 @@
                         <setProperty name="order-instance">
                             <simple>${body}</simple>
                         </setProperty>
+
+						<toD uri="direct:odoo-authentication" />
+
                         <setProperty name="id-type">
                             <simple>${camelContext.getRegistry().lookupByName("patientIdentifierTypeRepository").findByUuid({{odoo.patient.identifier.type.uuid}})}</simple>
                         </setProperty>
@@ -42,20 +45,17 @@
                                 </setProperty>
                             </when>
                             <otherwise>
-                                <when>
-                                    <simple>${exchangeProperty.odoo-user-id} == null</simple>
-
-                                    <toD uri="direct:odoo-authentication" />
-                                </when>
-
 								<toD uri="direct:openmrs-fetch-details" />
-								
+
 								<setProperty name="patient-name">
 									<jsonpath>$.person.display</jsonpath>
 								</setProperty>
-								
+
                                 <toD uri="direct:odoo-create-customer" />
-								
+
+								<setProperty name="odoo-id">
+									<simple>${body}</simple>
+								</setProperty>
 							</otherwise>
                         </choice>
 

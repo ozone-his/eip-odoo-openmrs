@@ -1,6 +1,6 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
-	<route id="odoo-create-quote" errorHandlerRef="watcherErrorHandler">
+	<route id="odoo-create-quote">
 		<from uri="direct:odoo-create-quote" />
 
 		<log message="Creating quotation in odoo..." />
@@ -14,15 +14,17 @@
 		<script>
 			<spel>
 				#{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
+				<!--#{getProperty('xmlrpc-client-config').setEnabledForExtensions(true)}-->
 			</spel>
 		</script>
-		<setProperty name="qoute-data">
+		<setProperty name="quote-data">
 			<spel>#{new java.util.HashMap()}</spel>
 		</setProperty>
 		<script>
 			<spel>
-				#{getProperty('quote-data').put('name', getProperty(''))}
-				#{getProperty('quote-data').put('ref', getProperty('')}
+				#{getProperty('quote-data').put('partner_id', getProperty('odoo-id'))}
+				#{getProperty('quote-data').put('client_order_ref', getProperty('order-instance').uuid)}
+				<!--#{getProperty('quote-data').put('date_order', getProperty('order-instance').dateActivated)}-->
 			</spel>
 		</script>
 		<setProperty name="create-quote-params">
@@ -33,7 +35,7 @@
 				#{getProperty('create-quote-params').add('{{odoo.database}}')}
 				#{getProperty('create-quote-params').add(getProperty('odoo-user-id'))}
 				#{getProperty('create-quote-params').add('{{odoo.password}}')}
-				#{getProperty('create-quote-params').add('sales.order')}
+				#{getProperty('create-quote-params').add('sale.order')}
 				#{getProperty('create-quote-params').add('create')}
 				#{getProperty('create-quote-params').add(T(java.util.Collections).singletonList(getProperty('quote-data')))}
 			</spel>
