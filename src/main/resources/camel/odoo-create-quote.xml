@@ -16,17 +16,37 @@
 				#{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
 			</spel>
 		</script>
+		<setProperty name="product-details">
+			<spel>#{new java.util.HashMap(2)}</spel>
+		</setProperty>
+		<script>
+			<spel>
+				#{getProperty('product-details').put('product_id', 6)}
+				#{getProperty('product-details').put('product_uom_qty', 2)}
+			</spel>
+		</script>
+		<setProperty name="order-line-details">
+			<spel>#{new java.util.ArrayList(3)}</spel>
+		</setProperty>
+		<script>
+			<spel>
+				#{getProperty('order-line-details').add(0)}
+				#{getProperty('order-line-details').add('')}
+				#{getProperty('order-line-details').add(getProperty('product-details'))}
+			</spel>
+		</script>
 		<setProperty name="quote-data">
-			<spel>#{new java.util.HashMap()}</spel>
+			<spel>#{new java.util.HashMap(3)}</spel>
 		</setProperty>
 		<script>
 			<spel>
 				#{getProperty('quote-data').put('partner_id', T(java.lang.Integer).valueOf(getProperty('odoo-id')))}
 				#{getProperty('quote-data').put('client_order_ref', getProperty('order-instance').uuid)}
+				#{getProperty('quote-data').put('order_line', T(java.util.Collections).singletonList(getProperty('order-line-details')))}
 			</spel>
 		</script>
 		<setProperty name="create-quote-params">
-			<spel>#{new java.util.ArrayList()}</spel>
+			<spel>#{new java.util.ArrayList(6)}</spel>
 		</setProperty>
 		<script>
 			<spel>
