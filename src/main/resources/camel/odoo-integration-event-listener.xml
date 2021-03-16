@@ -30,7 +30,7 @@
 						<toD uri="direct:odoo-authentication" />
 
                         <setProperty name="id-type">
-                            <simple>${camelContext.getRegistry().lookupByName("patientIdentifierTypeRepository").findByUuid({{odoo.patient.identifier.type.uuid}})}</simple>
+                            <simple>${camelContext.getRegistry().lookupByName("patientIdentifierTypeRepository").findByUuid({{openmrs.odoo.patient.identifier.type.uuid}})}</simple>
                         </setProperty>
 
                         <log message="Odoo Identifier Type: ${exchangeProperty.id-type}" loggingLevel="DEBUG" />

@@ -6,8 +6,12 @@
 		<log message="Adding odoo customer id to the patient identifier list" />
 
 		<setBody>
-			<simple>{'identifier': '${exchangeProperty.odoo-id}', 'identifierType': '{{odoo.patient.identifier.type.uuid}}'}</simple>
+			<simple>{"identifier": "${exchangeProperty.odoo-id}", "identifierType": "{{openmrs.odoo.patient.identifier.type.uuid}}"}</simple>
 		</setBody>
+
+		<setHeader name="Content-Type">
+			<constant>Application/json</constant>
+		</setHeader>
 
 		<toD uri="{{openmrs.baseUrl}}/ws/rest/v1/patient/${exchangeProperty.order-instance.patient.uuid}/identifier?authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}" />
 		
