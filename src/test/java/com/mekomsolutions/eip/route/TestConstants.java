@@ -4,7 +4,7 @@ public class TestConstants {
 	
 	public static final String PROP_ODOO_BASE_URL = "odoo.baseUrl";
 	
-	public static final String PROP_ODOO_ID_TYPE_UUID = "odoo.patient.identifier.type.uuid";
+	public static final String PROP_ODOO_ID_TYPE_UUID = "openmrs.odoo.patient.identifier.type.uuid";
 	
 	public static final String EX_PROP_ODOO_ID = "odoo-id";
 	
