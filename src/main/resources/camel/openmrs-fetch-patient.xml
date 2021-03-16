@@ -1,7 +1,7 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
-	<route id="openmrs-fetch-details" errorHandlerRef="watcherErrorHandler">
-		<from uri="direct:openmrs-fetch-details" />
+	<route id="openmrs-fetch-patient" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:openmrs-fetch-patient" />
 		
 		<log message="Fetching patient details from OpenMRS" />
 

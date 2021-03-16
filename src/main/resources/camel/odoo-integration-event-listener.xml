@@ -45,7 +45,7 @@
                                 </setProperty>
                             </when>
                             <otherwise>
-								<toD uri="direct:openmrs-fetch-details" />
+								<toD uri="direct:openmrs-fetch-patient" />
 
 								<setProperty name="patient-name">
 									<jsonpath>$.person.display</jsonpath>
