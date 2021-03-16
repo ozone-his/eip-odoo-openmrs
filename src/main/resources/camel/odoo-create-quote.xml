@@ -1,6 +1,6 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
-	<route id="odoo-create-quote">
+	<route id="odoo-create-quote" errorHandlerRef="watcherErrorHandler">
 		<from uri="direct:odoo-create-quote" />
 
 		<log message="Creating quotation in odoo..." />
@@ -22,7 +22,7 @@
 		</setProperty>
 		<script>
 			<spel>
-				#{getProperty('quote-data').put('partner_id', getProperty('odoo-id'))}
+				#{getProperty('quote-data').put('partner_id', T(java.lang.Integer).valueOf(getProperty('odoo-id')))}
 				#{getProperty('quote-data').put('client_order_ref', getProperty('order-instance').uuid)}
 				<!--#{getProperty('quote-data').put('date_order', getProperty('order-instance').dateActivated)}-->
 			</spel>
