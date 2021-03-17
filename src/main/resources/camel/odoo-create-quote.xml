@@ -21,10 +21,19 @@
 		</setProperty>
 		<script>
 			<spel>
-				#{getProperty('product-details').put('product_id', 6)}
-				#{getProperty('product-details').put('product_uom_qty', 2)}
+				#{getProperty('product-details').put('product_id', T(java.lang.Integer).valueOf(getProperty('odoo-product-id')))}
 			</spel>
 		</script>
+
+		<when>
+			<simple>${exchangeProperty.order-quantity} != null</simple>
+			<script>
+				<spel>
+					#{getProperty('product-details').put('product_uom_qty', getProperty('order-quantity'))}
+				</spel>
+			</script>
+		</when>
+
 		<setProperty name="order-line-details">
 			<spel>#{new java.util.ArrayList(3)}</spel>
 		</setProperty>

@@ -38,8 +38,14 @@ VALUES  ('N/A', 1, '2020-03-05 00:00:00', 0, '4e6dcb16-d43e-46bb-b6bf-7088b9b821
 INSERT INTO concept_class (name,creator,date_created,retired,uuid)
 VALUES  ('Cd4 Count', 1, '2020-03-05 00:00:00', 0, 'f4464518-f5e2-4aab-a54e-1f1a2ec6d431');
 
+INSERT INTO concept_attribute_type (name,min_occurs,creator,date_created,retired,uuid)
+VALUES  ('Odoo Product Id', 0, 1, '2020-03-05 00:00:00', 0, 'a4464534-f5e2-4aab-a54e-1f1a2ec6d445');
+
 INSERT INTO concept (datatype_id,class_id,is_set,creator,date_created,retired,uuid)
 VALUES  (1, 1, 0, 1, '2020-03-05 00:00:00', 0, '945584a3-6c4a-4cb5-ba66-964aa9614239');
+
+INSERT INTO concept_attribute (concept_id,attribute_type_id,value_reference,creator,date_created,voided,uuid)
+VALUES  (1, 1, '6', 1, '2020-03-05 00:00:00', 0, '156584a3-6c4a-4cb5-bb66-964aa9614221');
 
 INSERT INTO provider (creator,date_created,retired,uuid)
 VALUES  (1, '2020-03-05 00:00:00', 0, '675584a3-6c4a-4cb5-ea66-964aa9614239');

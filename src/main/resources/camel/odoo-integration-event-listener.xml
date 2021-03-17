@@ -30,7 +30,7 @@
 						<toD uri="direct:odoo-authentication" />
 
                         <setProperty name="id-type">
-                            <simple>${camelContext.getRegistry().lookupByName("patientIdentifierTypeRepository").findByUuid({{openmrs.odoo.patient.identifier.type.uuid}})}</simple>
+                            <simple>${camelContext.getRegistry().lookupByName("patientIdentifierTypeRepository").findByUuid({{openmrs.odoo.patientIdType.uuid}})}</simple>
                         </setProperty>
 
                         <log message="Odoo Identifier Type: ${exchangeProperty.id-type}" loggingLevel="DEBUG" />
@@ -60,6 +60,28 @@
 								<toD uri="direct:openmrs-add-odoo-identifier" />
 							</otherwise>
                         </choice>
+
+						<setProperty name="attribute-type">
+							<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.productId.conceptAttribType.uuid}})}</simple>
+						</setProperty>
+
+						<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.order-instance.concept.id} AND a.attribute_type_id = ${exchangeProperty.attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
+
+						<when>
+							<simple>${body.size()} == 0</simple>
+							<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Orderable concept has no value set for the matching odoo product id" />
+						</when>
+						
+						<setProperty name="odoo-product-id">
+							<simple>${body[0].get("value_reference")}</simple>
+						</setProperty>
+
+						<when>
+							<simple>${exchangeProperty.order-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
+							<setProperty name="order-quantity">
+								<simple>${exchangeProperty.order-instance.quantity}</simple>
+							</setProperty>
+						</when>
 
 						<toD uri="direct:odoo-create-quote" />
 
