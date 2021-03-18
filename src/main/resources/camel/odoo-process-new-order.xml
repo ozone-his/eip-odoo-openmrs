@@ -1,0 +1,59 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+	<route id="odoo-process-new-order" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:odoo-process-new-order" />
+
+		<log message="Processing new order.." loggingLevel="DEBUG" />
+
+		<choice>
+			<when>
+				<simple>${body.size()} == 1</simple>
+				<setProperty name="odoo-id">
+					<simple>${body[0].get("identifier")}</simple>
+				</setProperty>
+			</when>
+			<otherwise>
+				<to uri="direct:openmrs-fetch-patient" />
+
+				<setProperty name="patient-name">
+					<jsonpath>$.person.display</jsonpath>
+				</setProperty>
+
+				<to uri="direct:odoo-create-customer" />
+
+				<setProperty name="odoo-id">
+					<simple>${body}</simple>
+				</setProperty>
+
+				<to uri="direct:openmrs-add-odoo-identifier" />
+			</otherwise>
+		</choice>
+
+		<setProperty name="attribute-type">
+			<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.productId.conceptAttribType.uuid}})}</simple>
+		</setProperty>
+
+		<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.order-instance.concept.id} AND a.attribute_type_id = ${exchangeProperty.attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
+
+		<when>
+			<simple>${body.size()} == 0</simple>
+			<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Orderable concept has no value set for the matching odoo product id" />
+		</when>
+
+		<setProperty name="odoo-product-id">
+			<simple>${body[0].get("value_reference")}</simple>
+		</setProperty>
+
+		<when>
+			<simple>${exchangeProperty.order-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
+			<setProperty name="order-quantity">
+				<simple>${exchangeProperty.order-instance.quantity}</simple>
+			</setProperty>
+		</when>
+
+		<to uri="direct:odoo-create-quote" />
+
+		<log message="Successfully processed new order!" loggingLevel="DEBUG" />
+	</route>
+
+</routes>

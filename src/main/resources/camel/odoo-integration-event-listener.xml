@@ -6,7 +6,7 @@
         <log message="Received DB event: ${exchangeProperty.event}" loggingLevel="TRACE" />
 
         <when>
-            <simple>${exchangeProperty.event.snapshot} == false &amp;&amp; ${exchangeProperty.event.operation} != 'd'</simple>
+            <simple>${exchangeProperty.event.snapshot} == false &amp;&amp; ${exchangeProperty.event.operation} == 'c'</simple>
             <when>
                 <simple>${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.event.tableName} == 'test_order' || ${exchangeProperty.event.tableName} == 'drug_order'</simple>
 
@@ -37,54 +37,21 @@
 
                         <toD uri="sql:SELECT p.identifier FROM patient_identifier p WHERE p.patient_id = ${exchangeProperty.order-instance.patient.id} AND p.identifier_type = ${exchangeProperty.id-type.id} AND p.voided = 0?dataSource=openmrsDataSource" />
 
-                        <choice>
-                            <when>
-                                <simple>${body.size()} == 1</simple>
-                                <setProperty name="odoo-id">
-                                    <simple>${body[0].get("identifier")}</simple>
-                                </setProperty>
-                            </when>
-                            <otherwise>
-								<toD uri="direct:openmrs-fetch-patient" />
-
-								<setProperty name="patient-name">
-									<jsonpath>$.person.display</jsonpath>
-								</setProperty>
-
-                                <toD uri="direct:odoo-create-customer" />
-
-								<setProperty name="odoo-id">
-									<simple>${body}</simple>
-								</setProperty>
-
-								<toD uri="direct:openmrs-add-odoo-identifier" />
+						<choice>
+							<when>
+								<simple>${exchangeProperty.order-instance.status} = 'NEW' || ${exchangeProperty.order-instance.status} == 'RENEW'</simple>
+								<to uri="direct:odoo-process-new-order" />
+							</when>
+							<when>
+								<simple>${exchangeProperty.order-instance.status} == 'REVISE'</simple>
+							</when>
+							<when>
+								<simple>${exchangeProperty.order-instance.status} == 'DISCONTINUE'</simple>
+							</when>
+							<otherwise>
+								<log message="Don't know how to handle Order status: ${exchangeProperty.order-instance.status}" loggingLevel="WARN" />
 							</otherwise>
-                        </choice>
-
-						<setProperty name="attribute-type">
-							<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.productId.conceptAttribType.uuid}})}</simple>
-						</setProperty>
-
-						<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.order-instance.concept.id} AND a.attribute_type_id = ${exchangeProperty.attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
-
-						<when>
-							<simple>${body.size()} == 0</simple>
-							<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Orderable concept has no value set for the matching odoo product id" />
-						</when>
-						
-						<setProperty name="odoo-product-id">
-							<simple>${body[0].get("value_reference")}</simple>
-						</setProperty>
-
-						<when>
-							<simple>${exchangeProperty.order-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
-							<setProperty name="order-quantity">
-								<simple>${exchangeProperty.order-instance.quantity}</simple>
-							</setProperty>
-						</when>
-
-						<toD uri="direct:odoo-create-quote" />
-
+						</choice>
                     </when>
                     <otherwise>
                         <log message="No Order found with uuid: ${exchangeProperty.event.identifier}" loggingLevel="WARN" />
