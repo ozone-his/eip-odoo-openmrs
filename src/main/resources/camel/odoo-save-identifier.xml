@@ -1,7 +1,7 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
-	<route id="openmrs-add-odoo-identifier" errorHandlerRef="watcherErrorHandler">
-		<from uri="direct:openmrs-add-odoo-identifier" />
+	<route id="odoo-save-identifier" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:odoo-save-identifier" />
 		
 		<log message="Adding odoo customer id to the patient identifier list" />
 

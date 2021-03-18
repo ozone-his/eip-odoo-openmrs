@@ -13,7 +13,7 @@
 				</setProperty>
 			</when>
 			<otherwise>
-				<to uri="direct:openmrs-fetch-patient" />
+				<to uri="direct:odoo-fetch-patient" />
 
 				<setProperty name="patient-name">
 					<jsonpath>$.person.display</jsonpath>
@@ -25,7 +25,7 @@
 					<simple>${body}</simple>
 				</setProperty>
 
-				<to uri="direct:openmrs-add-odoo-identifier" />
+				<to uri="direct:odoo-save-identifier" />
 			</otherwise>
 		</choice>
 
