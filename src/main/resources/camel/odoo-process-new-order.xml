@@ -44,7 +44,7 @@
 			</setProperty>
 		</when>
 
-		<to uri="direct:odoo-create-quote" />
+		<to uri="direct:odoo-create-quotation" />
 
 		<log message="Successfully processed new order!" loggingLevel="DEBUG" />
 	</route>
