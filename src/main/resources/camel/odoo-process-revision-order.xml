@@ -5,9 +5,11 @@
 
 		<log message="Processing revision order.." loggingLevel="DEBUG" />
 
-		
+		<to uri="direct:odoo-get-quotations" />
 
-		<log message="Successfully processed revision order!" loggingLevel="DEBUG" />
+		<log message="Found ${body.length} existing quotation(s) for the patient in Odoo" loggingLevel="DEBUG" />
+
+		<log message="Successfully processed revision order" loggingLevel="DEBUG" />
 	</route>
 
 </routes>

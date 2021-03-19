@@ -29,20 +29,39 @@
 
 						<toD uri="direct:odoo-authentication" />
 
-                        <choice>
+						<setProperty name="odoo-user-id">
+							<simple>${body}</simple>
+						</setProperty>
+
+						<setProperty name="id-type">
+							<simple>${camelContext.getRegistry().lookupByName("patientIdentifierTypeRepository").findByUuid({{openmrs.odoo.patientIdType.uuid}})}</simple>
+						</setProperty>
+
+						<log message="Odoo Identifier Type: ${exchangeProperty.id-type}" loggingLevel="DEBUG" />
+
+						<toD uri="sql:SELECT p.identifier FROM patient_identifier p WHERE p.patient_id = ${exchangeProperty.order-instance.patient.id} AND p.identifier_type = ${exchangeProperty.id-type.id} AND p.voided = 0?dataSource=openmrsDataSource" />
+
+						<when>
+							<simple>${body.size()} == 1</simple>
+							<setProperty name="patient-odoo-id">
+								<simple>${body[0].get("identifier")}</simple>
+							</setProperty>
+						</when>
+
+						<choice>
 							<when>
-								<simple>${exchangeProperty.order-instance.status} = 'NEW' || ${exchangeProperty.order-instance.status} == 'RENEW'</simple>
+								<simple>${exchangeProperty.order-instance.action} == 'NEW' || ${exchangeProperty.order-instance.action} == 'RENEW'</simple>
 								<to uri="direct:odoo-process-new-order" />
 							</when>
 							<when>
-								<simple>${exchangeProperty.order-instance.status} == 'REVISE'</simple>
+								<simple>${exchangeProperty.order-instance.action} == 'REVISE'</simple>
 								<to uri="direct:odoo-process-revision-order" />
 							</when>
 							<when>
-								<simple>${exchangeProperty.order-instance.status} == 'DISCONTINUE'</simple>
+								<simple>${exchangeProperty.order-instance.action} == 'DISCONTINUE'</simple>
 							</when>
 							<otherwise>
-								<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order status: ${exchangeProperty.order-instance.status}" />
+								<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order action: ${exchangeProperty.order-instance.action}" />
 							</otherwise>
 						</choice>
                     </when>

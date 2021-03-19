@@ -5,37 +5,22 @@
 
 		<log message="Processing new order.." loggingLevel="DEBUG" />
 
-		<setProperty name="id-type">
-			<simple>${camelContext.getRegistry().lookupByName("patientIdentifierTypeRepository").findByUuid({{openmrs.odoo.patientIdType.uuid}})}</simple>
-		</setProperty>
+		<when>
+			<simple>${exchangeProperty.patient-odoo-id} == null</simple>
+			<to uri="direct:odoo-fetch-patient" />
 
-		<log message="Odoo Identifier Type: ${exchangeProperty.id-type}" loggingLevel="DEBUG" />
+			<setProperty name="patient-name">
+				<jsonpath>$.person.display</jsonpath>
+			</setProperty>
 
-		<toD uri="sql:SELECT p.identifier FROM patient_identifier p WHERE p.patient_id = ${exchangeProperty.order-instance.patient.id} AND p.identifier_type = ${exchangeProperty.id-type.id} AND p.voided = 0?dataSource=openmrsDataSource" />
+			<to uri="direct:odoo-create-customer" />
 
-		<choice>
-			<when>
-				<simple>${body.size()} == 1</simple>
-				<setProperty name="odoo-id">
-					<simple>${body[0].get("identifier")}</simple>
-				</setProperty>
-			</when>
-			<otherwise>
-				<to uri="direct:odoo-fetch-patient" />
+			<setProperty name="patient-odoo-id">
+				<simple>${body}</simple>
+			</setProperty>
 
-				<setProperty name="patient-name">
-					<jsonpath>$.person.display</jsonpath>
-				</setProperty>
-
-				<to uri="direct:odoo-create-customer" />
-
-				<setProperty name="odoo-id">
-					<simple>${body}</simple>
-				</setProperty>
-
-				<to uri="direct:odoo-save-identifier" />
-			</otherwise>
-		</choice>
+			<to uri="direct:odoo-save-identifier" />
+		</when>
 
 		<setProperty name="attribute-type">
 			<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.productId.conceptAttribType.uuid}})}</simple>

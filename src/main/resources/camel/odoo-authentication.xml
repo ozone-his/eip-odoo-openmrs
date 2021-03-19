@@ -29,11 +29,11 @@
                 #{getProperty('auth-params').add({})}
             </spel>
         </script>
-        <setProperty name="odoo-user-id">
+        <setBody>
             <spel>
                 #{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), 'authenticate', getProperty('auth-params'))}
             </spel>
-        </setProperty>
+        </setBody>
 
         <when>
             <simple>${body} == false</simple>
