@@ -5,6 +5,14 @@
 
 		<log message="Processing new order.." loggingLevel="DEBUG" />
 
+		<setProperty name="id-type">
+			<simple>${camelContext.getRegistry().lookupByName("patientIdentifierTypeRepository").findByUuid({{openmrs.odoo.patientIdType.uuid}})}</simple>
+		</setProperty>
+
+		<log message="Odoo Identifier Type: ${exchangeProperty.id-type}" loggingLevel="DEBUG" />
+
+		<toD uri="sql:SELECT p.identifier FROM patient_identifier p WHERE p.patient_id = ${exchangeProperty.order-instance.patient.id} AND p.identifier_type = ${exchangeProperty.id-type.id} AND p.voided = 0?dataSource=openmrsDataSource" />
+
 		<choice>
 			<when>
 				<simple>${body.size()} == 1</simple>

@@ -29,27 +29,20 @@
 
 						<toD uri="direct:odoo-authentication" />
 
-                        <setProperty name="id-type">
-                            <simple>${camelContext.getRegistry().lookupByName("patientIdentifierTypeRepository").findByUuid({{openmrs.odoo.patientIdType.uuid}})}</simple>
-                        </setProperty>
-
-                        <log message="Odoo Identifier Type: ${exchangeProperty.id-type}" loggingLevel="DEBUG" />
-
-                        <toD uri="sql:SELECT p.identifier FROM patient_identifier p WHERE p.patient_id = ${exchangeProperty.order-instance.patient.id} AND p.identifier_type = ${exchangeProperty.id-type.id} AND p.voided = 0?dataSource=openmrsDataSource" />
-
-						<choice>
+                        <choice>
 							<when>
 								<simple>${exchangeProperty.order-instance.status} = 'NEW' || ${exchangeProperty.order-instance.status} == 'RENEW'</simple>
 								<to uri="direct:odoo-process-new-order" />
 							</when>
 							<when>
 								<simple>${exchangeProperty.order-instance.status} == 'REVISE'</simple>
+								<to uri="direct:odoo-process-revision-order" />
 							</when>
 							<when>
 								<simple>${exchangeProperty.order-instance.status} == 'DISCONTINUE'</simple>
 							</when>
 							<otherwise>
-								<log message="Don't know how to handle Order status: ${exchangeProperty.order-instance.status}" loggingLevel="WARN" />
+								<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order status: ${exchangeProperty.order-instance.status}" />
 							</otherwise>
 						</choice>
                     </when>

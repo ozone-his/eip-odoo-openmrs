@@ -1,0 +1,13 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+	<route id="odoo-process-revision-order" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:odoo-process-revision-order" />
+
+		<log message="Processing revision order.." loggingLevel="DEBUG" />
+
+		
+
+		<log message="Successfully processed revision order!" loggingLevel="DEBUG" />
+	</route>
+
+</routes>
