@@ -48,6 +48,43 @@
 							</setProperty>
 						</when>
 
+						<setProperty name="concept-id">
+							<simple>${exchangeProperty.order-instance.concept.id}</simple>
+						</setProperty>
+
+						<when>
+							<simple>${exchangeProperty.order-instance.action} == 'REVISE' || ${exchangeProperty.order-instance.action} == 'DISCONTINUE'</simple>
+							<setProperty name="concept-id">
+								<simple>${exchangeProperty.order-instance.previousOrder.concept.id}</simple>
+							</setProperty>
+						</when>
+
+						<setProperty name="attribute-type">
+							<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.productId.conceptAttribType.uuid}})}</simple>
+						</setProperty>
+
+						<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.concept-id} AND a.attribute_type_id = ${exchangeProperty.attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
+
+						<when>
+							<simple>${body.size()} == 0</simple>
+							<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Orderable concept has no value set for the matching odoo product id" />
+						</when>
+
+						<setProperty name="odoo-product-id">
+							<spel>#{T(java.lang.Integer).valueOf(body[0].get("value_reference"))}</spel>
+						</setProperty>
+
+						<setProperty name="is-drug-order">
+							<simple>${exchangeProperty.order-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
+						</setProperty>
+
+						<when>
+							<simple>${exchangeProperty.is-drug-order} == true</simple>
+							<setProperty name="order-quantity">
+								<simple>${exchangeProperty.order-instance.quantity}</simple>
+							</setProperty>
+						</when>
+
 						<choice>
 							<when>
 								<simple>${exchangeProperty.order-instance.action} == 'NEW' || ${exchangeProperty.order-instance.action} == 'RENEW'</simple>
@@ -55,7 +92,16 @@
 							</when>
 							<when>
 								<simple>${exchangeProperty.order-instance.action} == 'REVISE'</simple>
-								<to uri="direct:odoo-process-revision-order" />
+								<!-- There is nothing we can update about an order in odoo except quantity which only applies to drug orders -->
+								<choice>
+									<when>
+										<simple>${exchangeProperty.is-drug-order} == true</simple>
+										<to uri="direct:odoo-process-revision-order" />
+									</when>
+									<otherwise>
+										<log message="There is nothing to update in odoo about a non drug order" />
+									</otherwise>
+								</choice>
 							</when>
 							<when>
 								<simple>${exchangeProperty.order-instance.action} == 'DISCONTINUE'</simple>

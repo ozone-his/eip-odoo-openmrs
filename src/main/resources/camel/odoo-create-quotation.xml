@@ -21,7 +21,7 @@
 		</setProperty>
 		<script>
 			<spel>
-				#{getProperty('product-details').put('product_id', T(java.lang.Integer).valueOf(getProperty('odoo-product-id')))}
+				#{getProperty('product-details').put('product_id', getProperty('odoo-product-id'))}
 			</spel>
 		</script>
 

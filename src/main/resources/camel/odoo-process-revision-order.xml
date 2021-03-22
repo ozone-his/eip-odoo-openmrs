@@ -9,6 +9,49 @@
 
 		<log message="Found ${body.length} existing quotation(s) for the patient in Odoo" loggingLevel="DEBUG" />
 
+		<choice>
+			<when>
+				<simple>${body.length} > 1</simple>
+				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} existing quotation(s) for the same patient created by this system in odoo" />
+			</when>
+			<when>
+				<simple>${body.length} == 0</simple>
+				<!-- What happened to it? Possibly the original order was placed before this application was in use, Instantiate and create a new quotation -->
+			</when>
+			<otherwise>
+				<log message="Existing quotation id: ${body[0].get('id')}" loggingLevel="DEBUG" />
+				<setProperty name="quotation-id">
+					<spel>#{T(java.lang.Integer).valueOf(body[0].get('id'))}</spel>
+				</setProperty>
+				
+				<to uri="direct:odoo-get-order-line" />
+
+				<choice>
+					<when>
+						<simple>${body.length} > 1</simple>
+						<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) lines for the same product added to the quotation in odoo" />
+					</when>
+					<when>
+						<simple>${body.length} == 0</simple>
+						<log message="Adding orderable to the quotation" />
+					</when>
+					<otherwise>
+						<log message="Found existing order line in odoo on the quotation for orderable with qty: ${body[0].get('product_uom_qty')}" />
+						<choice>
+							<when>
+								<simple>${exchangeProperty.order-quantity} != ${body[0].get('product_uom_qty')}</simple>
+								<log message="Updating existing orderable qty to : ${exchangeProperty.order-quantity}" />
+							</when>
+							<otherwise>
+								<log message="Order quantity is the same as that in odoo, nothing to update" />
+							</otherwise>
+						</choice>
+					</otherwise>
+				</choice>
+
+			</otherwise>
+		</choice>
+
 		<log message="Successfully processed revision order" loggingLevel="DEBUG" />
 	</route>
 
