@@ -73,11 +73,13 @@
 						<setProperty name="odoo-product-id">
 							<spel>#{T(java.lang.Integer).valueOf(body[0].get("value_reference"))}</spel>
 						</setProperty>
-
-						<setProperty name="is-drug-order">
+						<when>
 							<simple>${exchangeProperty.order-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
-						</setProperty>
-
+							<setProperty name="is-drug-order">
+								<constant>true</constant>
+							</setProperty>
+						</when>
+						
 						<when>
 							<simple>${exchangeProperty.is-drug-order} == true</simple>
 							<setProperty name="order-quantity">
