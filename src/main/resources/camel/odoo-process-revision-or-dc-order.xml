@@ -85,7 +85,7 @@
 						<simple>unlink</simple>
 					</setProperty>
 
-					<to uri="direct:odoo-create-quotation" />
+					<to uri="direct:odoo-manage-quotation" />
 				</when>
 			</otherwise>
 		</choice>

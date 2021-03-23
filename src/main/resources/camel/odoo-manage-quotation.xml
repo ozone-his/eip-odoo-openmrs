@@ -1,7 +1,7 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
-	<route id="odoo-create-quotation" errorHandlerRef="watcherErrorHandler">
-		<from uri="direct:odoo-create-quotation" />
+	<route id="odoo-manage-quotation" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:odoo-manage-quotation" />
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
