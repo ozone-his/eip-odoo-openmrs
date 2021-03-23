@@ -3,7 +3,7 @@
 	<route id="odoo-process-revision-or-dc-order" errorHandlerRef="watcherErrorHandler">
 		<from uri="direct:odoo-process-revision-or-dc-order" />
 
-		<log message="Processing revision order.." loggingLevel="DEBUG" />
+		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
 		<to uri="direct:odoo-get-quotations" />
 
@@ -63,7 +63,7 @@
 			</otherwise>
 		</choice>
 
-		<log message="Successfully processed revision order" loggingLevel="DEBUG" />
+		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
 	</route>
 
 </routes>

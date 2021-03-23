@@ -3,7 +3,7 @@
     <route id="odoo-create-customer" errorHandlerRef="watcherErrorHandler">
         <from uri="direct:odoo-create-customer" />
 
-        <log message="Creating customer in odoo..." />
+		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
         <setProperty name="xmlrpc-client-config">
             <spel>#{new org.apache.xmlrpc.client.XmlRpcClientConfigImpl()}</spel>
@@ -43,7 +43,7 @@
 			</spel>
 		</setBody>
 
-        <log message="Successfully created customer in odoo" />
+		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
     </route>
 
 </routes>

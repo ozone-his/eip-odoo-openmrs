@@ -3,6 +3,7 @@
     <route id="odoo-authentication" errorHandlerRef="watcherErrorHandler">
         <from uri="direct:odoo-authentication" />
 
+		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
         <log message="Authenticating with odoo as {{odoo.username}} to database: {{odoo.database}}" />
 
         <!-- TODO Register the client, config and odo user id in a custom spring bean so that we don't create them each time-->
@@ -41,6 +42,8 @@
         </when>
 
         <log message="Successfully authenticated with odoo!" />
+
+		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
     </route>
 
 </routes>

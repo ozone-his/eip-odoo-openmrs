@@ -3,6 +3,8 @@
 	<route id="odoo-manage-order-line" errorHandlerRef="watcherErrorHandler">
 		<from uri="direct:odoo-manage-order-line" />
 
+		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
+
 		<choice>
 			<when>
 				<simple>${exchangeProperty.order-line-id} == null</simple>
@@ -97,7 +99,7 @@
 			</spel>
 		</setBody>
 
-		<log message="Successfully ${exchangeProperty.line-action-past} quantity for the order line in odoo" />
+		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
 	</route>
 
 </routes>

@@ -3,7 +3,7 @@
 	<route id="odoo-process-new-order" errorHandlerRef="watcherErrorHandler">
 		<from uri="direct:odoo-process-new-order" />
 
-		<log message="Processing new order.." loggingLevel="DEBUG" />
+		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
 		<when>
 			<simple>${exchangeProperty.patient-odoo-id} == null</simple>
@@ -24,7 +24,7 @@
 
 		<to uri="direct:odoo-create-quotation" />
 
-		<log message="Successfully processed new order" loggingLevel="DEBUG" />
+		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
 	</route>
 
 </routes>

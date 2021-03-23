@@ -3,7 +3,7 @@
 	<route id="odoo-get-order-line" errorHandlerRef="watcherErrorHandler">
 		<from uri="direct:odoo-get-order-line" />
 
-		<log message="Fetching order line for the orderable from odoo..." />
+		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
 		<setProperty name="xmlrpc-client-config">
 			<spel>#{new org.apache.xmlrpc.client.XmlRpcClientConfigImpl()}</spel>
@@ -48,7 +48,7 @@
 			</spel>
 		</setBody>
 
-		<log message="Successfully fetched order line for the orderable from odoo" />
+		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
 	</route>
 
 </routes>
