@@ -44,13 +44,13 @@
 				#{getProperty('order-line-details').add(getProperty('product-details'))}
 			</spel>
 		</script>
-		<setProperty name="quote-data">
+		<setProperty name="quotation-data">
 			<spel>#{new java.util.HashMap(3)}</spel>
 		</setProperty>
 		<script>
 			<spel>
-				#{getProperty('quote-data').put('partner_id', T(java.lang.Integer).valueOf(getProperty('patient-odoo-id')))}
-				#{getProperty('quote-data').put('order_line', T(java.util.Collections).singletonList(getProperty('order-line-details')))}
+				#{getProperty('quotation-data').put('partner_id', T(java.lang.Integer).valueOf(getProperty('patient-odoo-id')))}
+				#{getProperty('quotation-data').put('order_line', T(java.util.Collections).singletonList(getProperty('order-line-details')))}
 			</spel>
 		</script>
 		<setProperty name="create-quote-params">
@@ -63,7 +63,7 @@
 				#{getProperty('create-quote-params').add('{{odoo.password}}')}
 				#{getProperty('create-quote-params').add('sale.order')}
 				#{getProperty('create-quote-params').add('create')}
-				#{getProperty('create-quote-params').add(T(java.util.Collections).singletonList(getProperty('quote-data')))}
+				#{getProperty('create-quote-params').add(T(java.util.Collections).singletonList(getProperty('quotation-data')))}
 			</spel>
 		</script>
 		<setBody>
@@ -72,7 +72,7 @@
 			</spel>
 		</setBody>
 
-		<log message="Successfully created quote in odoo!" />
+		<log message="Successfully created quotation in odoo" />
 	</route>
 
 </routes>

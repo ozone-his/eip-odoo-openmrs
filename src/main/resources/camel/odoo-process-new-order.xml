@@ -24,7 +24,7 @@
 
 		<to uri="direct:odoo-create-quotation" />
 
-		<log message="Successfully processed new order!" loggingLevel="DEBUG" />
+		<log message="Successfully processed new order" loggingLevel="DEBUG" />
 	</route>
 
 </routes>

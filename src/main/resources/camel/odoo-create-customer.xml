@@ -43,7 +43,7 @@
 			</spel>
 		</setBody>
 
-        <log message="Successfully created customer in odoo!" />
+        <log message="Successfully created customer in odoo" />
     </route>
 
 </routes>

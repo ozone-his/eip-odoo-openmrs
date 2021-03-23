@@ -50,7 +50,7 @@
 			</spel>
 		</setBody>
 
-		<log message="Successfully got existing quotations in odoo!" />
+		<log message="Successfully got existing quotations in odoo" />
 	</route>
 
 </routes>
