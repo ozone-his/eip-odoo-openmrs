@@ -33,24 +33,36 @@
 					</when>
 					<when>
 						<simple>${body.length} == 0</simple>
+						<log message="No order line found on the quotation in odoo" loggingLevel="DEBUG" />
 
-						<log message="Adding order line to the quotation in odoo" />
+						<when>
+							<simple>${exchangeProperty.order-instance.action} == 'REVISE'</simple>
+							<log message="Adding new order line to the quotation" />
 
-						<to uri="direct:odoo-manage-order-line" />
+							<to uri="direct:odoo-manage-order-line" />
+						</when>
 					</when>
 					<otherwise>
-						<log message="Found existing order line in odoo on the quotation for orderable with qty: ${body[0].get('product_uom_qty')}" />
+						<log message="Found existing order line in odoo on the quotation for the orderable" />
 						<choice>
 							<when>
 								<simple>${exchangeProperty.order-quantity} != ${body[0].get('product_uom_qty')}</simple>
-								<log message="Updating existing orderable quantity to: ${exchangeProperty.order-quantity}" />
+								<log message="Orderable quantity changed from ${body[0].get('product_uom_qty')} to ${exchangeProperty.order-quantity}" />
+
+								<setProperty name="order-line-id">
+									<simple>${body[0].get('id')}</simple>
+								</setProperty>
+								
+								<to uri="direct:odoo-manage-order-line" />
+							</when>
+							<when>
+								<simple>${exchangeProperty.order-instance.action} == 'DISCONTINUE'</simple>
+								<log message="Removing order line from the quotation in odoo" />
 
 								<setProperty name="order-line-id">
 									<simple>${body[0].get('id')}</simple>
 								</setProperty>
 
-								<log message="Updating quantity for the order line in odoo" />
-								
 								<to uri="direct:odoo-manage-order-line" />
 							</when>
 							<otherwise>
