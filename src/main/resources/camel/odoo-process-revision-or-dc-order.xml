@@ -23,6 +23,11 @@
 				<setProperty name="quotation-id">
 					<spel>#{T(java.lang.Integer).valueOf(body[0].get('id'))}</spel>
 				</setProperty>
+				<setProperty name="order-line-count">
+					<spel>#{T(java.lang.Integer).valueOf(body[0].get('order_line').length)}</spel>
+				</setProperty>
+
+				<log message="Order line count on the quotation in odoo: ${exchangeProperty.order-line-count}" loggingLevel="DEBUG" />
 				
 				<to uri="direct:odoo-get-order-line" />
 
@@ -72,6 +77,16 @@
 					</otherwise>
 				</choice>
 
+				<when>
+					<simple>${exchangeProperty.order-instance.action} == 'DISCONTINUE' &amp;&amp; ${exchangeProperty.order-line-count} &lt; 2</simple>
+					<log message="Deleting the quotation because it has no more order lines left" />
+
+					<setProperty name="odoo-operation">
+						<simple>unlink</simple>
+					</setProperty>
+
+					<to uri="direct:odoo-create-quotation" />
+				</when>
 			</otherwise>
 		</choice>
 

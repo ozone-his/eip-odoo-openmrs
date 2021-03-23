@@ -16,43 +16,67 @@
 				#{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
 			</spel>
 		</script>
-		<setProperty name="product-details">
-			<spel>#{new java.util.HashMap(2)}</spel>
-		</setProperty>
-		<script>
-			<spel>
-				#{getProperty('product-details').put('product_id', getProperty('odoo-product-id'))}
-			</spel>
-		</script>
 
-		<when>
-			<simple>${exchangeProperty.order-quantity} != null</simple>
-			<script>
-				<spel>
-					#{getProperty('product-details').put('product_uom_qty', getProperty('order-quantity'))}
-				</spel>
-			</script>
-		</when>
+		<choice>
+			<when>
+				<simple>${exchangeProperty.odoo-operation} == 'create'</simple>
+				<setProperty name="line-action">
+					<simple>Updating</simple>
+				</setProperty>
+				<setProperty name="product-details">
+					<spel>#{new java.util.HashMap(2)}</spel>
+				</setProperty>
+				<script>
+					<spel>
+						#{getProperty('product-details').put('product_id', getProperty('odoo-product-id'))}
+					</spel>
+				</script>
 
-		<setProperty name="order-line-details">
-			<spel>#{new java.util.ArrayList(3)}</spel>
-		</setProperty>
-		<script>
-			<spel>
-				#{getProperty('order-line-details').add(0)}
-				#{getProperty('order-line-details').add('')}
-				#{getProperty('order-line-details').add(getProperty('product-details'))}
-			</spel>
-		</script>
-		<setProperty name="quotation-data">
-			<spel>#{new java.util.HashMap(3)}</spel>
-		</setProperty>
-		<script>
-			<spel>
-				#{getProperty('quotation-data').put('partner_id', T(java.lang.Integer).valueOf(getProperty('patient-odoo-id')))}
-				#{getProperty('quotation-data').put('order_line', T(java.util.Collections).singletonList(getProperty('order-line-details')))}
-			</spel>
-		</script>
+				<when>
+					<simple>${exchangeProperty.order-quantity} != null</simple>
+					<script>
+						<spel>
+							#{getProperty('product-details').put('product_uom_qty', getProperty('order-quantity'))}
+						</spel>
+					</script>
+				</when>
+
+				<setProperty name="order-line-details">
+					<spel>#{new java.util.ArrayList(3)}</spel>
+				</setProperty>
+				<script>
+					<spel>
+						#{getProperty('order-line-details').add(0)}
+						#{getProperty('order-line-details').add('')}
+						#{getProperty('order-line-details').add(getProperty('product-details'))}
+					</spel>
+				</script>
+				<setProperty name="quotation-data">
+					<spel>#{new java.util.HashMap(3)}</spel>
+				</setProperty>
+				<script>
+					<spel>
+						#{getProperty('quotation-data').put('partner_id', T(java.lang.Integer).valueOf(getProperty('patient-odoo-id')))}
+						#{getProperty('quotation-data').put('order_line', T(java.util.Collections).singletonList(getProperty('order-line-details')))}
+					</spel>
+				</script>
+			</when>
+			<when>
+				<simple>${exchangeProperty.odoo-operation} == 'unlink'</simple>
+				<setProperty name="line-action">
+					<simple>Removing</simple>
+				</setProperty>
+				<setProperty name="quotation-data">
+					<spel>#{new Object[]{getProperty('quotation-id')}}</spel>
+				</setProperty>
+			</when>
+			<otherwise>
+				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle odoo-operation: ${exchangeProperty.odoo-operation}" />
+			</otherwise>
+		</choice>
+
+		<log message="${exchangeProperty.line-action} the quotation in odoo..." />
+
 		<setProperty name="create-quote-params">
 			<spel>#{new java.util.ArrayList(6)}</spel>
 		</setProperty>
@@ -62,7 +86,7 @@
 				#{getProperty('create-quote-params').add(getProperty('odoo-user-id'))}
 				#{getProperty('create-quote-params').add('{{odoo.password}}')}
 				#{getProperty('create-quote-params').add('sale.order')}
-				#{getProperty('create-quote-params').add('create')}
+				#{getProperty('create-quote-params').add(getProperty('odoo-operation'))}
 				#{getProperty('create-quote-params').add(T(java.util.Collections).singletonList(getProperty('quotation-data')))}
 			</spel>
 		</script>

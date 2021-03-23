@@ -26,9 +26,6 @@
 				<setProperty name="line-action">
 					<simple>Adding</simple>
 				</setProperty>
-				<setProperty name="line-action-past">
-					<simple>added</simple>
-				</setProperty>
 			</when>
 			<otherwise>
 				<choice>
@@ -40,9 +37,6 @@
 						<setProperty name="line-action">
 							<simple>Updating</simple>
 						</setProperty>
-						<setProperty name="line-action-past">
-							<simple>updated</simple>
-						</setProperty>
 					</when>
 					<otherwise>
 						<setProperty name="odoo-operation">
@@ -50,9 +44,6 @@
 						</setProperty>
 						<setProperty name="line-action">
 							<simple>Removing</simple>
-						</setProperty>
-						<setProperty name="line-action-past">
-							<simple>removed</simple>
 						</setProperty>
 					</otherwise>
 				</choice>

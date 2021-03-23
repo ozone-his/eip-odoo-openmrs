@@ -22,6 +22,10 @@
 			<to uri="direct:odoo-save-identifier" />
 		</when>
 
+		<setProperty name="odoo-operation">
+			<simple>create</simple>
+		</setProperty>
+
 		<to uri="direct:odoo-create-quotation" />
 
 		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
