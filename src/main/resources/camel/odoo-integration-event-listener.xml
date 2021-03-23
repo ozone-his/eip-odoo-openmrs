@@ -76,7 +76,7 @@
 						<when>
 							<simple>${exchangeProperty.order-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
 							<setProperty name="is-drug-order">
-								<constant>true</constant>
+								<simple>true</simple>
 							</setProperty>
 						</when>
 						

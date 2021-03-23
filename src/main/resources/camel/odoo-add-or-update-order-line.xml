@@ -1,0 +1,103 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+	<route id="odoo-add-or-update-order-line" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:odoo-add-or-update-order-line" />
+
+		<choice>
+			<when>
+				<simple>${exchangeProperty.order-line-id} == null</simple>
+				<setProperty name="odoo-operation">
+					<simple>create</simple>
+				</setProperty>
+				<setProperty name="line-action">
+					<simple>Adding</simple>
+				</setProperty>
+				<setProperty name="line-action-past">
+					<simple>added</simple>
+				</setProperty>
+			</when>
+			<otherwise>
+				<setProperty name="odoo-operation">
+					<simple>write</simple>
+				</setProperty>
+				<setProperty name="line-action">
+					<simple>Updating</simple>
+				</setProperty>
+				<setProperty name="line-action-past">
+					<simple>updated</simple>
+				</setProperty>
+			</otherwise>
+		</choice>
+
+		<log message="${exchangeProperty.line-action} the order line in odoo..." />
+
+		<setProperty name="xmlrpc-client-config">
+			<spel>#{new org.apache.xmlrpc.client.XmlRpcClientConfigImpl()}</spel>
+		</setProperty>
+		<setProperty name="xmlrpc-client">
+			<spel>#{new org.apache.xmlrpc.client.XmlRpcClient()}</spel>
+		</setProperty>
+		<script>
+			<spel>
+				#{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
+			</spel>
+		</script>
+		<setProperty name="order-line-data">
+			<spel>#{new java.util.HashMap(3)}</spel>
+		</setProperty>
+		<script>
+			<spel>
+				#{getProperty('order-line-data').put('product_uom_qty', getProperty('order-quantity'))}
+			</spel>
+		</script>
+		<setProperty name="request-data">
+			<spel>#{new java.util.ArrayList(2)}</spel>
+		</setProperty>
+
+		<choice>
+			<when>
+				<simple>${exchangeProperty.order-line-id} == null</simple>
+				<script>
+					<spel>
+						#{getProperty('order-line-data').put('order_id', getProperty('quotation-id'))}
+						#{getProperty('order-line-data').put('product_id', getProperty('odoo-product-id'))}
+					</spel>
+				</script>
+			</when>
+			<otherwise>
+				<script>
+					<spel>
+						#{getProperty('request-data').add(new Object[]{getProperty('order-line-id')})}
+					</spel>
+				</script>
+			</otherwise>
+		</choice>
+
+		<script>
+			<spel>
+				#{getProperty('request-data').add(getProperty('order-line-data'))}
+			</spel>
+		</script>
+		<setProperty name="create-update-params">
+			<spel>#{new java.util.ArrayList()}</spel>
+		</setProperty>
+		<script>
+			<spel>
+				#{getProperty('create-update-params').add('{{odoo.database}}')}
+				#{getProperty('create-update-params').add(getProperty('odoo-user-id'))}
+				#{getProperty('create-update-params').add('{{odoo.password}}')}
+				#{getProperty('create-update-params').add('sale.order.line')}
+				#{getProperty('create-update-params').add(getProperty('odoo-operation'))}
+				#{getProperty('create-update-params').add(getProperty('request-data'))}
+			</spel>
+		</script>
+		<setBody>
+			<spel>
+				#{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), 'execute_kw', getProperty('create-update-params'))}
+			</spel>
+		</setBody>
+
+		<log message="Successfully ${exchangeProperty.line-action-past} quantity for the order line in odoo" />
+	</route>
+
+</routes>

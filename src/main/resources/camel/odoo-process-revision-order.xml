@@ -33,14 +33,25 @@
 					</when>
 					<when>
 						<simple>${body.length} == 0</simple>
-						<log message="Adding orderable to the quotation" />
+
+						<log message="Adding order line to the quotation in odoo" />
+
+						<to uri="direct:odoo-add-or-update-order-line" />
 					</when>
 					<otherwise>
 						<log message="Found existing order line in odoo on the quotation for orderable with qty: ${body[0].get('product_uom_qty')}" />
 						<choice>
 							<when>
 								<simple>${exchangeProperty.order-quantity} != ${body[0].get('product_uom_qty')}</simple>
-								<log message="Updating existing orderable qty to : ${exchangeProperty.order-quantity}" />
+								<log message="Updating existing orderable quantity to: ${exchangeProperty.order-quantity}" />
+
+								<setProperty name="order-line-id">
+									<simple>${body[0].get('id')}</simple>
+								</setProperty>
+
+								<log message="Updating quantity for the order line in odoo" />
+								
+								<to uri="direct:odoo-add-or-update-order-line" />
 							</when>
 							<otherwise>
 								<log message="Order quantity is the same as that in odoo, nothing to update" />
