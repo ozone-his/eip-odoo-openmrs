@@ -6,7 +6,7 @@
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
 		<when>
-			<simple>${exchangeProperty.order-instance.action} == 'NEW' || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
+			<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
 			<when>
 				<simple>${exchangeProperty.patient-odoo-id} == null</simple>
 				<to uri="direct:odoo-fetch-patient" />
@@ -37,7 +37,7 @@
 			<when>
 				<simple>${body.length} == 0</simple>
 				<when>
-					<simple>${exchangeProperty.order-instance.action} == 'NEW' || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
+					<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
 					<setProperty name="odoo-operation">
 						<simple>create</simple>
 					</setProperty>
@@ -75,27 +75,12 @@
 					<when>
 						<simple>${body.length} == 0</simple>
 						<log message="No order line found on the quotation in odoo" loggingLevel="DEBUG" />
-
-						<when>
-							<simple>${exchangeProperty.order-instance.action} == 'NEW' || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
-							<setProperty name="odoo-operation">
-								<simple>create</simple>
-							</setProperty>
-							
-							<log message="Adding new order line to the quotation" />
-
-							<to uri="direct:odoo-manage-order-line" />
-
-							<setProperty name="order-line-id">
-								<simple>${body}</simple>
-							</setProperty>
-						</when>
 					</when>
 					<otherwise>
 						<log message="Found existing order line in odoo on the quotation for the orderable" />
 
-						<setProperty name="order-line-id">
-							<simple>${body[0].get('id')}</simple>
+						<setProperty name="order-line">
+							<simple>${body[0]}</simple>
 						</setProperty>
 					</otherwise>
 				</choice>
@@ -104,25 +89,16 @@
 
 		<choice>
 			<when>
-				<simple>${exchangeProperty.order-instance.action} == 'NEW' || ${exchangeProperty.order-instance.action} == 'RENEW'</simple>
+				<simple>${exchangeProperty.is-new} == true</simple>
 				<to uri="direct:odoo-process-new-order" />
 			</when>
 			<when>
 				<simple>${exchangeProperty.order-instance.action} == 'REVISE'</simple>
-				<choice>
-					<when>
-						<simple>${exchangeProperty.is-drug-order} == true</simple>
-						<to uri="direct:odoo-process-revision-or-dc-order" />
-					</when>
-					<otherwise>
-						<!-- There is nothing we can update about an order in odoo except quantity which only applies to drug orders -->
-						<log message="There is nothing to update in odoo about a non drug order" />
-					</otherwise>
-				</choice>
+				<to uri="direct:odoo-process-revision-order" />
 			</when>
 			<when>
 				<simple>${exchangeProperty.order-instance.action} == 'DISCONTINUE'</simple>
-				<to uri="direct:odoo-process-revision-or-dc-order" />
+				<to uri="direct:odoo-process-discontinue-order" />
 			</when>
 			<otherwise>
 				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order action: ${exchangeProperty.order-instance.action}" />

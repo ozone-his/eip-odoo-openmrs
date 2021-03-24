@@ -6,16 +6,16 @@
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
 		<when>
-			<simple>${exchangeProperty.order-line-id} != null</simple>
+			<simple>${exchangeProperty.order-line} != null</simple>
 			<!-- TODO may be update the existing -->
 			<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="There is already an existing order line on the quotation for the same orderable in odoo" />
 		</when>
 
+		<log message="Adding new order line to the quotation" />
+
 		<setProperty name="odoo-operation">
 			<simple>create</simple>
 		</setProperty>
-
-		<log message="Adding new order line" />
 
 		<to uri="direct:odoo-manage-order-line" />
 
