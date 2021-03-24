@@ -18,14 +18,14 @@
 				<to uri="direct:odoo-create-customer" />
 
 				<setProperty name="patient-odoo-id">
-					<simple>${body}</simple>
+					<spel>#{T(java.lang.Integer).valueOf(body)}</spel>
 				</setProperty>
 
 				<to uri="direct:odoo-save-identifier" />
 			</when>
 		</when>
 		
-		<to uri="direct:odoo-get-quotations" />
+		<to uri="direct:odoo-get-draft-quotations" />
 
 		<log message="Found ${body.length} existing quotation(s) for the patient in Odoo" loggingLevel="DEBUG" />
 
