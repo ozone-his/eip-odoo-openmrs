@@ -59,6 +59,7 @@
 					<script>
 						<spel>
 							#{getProperty('order-line-data').put('product_uom_qty', getProperty('order-quantity'))}
+							#{getProperty('order-line-data').put('product_uom', getProperty('qty-units-id'))}
 						</spel>
 					</script>
 				</when>

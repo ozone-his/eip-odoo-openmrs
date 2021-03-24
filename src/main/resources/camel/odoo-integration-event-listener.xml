@@ -85,13 +85,6 @@
 							</setProperty>
 						</when>
 
-						<when>
-							<simple>${exchangeProperty.is-drug-order} == true</simple>
-							<setProperty name="order-quantity">
-								<simple>${exchangeProperty.order-instance.quantity}</simple>
-							</setProperty>
-						</when>
-
 						<to uri="direct:odoo-process-order" />
 					</when>
                     <otherwise>

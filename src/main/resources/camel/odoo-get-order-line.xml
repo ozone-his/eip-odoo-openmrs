@@ -26,7 +26,7 @@
 			<spel>#{new Object[]{new Object[]{getProperty('quotation-criterion'), getProperty('product-criterion')}}}</spel>
 		</setProperty>
 		<setProperty name="search-attributes">
-			<spel>#{T(java.util.Collections).singletonMap('fields', new Object[]{'id', 'product_uom_qty'})}</spel>
+			<spel>#{T(java.util.Collections).singletonMap('fields', new Object[]{'id', 'product_uom_qty', 'product_uom'})}</spel>
 		</setProperty>
 		<setProperty name="get-order-lines-params">
 			<spel>#{new java.util.ArrayList(6)}</spel>

@@ -89,12 +89,44 @@
 
 		<choice>
 			<when>
-				<simple>${exchangeProperty.is-new} == true</simple>
-				<to uri="direct:odoo-process-new-order" />
-			</when>
-			<when>
-				<simple>${exchangeProperty.order-instance.action} == 'REVISE'</simple>
-				<to uri="direct:odoo-process-revision-order" />
+				<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
+				<when>
+					<simple>${exchangeProperty.is-drug-order} == true</simple>
+
+					<setProperty name="order-quantity">
+						<simple>${exchangeProperty.order-instance.quantity}</simple>
+					</setProperty>
+
+					<when>
+						<simple>${exchangeProperty.order-quantity} != null</simple>
+						<setProperty name="units-attribute-type">
+							<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.qtyUnits.conceptAttribType.uuid}})}</simple>
+						</setProperty>
+
+						<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.order-instance.quantityUnits.id} AND a.attribute_type_id = ${exchangeProperty.units-attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
+
+						<when>
+							<simple>${body.size()} == 0</simple>
+							<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Quantity units concept has no value set for the matching odoo unit of measure" />
+						</when>
+
+						<setProperty name="qty-units-id">
+							<spel>#{T(java.lang.Integer).valueOf(body[0].get("value_reference"))}</spel>
+						</setProperty>
+
+						<log message="Mapped Odoo quantity units: {exchangeProperty.qty-units-id}" loggingLevel="DEBUG" />
+					</when>
+				</when>
+
+				<choice>
+					<when>
+						<simple>${exchangeProperty.is-new} == true</simple>
+						<to uri="direct:odoo-process-new-order" />
+					</when>
+					<otherwise>
+						<to uri="direct:odoo-process-revision-order" />
+					</otherwise>
+				</choice>
 			</when>
 			<when>
 				<simple>${exchangeProperty.order-instance.action} == 'DISCONTINUE'</simple>
