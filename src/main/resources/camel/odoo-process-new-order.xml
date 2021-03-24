@@ -6,27 +6,15 @@
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
 		<when>
-			<simple>${exchangeProperty.patient-odoo-id} == null</simple>
-			<to uri="direct:odoo-fetch-patient" />
-
-			<setProperty name="patient-name">
-				<jsonpath>$.person.display</jsonpath>
-			</setProperty>
-
-			<to uri="direct:odoo-create-customer" />
-
-			<setProperty name="patient-odoo-id">
-				<simple>${body}</simple>
-			</setProperty>
-
-			<to uri="direct:odoo-save-identifier" />
+			<simple>${exchangeProperty.order-line-id} != null</simple>
+			<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="There is already an existing order line on the quotation for the same orderable in odoo" />
 		</when>
 
 		<setProperty name="odoo-operation">
 			<simple>create</simple>
 		</setProperty>
 
-		<to uri="direct:odoo-manage-quotation" />
+		<to uri="direct:odoo-manage-order-line" />
 
 		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
 	</route>

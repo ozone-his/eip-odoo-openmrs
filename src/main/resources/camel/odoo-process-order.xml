@@ -1,0 +1,100 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+	<route id="odoo-process-order" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:odoo-process-order" />
+
+		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
+
+		<when>
+			<simple>${exchangeProperty.order-instance.action} == 'NEW' || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
+			<when>
+				<simple>${exchangeProperty.patient-odoo-id} == null</simple>
+				<to uri="direct:odoo-fetch-patient" />
+
+				<setProperty name="patient-name">
+					<jsonpath>$.person.display</jsonpath>
+				</setProperty>
+
+				<to uri="direct:odoo-create-customer" />
+
+				<setProperty name="patient-odoo-id">
+					<simple>${body}</simple>
+				</setProperty>
+
+				<to uri="direct:odoo-save-identifier" />
+			</when>
+		</when>
+		
+		<to uri="direct:odoo-get-quotations" />
+
+		<log message="Found ${body.length} existing quotation(s) for the patient in Odoo" loggingLevel="DEBUG" />
+
+		<choice>
+			<when>
+				<simple>${body.length} > 1</simple>
+				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} existing quotation(s) for the same patient created by this system in odoo" />
+			</when>
+			<when>
+				<simple>${body.length} == 0</simple>
+				<when>
+					<simple>${exchangeProperty.order-instance.action} == 'NEW' || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
+					<setProperty name="odoo-operation">
+						<simple>create</simple>
+					</setProperty>
+
+					<log message="Creating new quotation" />
+
+					<to uri="direct:odoo-manage-quotation" />
+
+					<setProperty name="quotation-id">
+						<simple>${body}</simple>
+					</setProperty>
+					<setProperty name="order-line-count">
+						<simple>0</simple>
+					</setProperty>
+				</when>
+			</when>
+			<otherwise>
+				<log message="Existing quotation id: ${body[0].get('id')}" loggingLevel="DEBUG" />
+				<setProperty name="quotation-id">
+					<spel>#{T(java.lang.Integer).valueOf(body[0].get('id'))}</spel>
+				</setProperty>
+				<setProperty name="order-line-count">
+					<spel>#{T(java.lang.Integer).valueOf(body[0].get('order_line').length)}</spel>
+				</setProperty>
+
+				<log message="Order line count on the existing quotation in odoo: ${exchangeProperty.order-line-count}" loggingLevel="DEBUG" />
+			</otherwise>
+		</choice>
+
+		<choice>
+			<when>
+				<simple>${exchangeProperty.order-instance.action} == 'NEW' || ${exchangeProperty.order-instance.action} == 'RENEW'</simple>
+				<to uri="direct:odoo-process-new-order" />
+			</when>
+			<when>
+				<simple>${exchangeProperty.order-instance.action} == 'REVISE'</simple>
+				<choice>
+					<when>
+						<simple>${exchangeProperty.is-drug-order} == true</simple>
+						<to uri="direct:odoo-process-revision-or-dc-order" />
+					</when>
+					<otherwise>
+						<!-- There is nothing we can update about an order in odoo except quantity which only applies to drug orders -->
+						<log message="There is nothing to update in odoo about a non drug order" />
+					</otherwise>
+				</choice>
+			</when>
+			<when>
+				<simple>${exchangeProperty.order-instance.action} == 'DISCONTINUE'</simple>
+				<to uri="direct:odoo-process-revision-or-dc-order" />
+			</when>
+			<otherwise>
+				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order action: ${exchangeProperty.order-instance.action}" />
+			</otherwise>
+		</choice>
+
+		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
+	</route>
+
+</routes>

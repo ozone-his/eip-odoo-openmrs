@@ -44,8 +44,10 @@
 						<when>
 							<simple>${body.size()} == 1</simple>
 							<setProperty name="patient-odoo-id">
-								<simple>${body[0].get("identifier")}</simple>
+								<spel>#{T(java.lang.Integer).valueOf(body[0].get("identifier"))}</spel>
 							</setProperty>
+
+							<log message="Patient already exists in odoo" />
 						</when>
 
 						<setProperty name="concept-id">
@@ -87,33 +89,8 @@
 							</setProperty>
 						</when>
 
-						<choice>
-							<when>
-								<simple>${exchangeProperty.order-instance.action} == 'NEW' || ${exchangeProperty.order-instance.action} == 'RENEW'</simple>
-								<to uri="direct:odoo-process-new-order" />
-							</when>
-							<when>
-								<simple>${exchangeProperty.order-instance.action} == 'REVISE'</simple>
-								<choice>
-									<when>
-										<simple>${exchangeProperty.is-drug-order} == true</simple>
-										<to uri="direct:odoo-process-revision-or-dc-order" />
-									</when>
-									<otherwise>
-										<!-- There is nothing we can update about an order in odoo except quantity which only applies to drug orders -->
-										<log message="There is nothing to update in odoo about a non drug order" />
-									</otherwise>
-								</choice>
-							</when>
-							<when>
-								<simple>${exchangeProperty.order-instance.action} == 'DISCONTINUE'</simple>
-								<to uri="direct:odoo-process-revision-or-dc-order" />
-							</when>
-							<otherwise>
-								<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order action: ${exchangeProperty.order-instance.action}" />
-							</otherwise>
-						</choice>
-                    </when>
+						<to uri="direct:odoo-process-order" />
+					</when>
                     <otherwise>
                         <log message="No Order found with uuid: ${exchangeProperty.event.identifier}" loggingLevel="WARN" />
                     </otherwise>
