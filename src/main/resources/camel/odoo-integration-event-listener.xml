@@ -76,16 +76,16 @@
 							<spel>#{T(java.lang.Integer).valueOf(body[0].get("value_reference"))}</spel>
 						</setProperty>
 						<when>
-							<simple>${exchangeProperty.order-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
+							<simple>${exchangeProperty.order-instance} is 'org.openmrs.eip.component.entity.Order'</simple>
 							<setProperty name="is-drug-order">
 								<simple>true</simple>
 							</setProperty>
 						</when>
-						
+
 						<when>
-							<simple>${exchangeProperty.is-drug-order} == true</simple>
+							<simple>${exchangeProperty.is-drug-order} == true &amp;&amp; ${exchangeProperty.order-instance.quantity} != null</simple>
 							<setProperty name="order-quantity">
-								<simple>${exchangeProperty.order-instance.quantity}</simple>
+								<spel>#{T(java.lang.Double).valueOf(exchangeProperty.order-instance.quantity)}</spel>
 							</setProperty>
 						</when>
 
