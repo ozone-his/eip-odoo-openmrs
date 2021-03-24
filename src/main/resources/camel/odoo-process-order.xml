@@ -64,6 +64,41 @@
 				</setProperty>
 
 				<log message="Order line count on the existing quotation in odoo: ${exchangeProperty.order-line-count}" loggingLevel="DEBUG" />
+
+				<to uri="direct:odoo-get-order-line" />
+
+				<choice>
+					<when>
+						<simple>${body.length} > 1</simple>
+						<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) lines for the same product added to the quotation in odoo" />
+					</when>
+					<when>
+						<simple>${body.length} == 0</simple>
+						<log message="No order line found on the quotation in odoo" loggingLevel="DEBUG" />
+
+						<when>
+							<simple>${exchangeProperty.order-instance.action} == 'NEW' || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
+							<setProperty name="odoo-operation">
+								<simple>create</simple>
+							</setProperty>
+							
+							<log message="Adding new order line to the quotation" />
+
+							<to uri="direct:odoo-manage-order-line" />
+
+							<setProperty name="order-line-id">
+								<simple>${body}</simple>
+							</setProperty>
+						</when>
+					</when>
+					<otherwise>
+						<log message="Found existing order line in odoo on the quotation for the orderable" />
+
+						<setProperty name="order-line-id">
+							<simple>${body[0].get('id')}</simple>
+						</setProperty>
+					</otherwise>
+				</choice>
 			</otherwise>
 		</choice>
 

@@ -83,9 +83,9 @@
 						</when>
 
 						<when>
-							<simple>${exchangeProperty.is-drug-order} == true &amp;&amp; ${exchangeProperty.order-instance.quantity} != null</simple>
+							<simple>${exchangeProperty.is-drug-order} == true</simple>
 							<setProperty name="order-quantity">
-								<spel>#{T(java.lang.Double).valueOf(exchangeProperty.order-instance.quantity)}</spel>
+								<simple>${exchangeProperty.order-instance.quantity}</simple>
 							</setProperty>
 						</when>
 

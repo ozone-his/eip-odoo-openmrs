@@ -7,12 +7,15 @@
 
 		<when>
 			<simple>${exchangeProperty.order-line-id} != null</simple>
+			<!-- TODO may be update the existing -->
 			<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="There is already an existing order line on the quotation for the same orderable in odoo" />
 		</when>
 
 		<setProperty name="odoo-operation">
 			<simple>create</simple>
 		</setProperty>
+
+		<log message="Adding new order line" />
 
 		<to uri="direct:odoo-manage-order-line" />
 
