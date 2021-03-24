@@ -27,12 +27,12 @@
 		
 		<to uri="direct:odoo-get-draft-quotations" />
 
-		<log message="Found ${body.length} existing quotation(s) for the patient in Odoo" loggingLevel="DEBUG" />
+		<log message="Found ${body.length} existing draft quotation(s) for the patient in Odoo" loggingLevel="DEBUG" />
 
 		<choice>
 			<when>
 				<simple>${body.length} > 1</simple>
-				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} existing quotation(s) for the same patient created by this system in odoo" />
+				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} existing draft quotation(s) for the same patient created by this system in odoo" />
 			</when>
 			<when>
 				<simple>${body.length} == 0</simple>
@@ -55,7 +55,7 @@
 				</when>
 			</when>
 			<otherwise>
-				<log message="Existing quotation id: ${body[0].get('id')}" loggingLevel="DEBUG" />
+				<log message="Existing draft quotation id: ${body[0].get('id')}" loggingLevel="DEBUG" />
 				<setProperty name="quotation-id">
 					<spel>#{T(java.lang.Integer).valueOf(body[0].get('id'))}</spel>
 				</setProperty>
@@ -63,21 +63,21 @@
 					<spel>#{T(java.lang.Integer).valueOf(body[0].get('order_line').length)}</spel>
 				</setProperty>
 
-				<log message="Order line count on the existing quotation in odoo: ${exchangeProperty.order-line-count}" loggingLevel="DEBUG" />
+				<log message="Order line count on the existing draft quotation in odoo: ${exchangeProperty.order-line-count}" loggingLevel="DEBUG" />
 
 				<to uri="direct:odoo-get-order-line" />
 
 				<choice>
 					<when>
 						<simple>${body.length} > 1</simple>
-						<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) lines for the same product added to the quotation in odoo" />
+						<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) lines for the same product added to the draft quotation in odoo" />
 					</when>
 					<when>
 						<simple>${body.length} == 0</simple>
-						<log message="No order line found on the quotation in odoo" loggingLevel="DEBUG" />
+						<log message="No order line found on the draft quotation in odoo" loggingLevel="DEBUG" />
 					</when>
 					<otherwise>
-						<log message="Found existing order line in odoo on the quotation for the orderable" />
+						<log message="Found existing order line in odoo on the draft quotation for the orderable" />
 
 						<setProperty name="order-line">
 							<simple>${body[0]}</simple>
