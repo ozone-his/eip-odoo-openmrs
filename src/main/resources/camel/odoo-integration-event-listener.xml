@@ -5,94 +5,77 @@
 
         <log message="Received DB event: ${exchangeProperty.event}" loggingLevel="TRACE" />
 
-        <when>
-            <simple>${exchangeProperty.event.snapshot} == false &amp;&amp; ${exchangeProperty.event.operation} == 'c'</simple>
-            <when>
-                <simple>${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.event.tableName} == 'test_order' || ${exchangeProperty.event.tableName} == 'drug_order'</simple>
+		<setProperty name="tables-repo-map">
+			<spel>#{new java.util.HashMap(6)}</spel>
+		</setProperty>
 
-                <log message="Received Order event: ${exchangeProperty.event}" loggingLevel="DEBUG" />
+		<script>
+			<spel>
+				#{getProperty('tables-repo-map').put('orders', 'orderRepository')}
+				#{getProperty('tables-repo-map').put('test_order', 'orderRepository')}
+				#{getProperty('tables-repo-map').put('drug_order', 'orderRepository')}
+				#{getProperty('tables-repo-map').put('patient', 'patientRepository')}
+				#{getProperty('tables-repo-map').put('person_name', 'personNameRepository')}
+				#{getProperty('tables-repo-map').put('person_address', 'personAddressRepository')}
+			</spel>
+		</script>
+		
+		<when>
+			<spel>#{getProperty('tables-repo-map').containsKey(getProperty('event').tableName)} == true</spel>
+			
+			<log message="Loading entity from DB..." loggingLevel="DEBUG" />
 
-                <log message="Loading Order from DB..." loggingLevel="DEBUG" />
+			<setBody>
+				<spel>#{exchange.context.registry.lookupByName(getProperty("tables-repo-map").get(getProperty('event').tableName)).findByUuid(getProperty('event').identifier)}</spel>
+			</setBody>
 
-                <setBody>
-                    <simple>${camelContext.getRegistry().lookupByName("orderRepository").findByUuid(${exchangeProperty.event.identifier})}</simple>
-                </setBody>
-                
-                <log message="Loaded Order -> ${body}" loggingLevel="DEBUG" />
+			<log message="Loaded entity -> ${body}" loggingLevel="DEBUG" />
 
-                <choice>
-                    <when>
-                        <simple>${body} != null</simple>
-                        <setProperty name="order-instance">
-                            <simple>${body}</simple>
-                        </setProperty>
-						<setProperty name="is-new">
-							<spel>#{body.action == 'NEW' || body.action == 'RENEW'}</spel>
-						</setProperty>
-						
-						<toD uri="direct:odoo-authentication" />
+			<choice>
+				<when>
+					<simple>${body} != null</simple>
+					<setProperty name="order-instance">
+						<simple>${body}</simple>
+					</setProperty>
 
-						<setProperty name="odoo-user-id">
-							<simple>${body}</simple>
-						</setProperty>
+					<toD uri="direct:odoo-authentication" />
 
-						<setProperty name="id-type">
-							<simple>${camelContext.getRegistry().lookupByName("patientIdentifierTypeRepository").findByUuid({{openmrs.odoo.patientIdType.uuid}})}</simple>
-						</setProperty>
+					<setProperty name="odoo-user-id">
+						<simple>${body}</simple>
+					</setProperty>
 
-						<log message="Odoo Identifier Type: ${exchangeProperty.id-type}" loggingLevel="DEBUG" />
-
-						<toD uri="sql:SELECT p.identifier FROM patient_identifier p WHERE p.patient_id = ${exchangeProperty.order-instance.patient.id} AND p.identifier_type = ${exchangeProperty.id-type.id} AND p.voided = 0?dataSource=openmrsDataSource" />
-
+					<choice>
 						<when>
-							<simple>${body.size()} == 1</simple>
-							<setProperty name="patient-odoo-id">
-								<spel>#{T(java.lang.Integer).valueOf(body[0].get("identifier"))}</spel>
-							</setProperty>
+							<simple>${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.event.tableName} == 'test_order' || ${exchangeProperty.event.tableName} == 'drug_order'</simple>
+							<log message="Processing Order" loggingLevel="DEBUG" />
 
-							<log message="Patient exists in odoo" />
+							<to uri="direct:odoo-order-handler" />
 						</when>
-
-						<setProperty name="concept-id">
-							<simple>${exchangeProperty.order-instance.concept.id}</simple>
-						</setProperty>
-
 						<when>
-							<simple>${exchangeProperty.order-instance.action} == 'REVISE' || ${exchangeProperty.order-instance.action} == 'DISCONTINUE'</simple>
-							<setProperty name="concept-id">
-								<simple>${exchangeProperty.order-instance.previousOrder.concept.id}</simple>
-							</setProperty>
+							<simple>${exchangeProperty.event.tableName} == 'patient'</simple>
+							<log message="Processing Patient" loggingLevel="DEBUG" />
+
+							<!-- TODO -->
 						</when>
-
-						<setProperty name="attribute-type">
-							<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.productId.conceptAttribType.uuid}})}</simple>
-						</setProperty>
-
-						<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.concept-id} AND a.attribute_type_id = ${exchangeProperty.attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
-
 						<when>
-							<simple>${body.size()} == 0</simple>
-							<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Orderable concept has no value set for the matching odoo product id" />
-						</when>
+							<simple>${exchangeProperty.event.tableName} == 'person_name'</simple>
+							<log message="Processing Person Name" loggingLevel="DEBUG" />
 
-						<setProperty name="odoo-product-id">
-							<spel>#{T(java.lang.Integer).valueOf(body[0].get("value_reference"))}</spel>
-						</setProperty>
+							<!-- TODO -->
+						</when>
 						<when>
-							<simple>${exchangeProperty.order-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
-							<setProperty name="is-drug-order">
-								<simple>true</simple>
-							</setProperty>
-						</when>
+							<simple>${exchangeProperty.event.tableName} == 'person_address'</simple>
+							<log message="Processing Person Address" loggingLevel="DEBUG" />
 
-						<to uri="direct:odoo-process-order" />
-					</when>
-                    <otherwise>
-                        <log message="No Order found with uuid: ${exchangeProperty.event.identifier}" loggingLevel="WARN" />
-                    </otherwise>
-                </choice>
-            </when>
-        </when>
+							<!-- TODO -->
+						</when>
+					</choice>
+				</when>
+				<otherwise>
+					<log message="No entity found with uuid: ${exchangeProperty.event.identifier}" loggingLevel="WARN" />
+				</otherwise>
+			</choice>
+		</when>
     </route>
 
 </routes>
