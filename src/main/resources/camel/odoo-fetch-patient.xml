@@ -9,7 +9,7 @@
 			<simple>${null}</simple>
 		</setBody>
 
-		<toD uri="{{openmrs.baseUrl}}/ws/rest/v1/patient/${exchangeProperty.order-instance.patient.uuid}?httpMethod=GET&amp;authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}" />
+		<toD uri="{{openmrs.baseUrl}}/ws/rest/v1/patient/${exchangeProperty.entity-instance.patient.uuid}?httpMethod=GET&amp;authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}" />
 
 		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
 	</route>

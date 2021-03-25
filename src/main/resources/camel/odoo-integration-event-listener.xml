@@ -34,7 +34,7 @@
 			<choice>
 				<when>
 					<simple>${body} != null</simple>
-					<setProperty name="order-instance">
+					<setProperty name="entity-instance">
 						<simple>${body}</simple>
 					</setProperty>
 

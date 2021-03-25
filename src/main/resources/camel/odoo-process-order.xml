@@ -6,7 +6,7 @@
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
 		<when>
-			<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
+			<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
 			<when>
 				<simple>${exchangeProperty.patient-odoo-id} == null</simple>
 				<to uri="direct:odoo-fetch-patient" />
@@ -37,7 +37,7 @@
 			<when>
 				<simple>${body.length} == 0</simple>
 				<when>
-					<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
+					<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
 					<setProperty name="odoo-operation">
 						<simple>create</simple>
 					</setProperty>
@@ -89,12 +89,12 @@
 
 		<choice>
 			<when>
-				<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.order-instance.action} == 'REVISE'</simple>
+				<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
 				<when>
 					<simple>${exchangeProperty.is-drug-order} == true</simple>
 
 					<setProperty name="order-quantity">
-						<simple>${exchangeProperty.order-instance.quantity}</simple>
+						<simple>${exchangeProperty.entity-instance.quantity}</simple>
 					</setProperty>
 
 					<when>
@@ -103,7 +103,7 @@
 							<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.qtyUnits.conceptAttribType.uuid}})}</simple>
 						</setProperty>
 
-						<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.order-instance.quantityUnits.id} AND a.attribute_type_id = ${exchangeProperty.units-attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
+						<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.entity-instance.quantityUnits.id} AND a.attribute_type_id = ${exchangeProperty.units-attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
 
 						<when>
 							<simple>${body.size()} == 0</simple>
@@ -129,11 +129,11 @@
 				</choice>
 			</when>
 			<when>
-				<simple>${exchangeProperty.order-instance.action} == 'DISCONTINUE'</simple>
+				<simple>${exchangeProperty.entity-instance.action} == 'DISCONTINUE'</simple>
 				<to uri="direct:odoo-process-discontinue-order" />
 			</when>
 			<otherwise>
-				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order action: ${exchangeProperty.order-instance.action}" />
+				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order action: ${exchangeProperty.entity-instance.action}" />
 			</otherwise>
 		</choice>
 

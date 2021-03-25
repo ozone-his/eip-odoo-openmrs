@@ -9,7 +9,7 @@
 			<simple>{"identifier": "${exchangeProperty.patient-odoo-id}", "identifierType": "{{openmrs.odoo.patientIdType.uuid}}"}</simple>
 		</setBody>
 
-		<toD uri="{{openmrs.baseUrl}}/ws/rest/v1/patient/${exchangeProperty.order-instance.patient.uuid}/identifier?authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}" />
+		<toD uri="{{openmrs.baseUrl}}/ws/rest/v1/patient/${exchangeProperty.entity-instance.patient.uuid}/identifier?authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}" />
 
 		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
 	</route>
