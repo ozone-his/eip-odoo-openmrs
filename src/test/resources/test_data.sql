@@ -35,17 +35,23 @@ VALUES  (1, 1, 1, '2020-03-05 00:00:00', 1, '2020-03-05 00:00:00', 0, '5ade95d0-
 INSERT INTO concept_datatype (name,creator,date_created,retired,uuid)
 VALUES  ('N/A', 1, '2020-03-05 00:00:00', 0, '4e6dcb16-d43e-46bb-b6bf-7088b9b82139');
 
-INSERT INTO concept_class (name,creator,date_created,retired,uuid)
-VALUES  ('Cd4 Count', 1, '2020-03-05 00:00:00', 0, 'f4464518-f5e2-4aab-a54e-1f1a2ec6d431');
+INSERT INTO concept_class (concept_class_id,name,creator,date_created,retired,uuid)
+VALUES  (1, 'Finding', 1, '2020-03-05 00:00:00', 0, 'f4464518-f5e2-4aab-a54e-1f1a2ec6d431'),
+        (2, 'Units Of Measure', 1, '2020-03-05 00:00:00', 0, 'e30d8601-07f8-413a-9d11-cdfbb28196ec');
 
-INSERT INTO concept_attribute_type (name,min_occurs,creator,date_created,retired,uuid)
-VALUES  ('Odoo Product Id', 0, 1, '2020-03-05 00:00:00', 0, 'a4464534-f5e2-4aab-a54e-1f1a2ec6d445');
+INSERT INTO concept_attribute_type (concept_attribute_type_id,name,min_occurs,creator,date_created,retired,uuid)
+VALUES  (1, 'Odoo Product Id', 0, 1, '2020-03-05 00:00:00', 0, 'a4464534-f5e2-4aab-a54e-1f1a2ec6d445'),
+        (2, 'Odoo Units Id', 0, 1, '2020-03-05 00:00:00', 0, 'b4464534-f5e2-4aab-a54e-1f1a2ec6d445');
 
-INSERT INTO concept (datatype_id,class_id,is_set,creator,date_created,retired,uuid)
-VALUES  (1, 1, 0, 1, '2020-03-05 00:00:00', 0, '945584a3-6c4a-4cb5-ba66-964aa9614239');
+INSERT INTO concept (concept_id,datatype_id,class_id,is_set,creator,date_created,retired,uuid)
+VALUES  (1, 1, 1, 0, 1, '2020-03-05 00:00:00', 0, '945584a3-6c4a-4cb5-ba66-964aa9614239'),
+        (2, 1, 2, 0, 1, '2020-03-05 00:00:00', 0, '845584a3-6c4a-4cb5-ba66-964aa9614239'),
+        (3, 1, 2, 0, 1, '2020-03-05 00:00:00', 0, '745584a3-6c4a-4cb5-ba66-964aa9614239');
 
-INSERT INTO concept_attribute (concept_id,attribute_type_id,value_reference,creator,date_created,voided,uuid)
-VALUES  (1, 1, '6', 1, '2020-03-05 00:00:00', 0, '156584a3-6c4a-4cb5-bb66-964aa9614221');
+INSERT INTO concept_attribute (concept_attribute_id,concept_id,attribute_type_id,value_reference,creator,date_created,voided,uuid)
+VALUES  (1, 1, 1, '6', 1, '2020-03-05 00:00:00', 0, '156584a3-6c4a-4cb5-bb66-964aa9614221'),
+        (2, 2, 2, '2', 1, '2020-03-05 00:00:00', 0, '256584a3-6c4a-4cb5-bb66-964aa9614221'), -- Dozens
+        (3, 3, 2, '1', 1, '2020-03-05 00:00:00', 0, '356584a3-6c4a-4cb5-bb66-964aa9614221');  -- Units
 
 INSERT INTO provider (creator,date_created,retired,uuid)
 VALUES  (1, '2020-03-05 00:00:00', 0, '675584a3-6c4a-4cb5-ea66-964aa9614239');
@@ -53,6 +59,15 @@ VALUES  (1, '2020-03-05 00:00:00', 0, '675584a3-6c4a-4cb5-ea66-964aa9614239');
 INSERT INTO order_type (name,java_class_name,creator,date_created,retired,uuid)
 VALUES  ('Test Order', 'org.openmrs.TestOrder', 1, '2020-03-05 00:00:00', 0, '2e93d0cc-6534-48ed-bebc-4aeeda9471a5');
 
-INSERT INTO orders (order_id,order_type_id,patient_id,encounter_id,concept_id,urgency,order_number,order_action,care_setting,orderer,creator,date_activated,date_created,voided,uuid)
-VALUES  (1, 1, 1, 1, 1, 'NO-URGENCY', 'ORD-1','NEW', 1, 1, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '06170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
-        (2, 1, 2, 2, 1, 'NO-URGENCY', 'ORD-1','NEW', 1, 1, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '16170d8e-d201-4d94-ae89-0be0b0b6d8ba');
+INSERT INTO orders (order_id,order_type_id,patient_id,encounter_id,concept_id,urgency,order_number,order_action,care_setting,orderer,previous_order_id,creator,date_activated,date_created,voided,uuid)
+VALUES  (1, 1, 1, 1, 1, 'NO-URGENCY', 'ORD-1','NEW', 1, 1, null, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '16170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
+        (2, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-1','NEW', 1, 1, null, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '26170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
+        (3, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-1','REVISE', 1, 1, 2, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '36170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
+        (4, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-1','DISCONTINUE', 1, 1, 3, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '46170d8e-d201-4d94-ae89-0be0b0b6d8ba');
+
+INSERT INTO test_order (order_id)
+VALUES  (1);
+
+INSERT INTO drug_order (order_id,dispense_as_written,quantity,quantity_units)
+VALUES  (2, 0, 2.0, 2),
+        (3, 0, 3.0, 3);
