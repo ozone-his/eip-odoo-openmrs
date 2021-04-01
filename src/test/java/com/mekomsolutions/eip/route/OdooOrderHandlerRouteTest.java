@@ -3,11 +3,12 @@ package com.mekomsolutions.eip.route;
 import static com.mekomsolutions.eip.route.TestConstants.EX_PROP_ODOO_ID;
 import static com.mekomsolutions.eip.route.TestConstants.EX_PROP_ODOO_USER_ID;
 import static com.mekomsolutions.eip.route.TestConstants.LISTENER_URI;
-import static com.mekomsolutions.eip.route.TestConstants.ODOO_BASE_URL;
 import static com.mekomsolutions.eip.route.TestConstants.ODOO_ID_TYPE_UUID;
 import static com.mekomsolutions.eip.route.TestConstants.ODOO_PRODUCT_CONCEPT_ATTRIB_TYPE_UUID;
 import static com.mekomsolutions.eip.route.TestConstants.ODOO_QTY_UNITS_CONCEPT_ATTRIB_TYPE_UUID;
+import static com.mekomsolutions.eip.route.TestConstants.URI_ODOO_AUTH;
 import static com.mekomsolutions.eip.route.TestConstants.URI_ODOO_CREATE_CUSTOMER;
+import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
 import static org.openmrs.eip.mysql.watcher.WatcherTestConstants.URI_MOCK_ERROR_HANDLER;
 
 import org.apache.camel.EndpointInject;
@@ -25,7 +26,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 
-@TestPropertySource(properties = TestConstants.PROP_ODOO_BASE_URL + "=" + ODOO_BASE_URL)
 @TestPropertySource(properties = TestConstants.PROP_ODOO_ID_TYPE_UUID + "=" + ODOO_ID_TYPE_UUID)
 @TestPropertySource(properties = TestConstants.PROP_ODOO_PRODUCT_CONCEPT_ATTRIB_TYPE_UUID + "=" + ODOO_PRODUCT_CONCEPT_ATTRIB_TYPE_UUID)
 @TestPropertySource(properties = TestConstants.PROP_ODOO_QTY_UNITS_CONCEPT_ATTRIB_TYPE_UUID + "=" + ODOO_QTY_UNITS_CONCEPT_ATTRIB_TYPE_UUID)
@@ -34,16 +34,13 @@ import org.springframework.test.context.jdbc.SqlConfig;
         "classpath:test_data.sql" }, config = @SqlConfig(dataSource = "openmrsDataSource", transactionManager = "openmrsTransactionManager"))
 public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 	
-	private static final String ROUTE_ID = "odoo-event-listener";
+	private static final String ROUTE_ID = "odoo-order-handler";
 	
 	private static final String TABLE_NAME = "orders";
 	
 	private static final String ORDER_UUID_1 = "16170d8e-d201-4d94-ae89-0be0b0b6d8ba";
 	
 	private static final String ORDER_UUID_2 = "26170d8e-d201-4d94-ae89-0be0b0b6d8ba";
-	
-	@EndpointInject(URI_MOCK_ERROR_HANDLER)
-	private MockEndpoint mockErrorHandlerEndpoint;
 	
 	@EndpointInject("mock:odoo-auth")
 	private MockEndpoint mockOdooAuthEndpoint;
@@ -84,7 +81,7 @@ public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 	
 	@Test
 	public void shouldAuthenticateWithOdooAndCreateTheCustomerWithNoOdooId() throws Exception {
-		/*advise(ROUTE_ID, new AdviceWithRouteBuilder() {
+		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
 			@Override
 			public void configure() {
@@ -92,18 +89,18 @@ public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 				interceptSendToEndpoint(URI_ODOO_CREATE_CUSTOMER).skipSendToOriginalEndpoint()
 				        .to(mockCreateCustomerEndpoint);
 			}
-		});*/
-		//"26170d8e-d201-4d94-ae89-0be0b0b6d8ba"    ORDER_UUID_2
+		});
+
 		Event event = createEvent(TABLE_NAME, "1", "26170d8e-d201-4d94-ae89-0be0b0b6d8ba", "c");
-		//mockErrorHandlerEndpoint.expectedMessageCount(0);
-		//mockOdooAuthEndpoint.expectedMessageCount(1);
-		//mockCreateCustomerEndpoint.expectedMessageCount(1);
+		mockErrorHandlerEndpoint.expectedMessageCount(0);
+		mockOdooAuthEndpoint.expectedMessageCount(1);
+		mockCreateCustomerEndpoint.expectedMessageCount(1);
 		
 		producerTemplate.sendBodyAndProperty(LISTENER_URI, null, PROP_EVENT, event);
 		
-		//mockOdooAuthEndpoint.assertIsSatisfied();
-		//mockCreateCustomerEndpoint.assertIsSatisfied();
-		//mockErrorHandlerEndpoint.assertIsSatisfied();
+		mockOdooAuthEndpoint.assertIsSatisfied();
+		mockCreateCustomerEndpoint.assertIsSatisfied();
+		mockErrorHandlerEndpoint.assertIsSatisfied();
 	}
 	
 	@Test
