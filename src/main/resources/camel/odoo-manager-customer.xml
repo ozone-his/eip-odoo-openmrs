@@ -33,7 +33,7 @@
 				#{getProperty('create-params').add(getProperty('odoo-user-id'))}
 				#{getProperty('create-params').add('{{odoo.password}}')}
 				#{getProperty('create-params').add('res.partner')}
-				#{getProperty('create-params').add('create')}
+				#{getProperty('create-params').add(getProperty('odoo-operation'))}
 				#{getProperty('create-params').add(T(java.util.Collections).singletonList(getProperty('patient-data')))}
 			</spel>
         </script>

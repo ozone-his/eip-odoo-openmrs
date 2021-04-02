@@ -60,13 +60,13 @@
                             <simple>${exchangeProperty.event.tableName} == 'person_name'</simple>
                             <log message="Processing Person Name" loggingLevel="DEBUG" />
 
-                            <!-- TODO -->
+                            <to uri="direct:odoo-person-name-handler" />
                         </when>
                         <when>
                             <simple>${exchangeProperty.event.tableName} == 'person_address'</simple>
                             <log message="Processing Person Address" loggingLevel="DEBUG" />
 
-                            <!-- TODO -->
+                            <to uri="direct:odoo-person-address-handler" />
                         </when>
                     </choice>
                 </when>

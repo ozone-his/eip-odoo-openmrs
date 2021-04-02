@@ -14,6 +14,9 @@
 				<setProperty name="patient-name">
 					<jsonpath>$.person.display</jsonpath>
 				</setProperty>
+                <setProperty name="odoo-operation">
+                    <simple>create</simple>
+                </setProperty>
 
 				<to uri="direct:odoo-manager-customer" />
 
