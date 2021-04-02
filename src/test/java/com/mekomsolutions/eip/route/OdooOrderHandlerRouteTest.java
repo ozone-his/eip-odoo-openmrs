@@ -9,7 +9,6 @@ import static com.mekomsolutions.eip.route.TestConstants.ODOO_QTY_UNITS_CONCEPT_
 import static com.mekomsolutions.eip.route.TestConstants.URI_ODOO_AUTH;
 import static com.mekomsolutions.eip.route.TestConstants.URI_ODOO_CREATE_CUSTOMER;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
-import static org.openmrs.eip.mysql.watcher.WatcherTestConstants.URI_MOCK_ERROR_HANDLER;
 
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;

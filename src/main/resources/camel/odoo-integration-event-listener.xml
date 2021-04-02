@@ -3,7 +3,7 @@
     <route id="odoo-event-listener" errorHandlerRef="watcherErrorHandler">
         <from uri="direct:odoo-event-listener" />
 
-        <log message="Received DB event: ${exchangeProperty.event}" loggingLevel="TRACE" />
+        <log message="Received DB event: ${exchangeProperty.event}" loggingLevel="DEBUG" />
 
 		<setProperty name="tables-repo-map">
 			<spel>#{new java.util.HashMap(6)}</spel>
@@ -21,63 +21,59 @@
 		</script>
 
         <when>
-            <simple>${exchangeProperty.event.snapshot} == false</simple>
-            <when>
-                <spel>#{getProperty('tables-repo-map').containsKey(getProperty('event').tableName)} == true</spel>
+            <simple>${exchangeProperty.event.snapshot} == false || ${exchangeProperty.tables-repo-map.containsKey(exchangeProperty.event.tableName)} == true</simple>
+            <log message="Loading entity from DB..." loggingLevel="DEBUG" />
 
-                <log message="Loading entity from DB..." loggingLevel="DEBUG" />
+            <setBody>
+                <spel>#{exchange.context.registry.lookupByName(getProperty("tables-repo-map").get(getProperty('event').tableName)).findByUuid(getProperty('event').identifier)}</spel>
+            </setBody>
 
-                <setBody>
-                    <spel>#{exchange.context.registry.lookupByName(getProperty("tables-repo-map").get(getProperty('event').tableName)).findByUuid(getProperty('event').identifier)}</spel>
-                </setBody>
+            <log message="Loaded entity -> ${body}" loggingLevel="DEBUG" />
 
-                <log message="Loaded entity -> ${body}" loggingLevel="DEBUG" />
+            <choice>
+                <when>
+                    <simple>${body} != null</simple>
+                    <setProperty name="entity-instance">
+                        <simple>${body}</simple>
+                    </setProperty>
 
-                <choice>
-                    <when>
-                        <simple>${body} != null</simple>
-                        <setProperty name="entity-instance">
-                            <simple>${body}</simple>
-                        </setProperty>
+                    <toD uri="direct:odoo-authentication" />
 
-                        <toD uri="direct:odoo-authentication" />
+                    <setProperty name="odoo-user-id">
+                        <simple>${body}</simple>
+                    </setProperty>
 
-                        <setProperty name="odoo-user-id">
-                            <simple>${body}</simple>
-                        </setProperty>
+                    <choice>
+                        <when>
+                            <simple>${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.event.tableName} == 'test_order' || ${exchangeProperty.event.tableName} == 'drug_order'</simple>
+                            <log message="Processing Order" loggingLevel="DEBUG" />
 
-                        <choice>
-                            <when>
-                                <simple>${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.event.tableName} == 'test_order' || ${exchangeProperty.event.tableName} == 'drug_order'</simple>
-                                <log message="Processing Order" loggingLevel="DEBUG" />
+                            <to uri="direct:odoo-order-handler" />
+                        </when>
+                        <when>
+                            <simple>${exchangeProperty.event.tableName} == 'patient'</simple>
+                            <log message="Processing Patient" loggingLevel="DEBUG" />
 
-                                <to uri="direct:odoo-order-handler" />
-                            </when>
-                            <when>
-                                <simple>${exchangeProperty.event.tableName} == 'patient'</simple>
-                                <log message="Processing Patient" loggingLevel="DEBUG" />
+                            <!-- TODO -->
+                        </when>
+                        <when>
+                            <simple>${exchangeProperty.event.tableName} == 'person_name'</simple>
+                            <log message="Processing Person Name" loggingLevel="DEBUG" />
 
-                                <!-- TODO -->
-                            </when>
-                            <when>
-                                <simple>${exchangeProperty.event.tableName} == 'person_name'</simple>
-                                <log message="Processing Person Name" loggingLevel="DEBUG" />
+                            <!-- TODO -->
+                        </when>
+                        <when>
+                            <simple>${exchangeProperty.event.tableName} == 'person_address'</simple>
+                            <log message="Processing Person Address" loggingLevel="DEBUG" />
 
-                                <!-- TODO -->
-                            </when>
-                            <when>
-                                <simple>${exchangeProperty.event.tableName} == 'person_address'</simple>
-                                <log message="Processing Person Address" loggingLevel="DEBUG" />
-
-                                <!-- TODO -->
-                            </when>
-                        </choice>
-                    </when>
-                    <otherwise>
-                        <log message="No entity found with uuid: ${exchangeProperty.event.identifier}" loggingLevel="WARN" />
-                    </otherwise>
-                </choice>
-            </when>
+                            <!-- TODO -->
+                        </when>
+                    </choice>
+                </when>
+                <otherwise>
+                    <log message="No entity found with uuid: ${exchangeProperty.event.identifier}" loggingLevel="WARN" />
+                </otherwise>
+            </choice>
         </when>
         
     </route>

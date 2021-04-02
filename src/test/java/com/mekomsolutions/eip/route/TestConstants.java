@@ -11,6 +11,10 @@ public class TestConstants {
 	public static final String EX_PROP_ODOO_ID = "odoo-id";
 	
 	public static final String EX_PROP_ODOO_USER_ID = "odoo-user-id";
+
+    public static final String EX_PROP_TABLE_REPO_MAP = "tables-repo-map";
+
+    public static final String EX_PROP_ENTITY = "entity-instance";
 	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	

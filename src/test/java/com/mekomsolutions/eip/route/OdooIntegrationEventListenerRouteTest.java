@@ -1,10 +1,16 @@
 package com.mekomsolutions.eip.route;
 
+import static com.mekomsolutions.eip.route.TestConstants.EX_PROP_ENTITY;
+import static com.mekomsolutions.eip.route.TestConstants.EX_PROP_TABLE_REPO_MAP;
 import static com.mekomsolutions.eip.route.TestConstants.LISTENER_URI;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
 
 import org.apache.camel.EndpointInject;
+import org.apache.camel.Exchange;
 import org.apache.camel.component.mock.MockEndpoint;
+import org.apache.camel.support.DefaultExchange;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.eip.mysql.watcher.Event;
@@ -51,28 +57,27 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 	public void shouldSkipSnapshotEvents() throws Exception {
 		Event event = createEvent("orders", "1", "some-uuid", "c");
 		event.setSnapshot(true);
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
 		
-		producerTemplate.sendBodyAndProperty(LISTENER_URI, null, PROP_EVENT, event);
+		producerTemplate.send(LISTENER_URI, exchange);
 		
 		mockErrorHandlerEndpoint.assertIsSatisfied();
+		assertNotNull(exchange.getProperty(EX_PROP_TABLE_REPO_MAP));
+		assertNull(exchange.getProperty(EX_PROP_ENTITY));
 	}
 	
 	@Test
 	public void shouldSkipNonMonitoredTables() throws Exception {
 		Event event = createEvent("visit", "1", "some_uuid", "c");
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
 		
-		producerTemplate.sendBodyAndProperty(LISTENER_URI, null, PROP_EVENT, event);
-		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
-	}
-	
-	@Test
-	public void shouldCallTheErrorHandlerInCaseOfErrors() throws Exception {
-		mockErrorHandlerEndpoint.expectedMessageCount(1);
-		
-		producerTemplate.sendBodyAndProperty(LISTENER_URI, null, PROP_EVENT, null);
+		producerTemplate.send(LISTENER_URI, exchange);
 		
 		mockErrorHandlerEndpoint.assertIsSatisfied();
+		assertNotNull(exchange.getProperty(EX_PROP_TABLE_REPO_MAP));
+		assertNull(exchange.getProperty(EX_PROP_ENTITY));
 	}
 	
 }
