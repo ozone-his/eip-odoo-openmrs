@@ -9,16 +9,8 @@
 			<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
 			<when>
 				<simple>${exchangeProperty.patient-odoo-id} == null</simple>
-				<to uri="direct:odoo-fetch-patient" />
 
-				<setProperty name="patient-name">
-					<jsonpath>$.person.display</jsonpath>
-				</setProperty>
-                <setProperty name="odoo-operation">
-                    <simple>create</simple>
-                </setProperty>
-
-				<to uri="direct:odoo-manager-customer" />
+                <to uri="direct:odoo-patient-handler" />
 
 				<setProperty name="patient-odoo-id">
 					<spel>#{T(java.lang.Integer).valueOf(body)}</spel>

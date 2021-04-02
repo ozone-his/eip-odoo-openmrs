@@ -1,0 +1,45 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+	<route id="odoo-get-customer" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:odoo-get-customer" />
+
+		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
+
+		<setProperty name="xmlrpc-client-config">
+			<spel>#{new org.apache.xmlrpc.client.XmlRpcClientConfigImpl()}</spel>
+		</setProperty>
+		<setProperty name="xmlrpc-client">
+			<spel>#{new org.apache.xmlrpc.client.XmlRpcClient()}</spel>
+		</setProperty>
+		<script>
+			<spel>
+				#{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
+			</spel>
+		</script>
+
+		<setProperty name="search-query">
+			<spel>#{new Object[]{new Object[]{new Object[]{'client_ref', '=', getProperty('entity-instance').uuid}}}}</spel>
+		</setProperty>
+		<setProperty name="get-quotation-params">
+			<spel>#{new java.util.ArrayList(6)}</spel>
+		</setProperty>
+		<script>
+			<spel>
+				#{getProperty('get-quotation-params').add('{{odoo.database}}')}
+				#{getProperty('get-quotation-params').add(getProperty('odoo-user-id'))}
+				#{getProperty('get-quotation-params').add('{{odoo.password}}')}
+				#{getProperty('get-quotation-params').add('res.partner')}
+				#{getProperty('get-quotation-params').add('search')}
+				#{getProperty('get-quotation-params').add(getProperty('search-query'))}
+			</spel>
+		</script>
+		<setBody>
+			<spel>
+				#{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), 'execute_kw', getProperty('get-quotation-params'))}
+			</spel>
+		</setBody>
+
+		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
+	</route>
+
+</routes>
