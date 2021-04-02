@@ -15,7 +15,7 @@
 					<jsonpath>$.person.display</jsonpath>
 				</setProperty>
 
-				<to uri="direct:odoo-create-customer" />
+				<to uri="direct:odoo-manager-customer" />
 
 				<setProperty name="patient-odoo-id">
 					<spel>#{T(java.lang.Integer).valueOf(body)}</spel>
