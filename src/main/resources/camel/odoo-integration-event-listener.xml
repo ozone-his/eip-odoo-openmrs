@@ -58,7 +58,21 @@
                         </when>
                         <when>
                             <simple>${exchangeProperty.event.tableName} == 'person_name' || ${exchangeProperty.event.tableName} == 'person_address'</simple>
-                            <log message="Processing Person Name/Address" loggingLevel="DEBUG" />
+                            <choice>
+                                <when>
+                                    <simple>${exchangeProperty.event.tableName} == 'person_name'</simple>
+                                    <setProperty name="patientAssociationName">
+                                        <simple>Person Name</simple>
+                                    </setProperty>
+                                </when>
+                                <otherwise>
+                                    <setProperty name="patientAssociationName">
+                                        <simple>Person Address</simple>
+                                    </setProperty>
+                                </otherwise>
+                            </choice>
+
+                            <log message="Processing ${exchangeProperty.patientAssociationName}" loggingLevel="DEBUG" />
 
                             <to uri="direct:odoo-person-name-and-address-handler" />
                         </when>

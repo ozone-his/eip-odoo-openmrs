@@ -5,7 +5,7 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
-        <log message="Loading associated patient from DB..." loggingLevel="DEBUG" />
+        <log message="Loading patient associated to the ${exchangeProperty.patientAssociationName} from DB..." loggingLevel="DEBUG" />
 
         <setBody>
             <simple>
