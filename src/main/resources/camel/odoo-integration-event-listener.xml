@@ -54,7 +54,7 @@
                             <simple>${exchangeProperty.event.tableName} == 'patient'</simple>
                             <log message="Processing Patient" loggingLevel="DEBUG" />
 
-                            <!-- TODO -->
+                            <to uri="direct:odoo-patient-handler" />
                         </when>
                         <when>
                             <simple>${exchangeProperty.event.tableName} == 'person_name'</simple>
