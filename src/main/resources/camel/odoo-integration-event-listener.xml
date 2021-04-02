@@ -57,16 +57,10 @@
                             <to uri="direct:odoo-patient-handler" />
                         </when>
                         <when>
-                            <simple>${exchangeProperty.event.tableName} == 'person_name'</simple>
-                            <log message="Processing Person Name" loggingLevel="DEBUG" />
+                            <simple>${exchangeProperty.event.tableName} == 'person_name' || ${exchangeProperty.event.tableName} == 'person_address'</simple>
+                            <log message="Processing Person Name/Address" loggingLevel="DEBUG" />
 
-                            <to uri="direct:odoo-person-name-handler" />
-                        </when>
-                        <when>
-                            <simple>${exchangeProperty.event.tableName} == 'person_address'</simple>
-                            <log message="Processing Person Address" loggingLevel="DEBUG" />
-
-                            <to uri="direct:odoo-person-address-handler" />
+                            <to uri="direct:odoo-person-name-and-address-handler" />
                         </when>
                     </choice>
                 </when>
