@@ -15,7 +15,7 @@
 		</script>
 
 		<setProperty name="searchQuery">
-			<spel>#{new Object[]{new Object[]{new Object[]{'ref', '=', getProperty('entity-instance').uuid}}}}</spel>
+			<spel>#{new Object[]{new Object[]{new Object[]{'ref', '=', getProperty('patient').uuid}}}}</spel>
 		</setProperty>
 		<setProperty name="getQuotationParams">
 			<spel>#{new java.util.ArrayList(6)}</spel>

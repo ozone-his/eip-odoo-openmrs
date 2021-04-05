@@ -8,7 +8,7 @@
         <when>
             <simple>${exchangeProperty.event.tableName} == 'patient'</simple>
             <setProperty name="isPatientVoidedOrDeleted">
-                <simple>${exchangeProperty.entity-instance.patientVoided} == true || ${exchangeProperty.event.operation} == 'd'</simple>
+                <simple>${exchangeProperty.patient.patientVoided} == true || ${exchangeProperty.event.operation} == 'd'</simple>
             </setProperty>
         </when>
 
@@ -46,10 +46,24 @@
                         <log message="Creating customer in odoo" />
 
                         <to uri="direct:odoo-manage-customer" />
+                        
+                        <setProperty name="patient-odoo-id">
+                            <simple>${body}</simple>
+                        </setProperty>
                     </otherwise>
                 </choice>
             </when>
+            <when>
+                <simple>${body.length} > 1</simple>
+                <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) existing customers in odoo with ref: ${exchangeProperty.patient.uuid}" />
+            </when>
             <otherwise>
+                <log message="Patient exists in odoo with id: ${body[0]}" />
+                
+                <setProperty name="patient-odoo-id">
+                    <simple>${body[0]}</simple>
+                </setProperty>
+
                 <choice>
                     <when>
                         <simple>${exchangeProperty.isPatientVoidedOrDeleted} == true</simple>
@@ -66,7 +80,7 @@
                     </otherwise>
                 </choice>
 
-                <to uri="direct:odoo-manage-customer" />
+                <!--TODO <to uri="direct:odoo-manage-customer" />-->
             </otherwise>
         </choice>
 

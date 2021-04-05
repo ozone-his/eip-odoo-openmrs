@@ -14,8 +14,7 @@ VALUES  (1, 1, '2020-03-05 00:00:00', 0, 'Unknown'),
         (2, 1, '2020-03-05 00:00:00', 0, 'Unknown');
 
 INSERT INTO patient_identifier_type (patient_identifier_type_id,name,required,check_digit,creator,date_created,retired,uuid)
-VALUES  (1, 'OpenMRS Id', 0, 0, 1, '2020-03-05 00:00:00', 0, '6e93d0cc-6534-48ed-bebc-4beeda9471a5'),
-        (2, 'Odoo Identifier', 0, 0, 1, '2020-03-05 00:00:00', 0, '7e93d0cc-6534-48ed-bebc-4beeda9471a5');
+VALUES  (1, 'OpenMRS Id', 0, 0, 1, '2020-03-05 00:00:00', 0, '6e93d0cc-6534-48ed-bebc-4beeda9471a5');
 
 
 INSERT INTO patient_identifier (patient_identifier_id,patient_id,identifier,identifier_type,preferred,creator,date_created,voided,uuid)

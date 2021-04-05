@@ -7,15 +7,11 @@
 
 		<when>
 			<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
-			<when>
-				<simple>${exchangeProperty.patient-odoo-id} == null</simple>
-
-                <to uri="direct:odoo-patient-handler" />
-
-				<setProperty name="patient-odoo-id">
-					<spel>#{T(java.lang.Integer).valueOf(body)}</spel>
-				</setProperty>
-			</when>
+            <setProperty name="patient">
+                <simple>${exchangeProperty.entity-instance.patient}</simple>
+            </setProperty>
+            
+            <to uri="direct:odoo-patient-handler" />
 		</when>
 		
 		<to uri="direct:odoo-get-draft-quotations" />
