@@ -22,6 +22,7 @@
 
         <when>
             <simple>${exchangeProperty.event.snapshot} == false || ${exchangeProperty.tables-repo-map.containsKey(exchangeProperty.event.tableName)} == true</simple>
+            <log message="Processing event..." />
             <log message="Loading entity from DB..." loggingLevel="DEBUG" />
 
             <setBody>
@@ -77,6 +78,8 @@
                             <to uri="direct:odoo-person-name-and-address-handler" />
                         </when>
                     </choice>
+
+                    <log message="Done processing event!" />
                 </when>
                 <otherwise>
                     <log message="No entity found with uuid: ${exchangeProperty.event.identifier}" loggingLevel="WARN" />

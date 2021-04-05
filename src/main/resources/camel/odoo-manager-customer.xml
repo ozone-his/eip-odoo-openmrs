@@ -1,7 +1,7 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
     <route id="odoo-manager-customer" errorHandlerRef="watcherErrorHandler">
-        <from uri="direct:odoo-manager-customer" />
+        <from uri="direct:odoo-manage-customer" />
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 

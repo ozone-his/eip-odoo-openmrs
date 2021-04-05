@@ -2,7 +2,7 @@ INSERT INTO users (user_id,person_id,system_id,creator,date_created,retired,uuid
 VALUES  (1, 1, 'admin', 1, '2020-03-05 00:00:00', 1, '2b2636af-6b8c-4c6f-ad23-c5709c50fd40');
 
 INSERT INTO person (person_id,gender,dead,birthdate_estimated,deathdate_estimated,creator,date_created,voided,uuid)
-VALUES  (1, 'M', 0, 0, 0, 1, '2020-03-05 00:00:00', 0,'1d93d0cc-6534-48ed-bebc-4accda9471a5'),
+VALUES  (1, 'M', 0, 0, 0, 1, '2020-03-05 00:00:00', 0,'ba3b12d1-5c4f-415f-871b-b98a22137604'),
         (2, 'F', 0, 0, 0, 1, '2020-03-05 00:00:00', 0,'2d93d0cc-6534-48ed-bebc-4accda9471a5');
 
 INSERT INTO person_name (person_name_id,person_id,given_name,family_name,preferred,creator,date_created,voided,uuid)
@@ -19,7 +19,7 @@ VALUES  (1, 'OpenMRS Id', 0, 0, 1, '2020-03-05 00:00:00', 0, '6e93d0cc-6534-48ed
 
 
 INSERT INTO patient_identifier (patient_identifier_id,patient_id,identifier,identifier_type,preferred,creator,date_created,voided,uuid)
-VALUES  (1, 1, '12345', 2, 1, 1, '2020-03-05 00:00:00', 0, '128bcfc0-360a-44a5-9539-e8718cd6e4d8'),
+VALUES  (1, 1, '12345', 1, 1, 1, '2020-03-05 00:00:00', 0, '128bcfc0-360a-44a5-9539-e8718cd6e4d8'),
         (2, 2, 'QWERT', 1, 1, 1, '2020-03-05 00:00:00', 0, '228bcfc0-360a-44a5-9539-e8718cd6e4d8');
 
 INSERT INTO care_setting (care_setting_id,name,care_setting_type,creator,date_created,retired,uuid)

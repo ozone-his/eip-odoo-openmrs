@@ -15,8 +15,6 @@
 				<setProperty name="patient-odoo-id">
 					<spel>#{T(java.lang.Integer).valueOf(body)}</spel>
 				</setProperty>
-
-				<to uri="direct:odoo-save-identifier" />
 			</when>
 		</when>
 		

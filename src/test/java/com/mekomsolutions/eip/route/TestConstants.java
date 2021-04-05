@@ -22,8 +22,8 @@ public class TestConstants {
 	
 	public static final String ODOO_BASE_URL = "http://odoo.com";
 	
-	public static final String ODOO_ID_TYPE_UUID = "a5d38e09-efcb-4d91-a526-50ce1ba5011a";
-	
+	public static final String ODOO_ID_TYPE_UUID = "7e93d0cc-6534-48ed-bebc-4beeda9471a5";
+
 	public static final String ODOO_PRODUCT_CONCEPT_ATTRIB_TYPE_UUID = "a4464534-f5e2-4aab-a54e-1f1a2ec6d445";
 	
 	public static final String ODOO_QTY_UNITS_CONCEPT_ATTRIB_TYPE_UUID = "b4464534-f5e2-4aab-a54e-1f1a2ec6d445";
