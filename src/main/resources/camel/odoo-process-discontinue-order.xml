@@ -9,9 +9,12 @@
 			<simple>unlink</simple>
 		</setProperty>
 
-		<log message="Removing order line from the quotation in odoo" />
+        <when>
+            <simple>${exchangeProperty.order-line} != null</simple>
+		    <log message="Removing order line from the quotation in odoo" />
 
-		<to uri="direct:odoo-manage-order-line" />
+		    <to uri="direct:odoo-manage-order-line" />
+        </when>
 
 		<when>
 			<simple>${exchangeProperty.order-line-count} &lt; 2</simple>

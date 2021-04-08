@@ -5,14 +5,11 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
-		<when>
-			<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
-            <setProperty name="patient">
-                <simple>${exchangeProperty.entity-instance.patient}</simple>
-            </setProperty>
-            
-            <to uri="direct:odoo-patient-handler" />
-		</when>
+        <setProperty name="patient">
+            <simple>${exchangeProperty.entity-instance.patient}</simple>
+        </setProperty>
+
+        <to uri="direct:odoo-patient-handler" />
 		
 		<to uri="direct:odoo-get-draft-quotations" />
 
@@ -103,7 +100,7 @@
 							<spel>#{T(java.lang.Integer).valueOf(body[0].get("value_reference"))}</spel>
 						</setProperty>
 
-						<log message="Mapped Odoo quantity units: {exchangeProperty.qty-units-id}" loggingLevel="DEBUG" />
+						<log message="Mapped Odoo quantity units: ${exchangeProperty.qty-units-id}" loggingLevel="DEBUG" />
 					</when>
 				</when>
 
