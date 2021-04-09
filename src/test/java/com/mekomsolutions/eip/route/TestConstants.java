@@ -2,7 +2,7 @@ package com.mekomsolutions.eip.route;
 
 public class TestConstants {
 	
-	public static final String PROP_ODOO_PRODUCT_CONCEPT_ATTRIB_TYPE_UUID = "openmrs.odoo.productId.conceptAttribType.uuid";
+	public static final String PROP_ODOO_PRODUCT_CONCEPT_ATTRIB_TYPE_UUID = "openmrs.odoo.productRef.conceptAttribType.uuid";
 	
 	public static final String PROP_ODOO_QTY_UNITS_CONCEPT_ATTRIB_TYPE_UUID = "openmrs.odoo.qtyUnits.conceptAttribType.uuid";
 	

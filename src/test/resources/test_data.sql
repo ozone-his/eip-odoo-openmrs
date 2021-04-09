@@ -39,7 +39,7 @@ VALUES  (1, 'Finding', 1, '2020-03-05 00:00:00', 0, 'f4464518-f5e2-4aab-a54e-1f1
         (2, 'Units Of Measure', 1, '2020-03-05 00:00:00', 0, 'e30d8601-07f8-413a-9d11-cdfbb28196ec');
 
 INSERT INTO concept_attribute_type (concept_attribute_type_id,name,min_occurs,creator,date_created,retired,uuid)
-VALUES  (1, 'Odoo Product Id', 0, 1, '2020-03-05 00:00:00', 0, 'a4464534-f5e2-4aab-a54e-1f1a2ec6d445'),
+VALUES  (1, 'Odoo Product Internal Ref', 0, 1, '2020-03-05 00:00:00', 0, 'a4464534-f5e2-4aab-a54e-1f1a2ec6d445'),
         (2, 'Odoo Units Id', 0, 1, '2020-03-05 00:00:00', 0, 'b4464534-f5e2-4aab-a54e-1f1a2ec6d445');
 
 INSERT INTO concept (concept_id,datatype_id,class_id,is_set,creator,date_created,retired,uuid)
@@ -48,7 +48,7 @@ VALUES  (1, 1, 1, 0, 1, '2020-03-05 00:00:00', 0, '945584a3-6c4a-4cb5-ba66-964aa
         (3, 1, 2, 0, 1, '2020-03-05 00:00:00', 0, '745584a3-6c4a-4cb5-ba66-964aa9614239');
 
 INSERT INTO concept_attribute (concept_attribute_id,concept_id,attribute_type_id,value_reference,creator,date_created,voided,uuid)
-VALUES  (1, 1, 1, '6', 1, '2020-03-05 00:00:00', 0, '156584a3-6c4a-4cb5-bb66-964aa9614221'),
+VALUES  (1, 1, 1, 'FURN_8888', 1, '2020-03-05 00:00:00', 0, '156584a3-6c4a-4cb5-bb66-964aa9614221'),
         (2, 2, 2, '2', 1, '2020-03-05 00:00:00', 0, '256584a3-6c4a-4cb5-bb66-964aa9614221'), -- Dozens
         (3, 3, 2, '1', 1, '2020-03-05 00:00:00', 0, '356584a3-6c4a-4cb5-bb66-964aa9614221');  -- Units
 

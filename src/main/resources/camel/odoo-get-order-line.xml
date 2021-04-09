@@ -20,7 +20,7 @@
 			<spel>#{new Object[]{'order_id', '=', getProperty('quotation-id')}}</spel>
 		</setProperty>
 		<setProperty name="product-criterion">
-			<spel>#{new Object[]{'product_id', '=', getProperty('odoo-product-id')}}</spel>
+			<spel>#{new Object[]{'default_code', '=', getProperty('odooProductId')}}</spel>
 		</setProperty>
 		<setProperty name="search-query">
 			<spel>#{new Object[]{new Object[]{getProperty('quotation-criterion'), getProperty('product-criterion')}}}</spel>

@@ -28,12 +28,33 @@
 
 		<when>
 			<simple>${body.size()} == 0</simple>
-			<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Orderable concept has no value set for the matching odoo product id" />
+			<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Orderable concept has no value set for the matching odoo product internal ref" />
 		</when>
 
-		<setProperty name="odoo-product-id">
-			<spel>#{T(java.lang.Integer).valueOf(body[0].get("value_reference"))}</spel>
+		<setProperty name="odooProductInternalRef">
+			<simple>${body[0].get("value_reference")}</simple>
 		</setProperty>
+
+        <log message="Odoo product internal ref: ${exchangeProperty.odooProductInternalRef}" loggingLevel="DEBUG" />
+
+        <to uri="direct:odoo-get-product" />
+
+        <when>
+            <simple>${body.length} == 0</simple>
+            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No product found in odoo matching internal ref: ${exchangeProperty.odooProductInternalRef}" />
+        </when>
+
+        <when>
+            <simple>${body.length} > 1</simple>
+            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) products in odoo matching internal ref: ${exchangeProperty.odooProductInternalRef}" />
+        </when>
+        
+        <setProperty name="odooProductId">
+            <simple>${body[0]}</simple>
+        </setProperty>
+
+        <log message="Odoo product id: ${exchangeProperty.odooProductId}" loggingLevel="DEBUG" />
+
 		<when>
 			<simple>${exchangeProperty.entity-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
 			<setProperty name="is-drug-order">

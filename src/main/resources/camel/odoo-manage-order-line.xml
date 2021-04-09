@@ -40,7 +40,7 @@
 					<script>
 						<spel>
 							#{getProperty('order-line-data').put('order_id', getProperty('quotation-id'))}
-							#{getProperty('order-line-data').put('product_id', getProperty('odoo-product-id'))}
+							#{getProperty('order-line-data').put('product_id', getProperty('odooProductId'))}
 						</spel>
 					</script>
 				</when>
