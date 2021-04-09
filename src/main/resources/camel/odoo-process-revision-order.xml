@@ -30,8 +30,8 @@
                         </when>
 
                         <when>
-                            <simple>${exchangeProperty.qty-units-id} != ${exchangeProperty.order-line.get('product_uom')[0]}</simple>
-                            <log message="Orderable quantity units changed from ${exchangeProperty.order-line.get('product_uom')[0]} to ${exchangeProperty.qty-units-id}" />
+                            <simple>${exchangeProperty.unitsId} != ${exchangeProperty.order-line.get('product_uom')[0]}</simple>
+                            <log message="Orderable quantity units changed from ${exchangeProperty.order-line.get('product_uom')[0]} to ${exchangeProperty.unitsId}" />
 
                             <setProperty name="hasChanges">
                                 <simple>true</simple>

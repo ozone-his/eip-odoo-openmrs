@@ -85,22 +85,41 @@
 
 					<when>
 						<simple>${exchangeProperty.order-quantity} != null</simple>
-						<setProperty name="units-attribute-type">
-							<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.qtyUnits.conceptAttribType.uuid}})}</simple>
+						<setProperty name="unitsAttribType">
+							<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.qtyUnitsName.conceptAttribType.uuid}})}</simple>
 						</setProperty>
 
-						<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.entity-instance.quantityUnits.id} AND a.attribute_type_id = ${exchangeProperty.units-attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
+                        <!-- TODO Fetch via OpenMRS rest API -->
+						<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.entity-instance.quantityUnits.id} AND a.attribute_type_id = ${exchangeProperty.unitsAttribType.id} AND a.voided = 0?dataSource=openmrsDataSource" />
 
 						<when>
 							<simple>${body.size()} == 0</simple>
 							<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Quantity units concept has no value set for the matching odoo unit of measure" />
 						</when>
 
-						<setProperty name="qty-units-id">
-							<spel>#{T(java.lang.Integer).valueOf(body[0].get("value_reference"))}</spel>
+						<setProperty name="unitsName">
+							<simple>${body[0].get("value_reference")}</simple>
 						</setProperty>
 
-						<log message="Mapped Odoo quantity units: ${exchangeProperty.qty-units-id}" loggingLevel="DEBUG" />
+						<log message="Mapped Odoo units of measure name: ${exchangeProperty.unitsName}" loggingLevel="DEBUG" />
+
+                        <to uri="direct:odoo-get-units" />
+
+                        <when>
+                            <simple>${body.length} == 0</simple>
+                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No units of measure found in odoo matching name: ${exchangeProperty.unitsName}" />
+                        </when>
+
+                        <when>
+                            <simple>${body.length} > 1</simple>
+                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) units of measure in odoo matching name: ${exchangeProperty.unitsName}" />
+                        </when>
+
+                        <setProperty name="unitsId">
+                            <simple>${body[0]}</simple>
+                        </setProperty>
+
+                        <log message="Odoo units of measure id: ${exchangeProperty.unitsId}" loggingLevel="DEBUG" />
 					</when>
 				</when>
 

@@ -21,9 +21,10 @@
 		</when>
 
 		<setProperty name="attribute-type">
-			<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.productId.conceptAttribType.uuid}})}</simple>
+			<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.productRef.conceptAttribType.uuid}})}</simple>
 		</setProperty>
 
+        <!-- TODO Fetch via OpenMRS rest API -->
 		<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.concept-id} AND a.attribute_type_id = ${exchangeProperty.attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
 
 		<when>

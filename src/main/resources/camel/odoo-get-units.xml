@@ -1,0 +1,42 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <route id="odoo-get-units" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:odoo-get-units" />
+
+        <log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
+
+        <setProperty name="xmlRpcClientConfig">
+            <spel>#{new org.apache.xmlrpc.client.XmlRpcClientConfigImpl()}</spel>
+        </setProperty>
+        <script>
+            <spel>
+                #{getProperty('xmlRpcClientConfig').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
+            </spel>
+        </script>
+
+        <setProperty name="unitsSearchQuery">
+            <spel>#{new Object[]{new Object[]{new Object[]{'name', '=', getProperty('unitsName')}}}}</spel>
+        </setProperty>
+        <setProperty name="getUnitsParams">
+            <spel>#{new java.util.ArrayList(6)}</spel>
+        </setProperty>
+        <script>
+            <spel>
+                #{getProperty('getUnitsParams').add('{{odoo.database}}')}
+                #{getProperty('getUnitsParams').add(getProperty('odoo-user-id'))}
+                #{getProperty('getUnitsParams').add('{{odoo.password}}')}
+                #{getProperty('getUnitsParams').add('uom.uom')}
+                #{getProperty('getUnitsParams').add('search')}
+                #{getProperty('getUnitsParams').add(getProperty('unitsSearchQuery'))}
+            </spel>
+        </script>
+        <setBody>
+            <spel>
+                #{new org.apache.xmlrpc.client.XmlRpcClient().execute(getProperty('xmlRpcClientConfig'), 'execute_kw', getProperty('getUnitsParams'))}
+            </spel>
+        </setBody>
+
+        <log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
+    </route>
+
+</routes>
