@@ -18,10 +18,10 @@
 
 		<when>
 			<simple>${exchangeProperty.order-line-count} &lt; 2</simple>
-			<log message="Deleting the quotation because it has no more order lines left" />
+			<log message="Cancelling the quotation because it has no more order lines left" />
 
 			<setProperty name="odoo-operation">
-				<simple>unlink</simple>
+				<simple>write</simple>
 			</setProperty>
 
 			<to uri="direct:odoo-manage-quotation" />
