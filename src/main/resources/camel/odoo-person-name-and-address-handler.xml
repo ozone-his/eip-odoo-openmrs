@@ -8,9 +8,7 @@
         <log message="Loading patient associated to the ${exchangeProperty.patientAssociationName} from DB..." loggingLevel="DEBUG" />
 
         <setBody>
-            <simple>
-                ${camelContext.registry.lookupByName(exchangeProperty.tables-repo-map.get('patient')).findByUuid(exchangeProperty.entity-instance.person.uuid)}
-            </simple>
+            <spel>#{exchange.context.registry.lookupByName(getProperty('tables-repo-map').get('patient')).findByUuid(getProperty('entity-instance').person.uuid)}</spel>
         </setBody>
 
         <log message="Loaded associated patient -> ${body}" loggingLevel="DEBUG" />

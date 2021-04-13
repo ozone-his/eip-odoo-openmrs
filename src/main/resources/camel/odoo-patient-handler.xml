@@ -14,15 +14,64 @@
 
         <when>
             <simple>${exchangeProperty.isPatientVoidedOrDeleted} != true</simple>
-            
-            <log message="Fetching patient record from OpenMRS" loggingLevel="DEBUG" />
+            <setProperty name="isSubResource">
+                <simple>false</simple>
+            </setProperty>
+            <setProperty name="resourceName">
+                <simple>patient</simple>
+            </setProperty>
+            <setProperty name="resourceId">
+                <simple>${exchangeProperty.patient.uuid}</simple>
+            </setProperty>
 
-            <to uri="direct:odoo-fetch-patient" />
+            <log message="Fetching patient record from OpenMRS" loggingLevel="DEBUG" />
             
+            <to uri="direct:odoo-fetch-resource" />
+
+            <setProperty name="person">
+                <jsonpath>$.person</jsonpath>
+            </setProperty>
+
             <!-- TODO check if no record was found -->
             <setProperty name="patient-name">
-                <jsonpath>$.person.display</jsonpath>
+                <simple>${exchangeProperty.person.get('display')}</simple>
             </setProperty>
+            <setProperty name="preferredAddress">
+                <simple>${exchangeProperty.person.get('preferredAddress')}</simple>
+            </setProperty>
+
+            <choice>
+                <when>
+                    <simple>${exchangeProperty.preferredAddress} != null</simple>
+                    <setProperty name="isSubResource">
+                        <simple>true</simple>
+                    </setProperty>
+                    <setProperty name="resourceName">
+                        <simple>person</simple>
+                    </setProperty>
+                    <setProperty name="resourceId">
+                        <simple>${exchangeProperty.patient.uuid}</simple>
+                    </setProperty>
+                    <setProperty name="subResourceName">
+                        <simple>address</simple>
+                    </setProperty>
+                    <setProperty name="subResourceId">
+                        <simple>${exchangeProperty.preferredAddress.get('uuid')}</simple>
+                    </setProperty>
+
+                    <log message="Fetching patient address from OpenMRS" loggingLevel="DEBUG" />
+
+                    <to uri="direct:odoo-fetch-resource" />
+
+                    <!-- TODO check if no record was found -->
+                    <setProperty name="personAddress">
+                        <jsonpath>$</jsonpath>
+                    </setProperty>
+                </when>
+                <otherwise>
+                    <log message="Patient has no address" loggingLevel="DEBUG" />
+                </otherwise>
+            </choice>
         </when>
 
         <log message="Looking up existing customer in odoo" loggingLevel="DEBUG" />
@@ -80,7 +129,7 @@
                     </otherwise>
                 </choice>
 
-                <!--TODO <to uri="direct:odoo-manage-customer" />-->
+                <to uri="direct:odoo-manage-customer" />
             </otherwise>
         </choice>
 

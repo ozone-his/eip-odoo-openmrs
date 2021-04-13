@@ -1,6 +1,6 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
-    <route id="odoo-manager-customer" errorHandlerRef="watcherErrorHandler">
+    <route id="odoo-manage-customer" errorHandlerRef="watcherErrorHandler">
         <from uri="direct:odoo-manage-customer" />
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
@@ -16,31 +16,84 @@
                 #{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
             </spel>
         </script>
-		<setProperty name="patient-data">
+
+        <setProperty name="requestData">
+            <spel>#{new java.util.ArrayList(2)}</spel>
+        </setProperty>
+		<setProperty name="patientData">
 			<spel>#{new java.util.HashMap()}</spel>
 		</setProperty>
 		<script>
 			<spel>
-				#{getProperty('patient-data').put('name', getProperty('patient-name'))}
-                #{getProperty('patient-data').put('ref', getProperty('patient').uuid)}
+				#{getProperty('patientData').put('name', getProperty('patient-name'))}
+                #{getProperty('patientData').put('ref', getProperty('patient').uuid)}
 			</spel>
 		</script>
-        <setProperty name="create-params">
+
+        <when>
+            <simple>${exchangeProperty.odoo-operation} == 'write'</simple>
+            <script>
+                <spel>#{getProperty('requestData').add(new Object[]{getProperty('patient-odoo-id')})}</spel>
+            </script>
+        </when>
+
+        <when>
+            <simple>${exchangeProperty.personAddress} != null</simple>
+            <script>
+                <spel>#{getProperty('patientData').put('type', 'other')}</spel>
+            </script>
+            <when>
+                <simple>${exchangeProperty.personAddress.get('address1')} != null</simple>
+                <script>
+                    <spel>#{getProperty('patientData').put('street', getProperty('personAddress').get('address1'))}</spel>
+                </script>
+            </when>
+            <when>
+                <simple>${exchangeProperty.personAddress.get('address2')} != null</simple>
+                <script>
+                    <spel>#{getProperty('patientData').put('street2', getProperty('personAddress').get('address2'))}</spel>
+                </script>
+            </when>
+            <when>
+                <simple>${exchangeProperty.personAddress.get('cityVillage')} != null</simple>
+                <script>
+                    <spel>#{getProperty('patientData').put('city', getProperty('personAddress').get('cityVillage'))}</spel>
+                </script>
+            </when>
+            <when>
+                <simple>${exchangeProperty.personAddress.get('postalCode')} != null</simple>
+                <script>
+                    <spel>#{getProperty('patientData').put('zip', getProperty('personAddress').get('postalCode'))}</spel>
+                </script>
+            </when>
+            <!--<script>
+                <spel>#{getProperty('patientData').put('country_id', getProperty('countryId'))}</spel>
+            </script>
+            <script>
+                <spel>#{getProperty('patientData').put('state_id', getProperty('stateId'))}</spel>
+            </script>-->
+        </when>
+
+        <script>
+            <spel>#{getProperty('requestData').add(getProperty('patientData'))}</spel>
+        </script>
+        
+        <setProperty name="createParams">
             <spel>#{new java.util.ArrayList()}</spel>
         </setProperty>
         <script>
             <spel>
-				#{getProperty('create-params').add('{{odoo.database}}')}
-				#{getProperty('create-params').add(getProperty('odoo-user-id'))}
-				#{getProperty('create-params').add('{{odoo.password}}')}
-				#{getProperty('create-params').add('res.partner')}
-				#{getProperty('create-params').add(getProperty('odoo-operation'))}
-				#{getProperty('create-params').add(T(java.util.Collections).singletonList(getProperty('patient-data')))}
+				#{getProperty('createParams').add('{{odoo.database}}')}
+				#{getProperty('createParams').add(getProperty('odoo-user-id'))}
+				#{getProperty('createParams').add('{{odoo.password}}')}
+				#{getProperty('createParams').add('res.partner')}
+				#{getProperty('createParams').add(getProperty('odoo-operation'))}
+				#{getProperty('createParams').add(getProperty('requestData'))}
 			</spel>
         </script>
 		<setBody>
 			<spel>
-				#{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), 'execute_kw', getProperty('create-params'))}
+				#{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), 'execute_kw', getProperty('createParams'))}
 			</spel>
 		</setBody>
 
