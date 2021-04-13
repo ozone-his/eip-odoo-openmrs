@@ -14,6 +14,7 @@
         <script>
             <spel>
                 #{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
+                #{getProperty('xmlrpc-client-config').setEnabledForExtensions(true)}
             </spel>
         </script>
 
@@ -37,42 +38,35 @@
             </script>
         </when>
 
-        <when>
-            <simple>${exchangeProperty.personAddress} != null</simple>
-            <script>
-                <spel>#{getProperty('patientData').put('type', 'other')}</spel>
-            </script>
+        <choice>
             <when>
-                <simple>${exchangeProperty.personAddress.get('address1')} != null</simple>
+                <simple>${exchangeProperty.personAddress} != null</simple>
                 <script>
-                    <spel>#{getProperty('patientData').put('street', getProperty('personAddress').get('address1'))}</spel>
+                    <spel>
+                        #{getProperty('patientData').put('type', '{{odoo.customer.address.type}}')}
+                        #{getProperty('patientData').put('street', getProperty('personAddress').get('address1'))}
+                        #{getProperty('patientData').put('street2', getProperty('personAddress').get('address2'))}
+                        #{getProperty('patientData').put('city', getProperty('personAddress').get('cityVillage'))}
+                        #{getProperty('patientData').put('zip', getProperty('personAddress').get('postalCode'))}
+                        #{getProperty('patientData').put('country_id', getProperty('odooCountryId'))}
+                        #{getProperty('patientData').put('state_id', getProperty('odooStateId'))}
+                    </spel>
                 </script>
             </when>
-            <when>
-                <simple>${exchangeProperty.personAddress.get('address2')} != null</simple>
+            <otherwise>
                 <script>
-                    <spel>#{getProperty('patientData').put('street2', getProperty('personAddress').get('address2'))}</spel>
+                    <spel>
+                        #{getProperty('patientData').put('type', null)}
+                        #{getProperty('patientData').put('street', null)}
+                        #{getProperty('patientData').put('street2', null)}
+                        #{getProperty('patientData').put('city', null)}
+                        #{getProperty('patientData').put('zip', null)}
+                        #{getProperty('patientData').put('country_id', null)}
+                        #{getProperty('patientData').put('state_id', null)}
+                    </spel>
                 </script>
-            </when>
-            <when>
-                <simple>${exchangeProperty.personAddress.get('cityVillage')} != null</simple>
-                <script>
-                    <spel>#{getProperty('patientData').put('city', getProperty('personAddress').get('cityVillage'))}</spel>
-                </script>
-            </when>
-            <when>
-                <simple>${exchangeProperty.personAddress.get('postalCode')} != null</simple>
-                <script>
-                    <spel>#{getProperty('patientData').put('zip', getProperty('personAddress').get('postalCode'))}</spel>
-                </script>
-            </when>
-            <!--<script>
-                <spel>#{getProperty('patientData').put('country_id', getProperty('countryId'))}</spel>
-            </script>
-            <script>
-                <spel>#{getProperty('patientData').put('state_id', getProperty('stateId'))}</spel>
-            </script>-->
-        </when>
+            </otherwise>
+        </choice>
 
         <script>
             <spel>#{getProperty('requestData').add(getProperty('patientData'))}</spel>
