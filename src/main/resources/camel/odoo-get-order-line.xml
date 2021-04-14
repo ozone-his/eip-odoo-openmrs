@@ -29,7 +29,7 @@
 			<spel>#{T(java.util.Collections).singletonMap('fields', new Object[]{'id', 'product_uom_qty', 'product_uom'})}</spel>
 		</setProperty>
 		<setProperty name="get-order-lines-params">
-			<spel>#{new java.util.ArrayList(6)}</spel>
+			<spel>#{new java.util.ArrayList(7)}</spel>
 		</setProperty>
 		<script>
 			<spel>
@@ -39,7 +39,7 @@
 				#{getProperty('get-order-lines-params').add('sale.order.line')}
 				#{getProperty('get-order-lines-params').add('search_read')}
 				#{getProperty('get-order-lines-params').add(getProperty('search-query'))}
-				#{getProperty('get-quotation-params').add(getProperty('search-attributes'))}
+				#{getProperty('get-order-lines-params').add(getProperty('search-attributes'))}
 			</spel>
 		</script>
 		<setBody>
