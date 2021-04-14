@@ -14,8 +14,14 @@
             </spel>
         </script>
 
+		<setProperty name="modelCriterion">
+			<spel>#{new Object[]{'model', '=', 'uom.uom'}}</spel>
+		</setProperty>
+		<setProperty name="extIdCriterion">
+			<spel>#{new Object[]{'name', '=', getProperty('unitsExternalId')}}</spel>
+		</setProperty>
         <setProperty name="unitsSearchQuery">
-            <spel>#{new Object[]{new Object[]{new Object[]{'name', '=', getProperty('unitsName')}}}}</spel>
+            <spel>#{new Object[]{new Object[]{getProperty('modelCriterion'), getProperty('extIdCriterion')}}</spel>
         </setProperty>
         <setProperty name="getUnitsParams">
             <spel>#{new java.util.ArrayList(6)}</spel>
@@ -25,8 +31,8 @@
                 #{getProperty('getUnitsParams').add('{{odoo.database}}')}
                 #{getProperty('getUnitsParams').add(getProperty('odoo-user-id'))}
                 #{getProperty('getUnitsParams').add('{{odoo.password}}')}
-                #{getProperty('getUnitsParams').add('uom.uom')}
-                #{getProperty('getUnitsParams').add('search')}
+                #{getProperty('getUnitsParams').add('ir.model.data')}
+                #{getProperty('getUnitsParams').add('search_read')}
                 #{getProperty('getUnitsParams').add(getProperty('unitsSearchQuery'))}
             </spel>
         </script>

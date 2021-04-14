@@ -40,7 +40,7 @@ VALUES  (1, 'Finding', 1, '2020-03-05 00:00:00', 0, 'f4464518-f5e2-4aab-a54e-1f1
 
 INSERT INTO concept_attribute_type (concept_attribute_type_id,name,min_occurs,creator,date_created,retired,uuid)
 VALUES  (1, 'Odoo Product Internal Ref', 0, 1, '2020-03-05 00:00:00', 0, 'a4464534-f5e2-4aab-a54e-1f1a2ec6d445'),
-        (2, 'Odoo Units Name', 0, 1, '2020-03-05 00:00:00', 0, 'b4464534-f5e2-4aab-a54e-1f1a2ec6d445');
+        (2, 'Odoo Units External Id', 0, 1, '2020-03-05 00:00:00', 0, 'b4464534-f5e2-4aab-a54e-1f1a2ec6d445');
 
 INSERT INTO concept (concept_id,datatype_id,class_id,is_set,creator,date_created,retired,uuid)
 VALUES  (1, 1, 1, 0, 1, '2020-03-05 00:00:00', 0, '945584a3-6c4a-4cb5-ba66-964aa9614239'),
