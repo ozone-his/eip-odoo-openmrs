@@ -24,12 +24,6 @@
 		<setProperty name="patientData">
 			<spel>#{new java.util.HashMap()}</spel>
 		</setProperty>
-		<script>
-			<spel>
-				#{getProperty('patientData').put('name', getProperty('patient-name'))}
-                #{getProperty('patientData').put('ref', getProperty('patient').uuid)}
-			</spel>
-		</script>
 
         <when>
             <simple>${exchangeProperty.odoo-operation} == 'write'</simple>
@@ -40,30 +34,48 @@
 
         <choice>
             <when>
-                <simple>${exchangeProperty.personAddress} != null</simple>
+                <simple>${exchangeProperty.isPatientVoidedOrDeleted} != true</simple>
                 <script>
                     <spel>
-                        #{getProperty('patientData').put('type', '{{odoo.customer.address.type}}')}
-                        #{getProperty('patientData').put('street', getProperty('personAddress').get('address1'))}
-                        #{getProperty('patientData').put('street2', getProperty('personAddress').get('address2'))}
-                        #{getProperty('patientData').put('city', getProperty('personAddress').get('cityVillage'))}
-                        #{getProperty('patientData').put('zip', getProperty('personAddress').get('postalCode'))}
-                        #{getProperty('patientData').put('country_id', getProperty('odooCountryId'))}
-                        #{getProperty('patientData').put('state_id', getProperty('odooStateId'))}
+                        #{getProperty('patientData').put('name', getProperty('patient-name'))}
+                        #{getProperty('patientData').put('ref', getProperty('patient').uuid)}
+                        #{getProperty('patientData').put('active', true)}
                     </spel>
                 </script>
+
+                <choice>
+                    <when>
+                        <simple>${exchangeProperty.personAddress} != null</simple>
+                        <script>
+                            <spel>
+                                #{getProperty('patientData').put('type', '{{odoo.customer.address.type}}')}
+                                #{getProperty('patientData').put('street', getProperty('personAddress').get('address1'))}
+                                #{getProperty('patientData').put('street2', getProperty('personAddress').get('address2'))}
+                                #{getProperty('patientData').put('city', getProperty('personAddress').get('cityVillage'))}
+                                #{getProperty('patientData').put('zip', getProperty('personAddress').get('postalCode'))}
+                                #{getProperty('patientData').put('country_id', getProperty('odooCountryId'))}
+                                #{getProperty('patientData').put('state_id', getProperty('odooStateId'))}
+                            </spel>
+                        </script>
+                    </when>
+                    <otherwise>
+                        <script>
+                            <spel>
+                                #{getProperty('patientData').put('type', null)}
+                                #{getProperty('patientData').put('street', null)}
+                                #{getProperty('patientData').put('street2', null)}
+                                #{getProperty('patientData').put('city', null)}
+                                #{getProperty('patientData').put('zip', null)}
+                                #{getProperty('patientData').put('country_id', null)}
+                                #{getProperty('patientData').put('state_id', null)}
+                            </spel>
+                        </script>
+                    </otherwise>
+                </choice>
             </when>
             <otherwise>
                 <script>
-                    <spel>
-                        #{getProperty('patientData').put('type', null)}
-                        #{getProperty('patientData').put('street', null)}
-                        #{getProperty('patientData').put('street2', null)}
-                        #{getProperty('patientData').put('city', null)}
-                        #{getProperty('patientData').put('zip', null)}
-                        #{getProperty('patientData').put('country_id', null)}
-                        #{getProperty('patientData').put('state_id', null)}
-                    </spel>
+                    <spel>#{getProperty('patientData').put('active', false)}</spel>
                 </script>
             </otherwise>
         </choice>

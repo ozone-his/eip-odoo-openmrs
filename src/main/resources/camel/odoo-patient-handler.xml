@@ -8,7 +8,7 @@
         <when>
             <simple>${exchangeProperty.event.tableName} == 'patient'</simple>
             <setProperty name="isPatientVoidedOrDeleted">
-                <simple>${exchangeProperty.patient.patientVoided} == true || ${exchangeProperty.event.operation} == 'd'</simple>
+                <spel>#{getProperty('patient').patientVoided == true || getProperty('event').operation == 'd'}</spel>
             </setProperty>
         </when>
 
@@ -175,18 +175,21 @@
                 <choice>
                     <when>
                         <simple>${exchangeProperty.isPatientVoidedOrDeleted} == true</simple>
-                        <!-- TODO
-                        1- Remove any quotations
-                        2- Remove the customer record-->
+
+                        <log message="Cancelling existing quotations with id: ${exchangeProperty.quotation-id}" />
+
+                        <!--<to uri="direct:odoo-get-quotations" />-->
+
+                        <!--<to uri="direct:odoo-cancel-quotations" />-->
                     </when>
                     <otherwise>
-                        <setProperty name="odoo-operation">
-                            <simple>write</simple>
-                        </setProperty>
-
-                        <log message="Updating existing customer in odoo" />
+                       <log message="Updating existing customer in odoo" />
                     </otherwise>
                 </choice>
+                
+                <setProperty name="odoo-operation">
+                    <simple>write</simple>
+                </setProperty>
 
                 <to uri="direct:odoo-manage-customer" />
             </otherwise>

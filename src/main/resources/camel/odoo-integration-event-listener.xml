@@ -53,6 +53,10 @@
                         </when>
                         <when>
                             <simple>${exchangeProperty.event.tableName} == 'patient'</simple>
+                            <setProperty name="patient">
+                                <simple>${exchangeProperty.entity-instance}</simple>
+                            </setProperty>
+                            
                             <log message="Processing Patient" loggingLevel="DEBUG" />
 
                             <to uri="direct:odoo-patient-handler" />
