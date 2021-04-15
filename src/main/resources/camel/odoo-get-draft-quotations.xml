@@ -17,7 +17,7 @@
 			</spel>
 		</script>
 
-		<!-- Get Existing quotations for the patient created by this system's user account -->
+		<!-- Get existing draft quotations for the patient created by this system's user account -->
 		<setProperty name="partner-id-criterion">
 			<spel>#{new Object[]{'partner_id', '=', getProperty('patient-odoo-id')}}</spel>
 		</setProperty>

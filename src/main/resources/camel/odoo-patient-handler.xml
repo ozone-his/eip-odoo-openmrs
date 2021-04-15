@@ -176,11 +176,20 @@
                     <when>
                         <simple>${exchangeProperty.isPatientVoidedOrDeleted} == true</simple>
 
-                        <log message="Cancelling existing quotations with id: ${exchangeProperty.quotation-id}" />
+                        <to uri="direct:odoo-get-quotations" />
 
-                        <!--<to uri="direct:odoo-get-quotations" />-->
+                        <when>
+                            <spel>${body.length} == 0</spel>
+                            <setProperty name="quotationIds">
+                                <simple>${body}</simple>
+                            </setProperty>
+                            
+                            <log message="Cancelling ${body.length} existing quotation(s) in odoo for the patient -> ${exchangeProperty.quotationIds}" />
+                        </when>
 
-                        <!--<to uri="direct:odoo-cancel-quotations" />-->
+                        <to uri="direct:odoo-cancel-quotations" />
+
+                        <log message="Archiving existing customer in odoo" />
                     </when>
                     <otherwise>
                        <log message="Updating existing customer in odoo" />
