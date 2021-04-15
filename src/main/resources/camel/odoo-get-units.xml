@@ -21,7 +21,7 @@
 			<spel>#{new Object[]{'name', '=', getProperty('unitsExternalId')}}</spel>
 		</setProperty>
         <setProperty name="unitsSearchQuery">
-            <spel>#{new Object[]{new Object[]{getProperty('modelCriterion'), getProperty('extIdCriterion')}}</spel>
+            <spel>#{new Object[]{new Object[]{getProperty('modelCriterion'), getProperty('extIdCriterion')}}}</spel>
         </setProperty>
         <setProperty name="getUnitsParams">
             <spel>#{new java.util.ArrayList(6)}</spel>
