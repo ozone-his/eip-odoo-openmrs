@@ -9,6 +9,9 @@ INSERT INTO person_name (person_name_id,person_id,given_name,family_name,preferr
 VALUES  (1, 1, 'John', 'Doe', 1, 1, '2020-03-05 00:00:00', 0, '0bca417f-fc68-40d7-ae6f-cffca7a5eff1'),
         (2, 2, 'Mary', 'Jane', 1, 1, '2020-03-05 00:00:00', 0, '448bcfc0-360a-44b5-9539-e8718cd6e46e');
 
+INSERT INTO person_address (person_address_id,person_id,address1,address2,city_village,state_province,postal_code,country,preferred,creator,date_created,voided,uuid)
+VALUES  (1, 1, '25 Ocean Drive', 'Apt 1', 'Fort Lauderdale', 'FL', '33301', 'United States', 1, 1, '2020-03-05 00:00:00', 0, '359022bf-4a58-4732-8cce-1e57f72f47b0');
+
 INSERT INTO patient (patient_id,creator,date_created,voided,allergy_status)
 VALUES  (1, 1, '2020-03-05 00:00:00', 0, 'Unknown'),
         (2, 1, '2020-03-05 00:00:00', 0, 'Unknown');
