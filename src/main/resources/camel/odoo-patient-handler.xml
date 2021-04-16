@@ -27,12 +27,17 @@
             <log message="Fetching patient record from OpenMRS" />
             
             <to uri="direct:odoo-fetch-resource" />
-
-            <setProperty name="person">
-                <jsonpath>$.person</jsonpath>
-            </setProperty>
-
+            
             <!-- TODO check if no record was found -->
+            <setProperty name="patientRecord">
+                <jsonpath>$</jsonpath>
+            </setProperty>
+            <setProperty name="person">
+                <simple>${exchangeProperty.patientRecord.get('person')}</simple>
+            </setProperty>
+            <setProperty name="patientIdentifier">
+                <simple>${exchangeProperty.patientRecord.get('identifiers')[0].get('display')}</simple>
+            </setProperty>
             <setProperty name="patient-name">
                 <simple>${exchangeProperty.person.get('display')}</simple>
             </setProperty>

@@ -39,6 +39,7 @@
                     <spel>
                         #{getProperty('patientData').put('name', getProperty('patient-name'))}
                         #{getProperty('patientData').put('ref', getProperty('patient').uuid)}
+                        #{getProperty('patientData').put('comment', getProperty('patientIdentifier'))}
                     </spel>
                 </script>
 
