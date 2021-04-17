@@ -25,7 +25,7 @@
                 #{getProperty('getProductParams').add('{{odoo.database}}')}
                 #{getProperty('getProductParams').add(getProperty('odoo-user-id'))}
                 #{getProperty('getProductParams').add('{{odoo.password}}')}
-                #{getProperty('getProductParams').add('product.template')}
+                #{getProperty('getProductParams').add('product.product')}
                 #{getProperty('getProductParams').add('search')}
                 #{getProperty('getProductParams').add(getProperty('productSearchQuery'))}
             </spel>
