@@ -134,8 +134,8 @@
 				</choice>
 			</when>
 			<when>
-				<simple>${exchangeProperty.entity-instance.action} == 'DISCONTINUE'</simple>
-				<to uri="direct:odoo-process-discontinue-order" />
+				<simple>${exchangeProperty.entity-instance.action} == 'DISCONTINUE' || ${exchangeProperty.entity-instance.voided} == true</simple>
+				<to uri="direct:odoo-process-dc-or-voided-order" />
 			</when>
 			<otherwise>
 				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order action: ${exchangeProperty.entity-instance.action}" />

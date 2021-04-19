@@ -1,7 +1,7 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
-	<route id="odoo-process-discontinue-order" errorHandlerRef="watcherErrorHandler">
-		<from uri="direct:odoo-process-discontinue-order" />
+	<route id="odoo-process-dc-or-voided-order" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:odoo-process-dc-or-voided-order" />
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
