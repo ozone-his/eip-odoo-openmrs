@@ -47,7 +47,7 @@
                     <choice>
                         <when>
                             <simple>${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.event.tableName} == 'test_order' || ${exchangeProperty.event.tableName} == 'drug_order'</simple>
-                            <log message="Processing Order" loggingLevel="DEBUG" />
+                            <log message="Processing Order with action: ${exchangeProperty.entity-instance.action}" />
 
                             <to uri="direct:odoo-order-handler" />
                         </when>

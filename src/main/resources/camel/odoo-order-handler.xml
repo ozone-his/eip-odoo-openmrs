@@ -7,10 +7,13 @@
 
         <choice>
             <when>
-                <simple>${exchangeProperty.event.operation} == 'c'</simple>
-                <setProperty name="is-new">
-                    <spel>#{getProperty('entity-instance').action == 'NEW' || getProperty('entity-instance').action == 'RENEW'}</spel>
-                </setProperty>
+                <simple>${exchangeProperty.event.operation} == 'c' || ${exchangeProperty.entity-instance.voided} == true</simple>
+                <when>
+                    <simple>${exchangeProperty.entity-instance.voided} != true</simple>
+                    <setProperty name="is-new">
+                        <spel>#{getProperty('entity-instance').action == 'NEW' || getProperty('entity-instance').action == 'RENEW'}</spel>
+                    </setProperty>
+                </when>
 
                 <setProperty name="concept-id">
                     <simple>${exchangeProperty.entity-instance.concept.id}</simple>

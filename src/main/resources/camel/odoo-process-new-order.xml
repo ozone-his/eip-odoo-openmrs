@@ -23,7 +23,7 @@
                 <to uri="direct:odoo-manage-order-line" />
             </when>
             <otherwise>
-                <log message="Ignoring event for new order from subclass table: ${exchangeProperty.event.tableName} " loggingLevel="DEBUG" />
+                <log message="Ignoring event for new order from subclass table: ${exchangeProperty.event.tableName} " />
             </otherwise>
         </choice>
 
