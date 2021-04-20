@@ -5,65 +5,73 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
-		<setProperty name="is-new">
-			<spel>#{getProperty('entity-instance').action == 'NEW' || getProperty('entity-instance').action == 'RENEW'}</spel>
-		</setProperty>
+        <choice>
+            <when>
+                <simple>${exchangeProperty.event.operation} == 'c'</simple>
+                <setProperty name="is-new">
+                    <spel>#{getProperty('entity-instance').action == 'NEW' || getProperty('entity-instance').action == 'RENEW'}</spel>
+                </setProperty>
 
-		<setProperty name="concept-id">
-			<simple>${exchangeProperty.entity-instance.concept.id}</simple>
-		</setProperty>
+                <setProperty name="concept-id">
+                    <simple>${exchangeProperty.entity-instance.concept.id}</simple>
+                </setProperty>
 
-		<when>
-			<simple>${exchangeProperty.entity-instance.action} == 'REVISE' || ${exchangeProperty.entity-instance.action} == 'DISCONTINUE'</simple>
-			<setProperty name="concept-id">
-				<simple>${exchangeProperty.entity-instance.previousOrder.concept.id}</simple>
-			</setProperty>
-		</when>
+                <when>
+                    <simple>${exchangeProperty.entity-instance.action} == 'REVISE' || ${exchangeProperty.entity-instance.action} == 'DISCONTINUE'</simple>
+                    <setProperty name="concept-id">
+                        <simple>${exchangeProperty.entity-instance.previousOrder.concept.id}</simple>
+                    </setProperty>
+                </when>
 
-		<setProperty name="attribute-type">
-			<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.productRef.conceptAttribType.uuid}})}</simple>
-		</setProperty>
+                <setProperty name="attribute-type">
+                    <simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.productRef.conceptAttribType.uuid}})}</simple>
+                </setProperty>
 
-        <!-- TODO Fetch via OpenMRS rest API -->
-		<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.concept-id} AND a.attribute_type_id = ${exchangeProperty.attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
+                <!-- TODO Fetch via OpenMRS rest API -->
+                <toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.concept-id} AND a.attribute_type_id = ${exchangeProperty.attribute-type.id} AND a.voided = 0?dataSource=openmrsDataSource" />
 
-		<when>
-			<simple>${body.size()} == 0</simple>
-			<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Orderable concept has no value set for the matching odoo product internal ref" />
-		</when>
+                <when>
+                    <simple>${body.size()} == 0</simple>
+                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Orderable concept has no value set for the matching odoo product internal ref" />
+                </when>
 
-		<setProperty name="odooProductInternalRef">
-			<simple>${body[0].get("value_reference")}</simple>
-		</setProperty>
+                <setProperty name="odooProductInternalRef">
+                    <simple>${body[0].get("value_reference")}</simple>
+                </setProperty>
 
-        <log message="Odoo product internal ref: ${exchangeProperty.odooProductInternalRef}" loggingLevel="DEBUG" />
+                <log message="Odoo product internal ref: ${exchangeProperty.odooProductInternalRef}" loggingLevel="DEBUG" />
 
-        <to uri="direct:odoo-get-product" />
+                <to uri="direct:odoo-get-product" />
 
-        <when>
-            <simple>${body.length} == 0</simple>
-            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No product found in odoo matching internal ref: ${exchangeProperty.odooProductInternalRef}" />
-        </when>
+                <when>
+                    <simple>${body.length} == 0</simple>
+                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No product found in odoo matching internal ref: ${exchangeProperty.odooProductInternalRef}" />
+                </when>
 
-        <when>
-            <simple>${body.length} > 1</simple>
-            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) products in odoo matching internal ref: ${exchangeProperty.odooProductInternalRef}" />
-        </when>
-        
-        <setProperty name="odooProductId">
-            <simple>${body[0]}</simple>
-        </setProperty>
+                <when>
+                    <simple>${body.length} > 1</simple>
+                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) products in odoo matching internal ref: ${exchangeProperty.odooProductInternalRef}" />
+                </when>
 
-        <log message="Odoo product id: ${exchangeProperty.odooProductId}" loggingLevel="DEBUG" />
+                <setProperty name="odooProductId">
+                    <simple>${body[0]}</simple>
+                </setProperty>
 
-		<when>
-			<simple>${exchangeProperty.entity-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
-			<setProperty name="is-drug-order">
-				<simple>true</simple>
-			</setProperty>
-		</when>
+                <log message="Odoo product id: ${exchangeProperty.odooProductId}" loggingLevel="DEBUG" />
 
-		<to uri="direct:odoo-process-order" />
+                <when>
+                    <simple>${exchangeProperty.entity-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
+                    <setProperty name="is-drug-order">
+                        <simple>true</simple>
+                    </setProperty>
+                </when>
+
+                <to uri="direct:odoo-process-order" />
+            </when>
+            <otherwise>
+                <log message="Skipping event with operation: ${exchangeProperty.event.operation}" />
+            </otherwise>
+        </choice>
 
 		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
 	</route>
