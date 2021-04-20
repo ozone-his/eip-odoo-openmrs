@@ -1,7 +1,7 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
-    <route id="odoo-get-units" errorHandlerRef="watcherErrorHandler">
-        <from uri="direct:odoo-get-units" />
+    <route id="odoo-get-external-id-map" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:odoo-get-external-id-map" />
 
         <log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
@@ -15,12 +15,12 @@
         </script>
 
 		<setProperty name="modelCriterion">
-			<spel>#{new Object[]{'model', '=', 'uom.uom'}}</spel>
+			<spel>#{new Object[]{'model', '=', getProperty('modelName')}}</spel>
 		</setProperty>
 		<setProperty name="extIdCriterion">
-			<spel>#{new Object[]{'name', '=', getProperty('unitsExternalId')}}</spel>
+			<spel>#{new Object[]{'name', '=', getProperty('externalId')}}</spel>
 		</setProperty>
-        <setProperty name="unitsSearchQuery">
+        <setProperty name="extIdSearchQuery">
             <spel>#{new Object[]{new Object[]{getProperty('modelCriterion'), getProperty('extIdCriterion')}}}</spel>
         </setProperty>
         <setProperty name="getUnitsParams">
@@ -33,7 +33,7 @@
                 #{getProperty('getUnitsParams').add('{{odoo.password}}')}
                 #{getProperty('getUnitsParams').add('ir.model.data')}
                 #{getProperty('getUnitsParams').add('search_read')}
-                #{getProperty('getUnitsParams').add(getProperty('unitsSearchQuery'))}
+                #{getProperty('getUnitsParams').add(getProperty('extIdSearchQuery'))}
             </spel>
         </script>
         <setBody>

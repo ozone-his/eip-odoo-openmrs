@@ -85,34 +85,23 @@
 
 					<when>
 						<simple>${exchangeProperty.order-quantity} != null</simple>
-						<setProperty name="unitsAttribType">
-							<simple>${camelContext.getRegistry().lookupByName("conceptAttributeTypeLightRepository").findByUuid({{openmrs.odoo.qtyUnitsExternalId.conceptAttribType.uuid}})}</simple>
+                        <setProperty name="modelName">
+                            <simple>uom.uom</simple>
+                        </setProperty>
+						<setProperty name="externalId">
+							<simple>${exchangeProperty.entity-instance.quantityUnits.uuid}</simple>
 						</setProperty>
 
-                        <!-- TODO Fetch via OpenMRS rest API -->
-						<toD uri="sql:SELECT a.value_reference FROM concept_attribute a WHERE a.concept_id = ${exchangeProperty.entity-instance.quantityUnits.id} AND a.attribute_type_id = ${exchangeProperty.unitsAttribType.id} AND a.voided = 0?dataSource=openmrsDataSource" />
-
-						<when>
-							<simple>${body.size()} == 0</simple>
-							<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Quantity units concept has no value set for the matching odoo unit of measure" />
-						</when>
-
-						<setProperty name="unitsExternalId">
-							<simple>${body[0].get("value_reference")}</simple>
-						</setProperty>
-
-						<log message="Odoo units of measure external Id: ${exchangeProperty.unitsExternalId}" loggingLevel="DEBUG" />
-
-                        <to uri="direct:odoo-get-units" />
+                        <to uri="direct:odoo-get-external-id-map" />
 
                         <when>
                             <simple>${body.length} == 0</simple>
-                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No units of measure found in odoo mapped to external Id: ${exchangeProperty.unitsExternalId}" />
+                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No units of measure found in odoo mapped to uuid: ${exchangeProperty.externalId}" />
                         </when>
 
                         <when>
                             <simple>${body.length} > 1</simple>
-                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) units of measure in odoo mapped to external Id: ${exchangeProperty.unitsExternalId}" />
+                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) units of measure in odoo mapped to uuid: ${exchangeProperty.externalId}" />
                         </when>
 
                         <setProperty name="unitsId">
