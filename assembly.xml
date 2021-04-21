@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
+
+    <id>zip-routes</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>src/main/resources/camel</directory>
+            <outputDirectory>routes</outputDirectory>
+            <includes>
+                <include>odoo-*.xml</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+
+</assembly>
