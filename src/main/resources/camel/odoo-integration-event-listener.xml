@@ -21,7 +21,7 @@
 		</script>
 
         <when>
-            <simple>${exchangeProperty.event.snapshot} == false || ${exchangeProperty.tables-repo-map.containsKey(exchangeProperty.event.tableName)} == true</simple>
+            <simple>${exchangeProperty.event.snapshot} == false &amp;&amp; ${exchangeProperty.tables-repo-map.containsKey(${exchangeProperty.event.tableName})} == true</simple>
             <log message="Processing event..." />
             <log message="Loading entity from DB..." loggingLevel="DEBUG" />
 
