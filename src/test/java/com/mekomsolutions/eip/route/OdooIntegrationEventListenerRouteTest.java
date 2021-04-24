@@ -76,12 +76,10 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 	
 	@Before
 	public void setup() throws Exception {
-		mockErrorHandlerEndpoint.reset();
 		mockAuthEndpoint.reset();
 		mockOrderHandlerEndpoint.reset();
 		mockPatientHandlerEndpoint.reset();
 		mockPersonNameAndAddressEndpoint.reset();
-		mockErrorHandlerEndpoint.expectedMessageCount(0);
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
 			@Override
@@ -104,7 +102,6 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 		
 		producerTemplate.send(LISTENER_URI, exchange);
 		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_REPO_MAP));
 		assertNull(exchange.getProperty(EX_PROP_ENTITY));
 	}
@@ -117,7 +114,6 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 		
 		producerTemplate.send(LISTENER_URI, exchange);
 		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_REPO_MAP));
 		assertNull(exchange.getProperty(EX_PROP_ENTITY));
 	}
@@ -140,7 +136,6 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
 		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		assertEquals(expectedOrder, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_REPO_MAP));
@@ -165,7 +160,6 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
 		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		assertEquals(expectedOrder, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_REPO_MAP));
@@ -190,7 +184,6 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
 		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		assertEquals(expectedOrder, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_REPO_MAP));
@@ -214,7 +207,6 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
 		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		assertEquals(expectedPatient, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_REPO_MAP));
@@ -238,7 +230,6 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
 		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		assertEquals(expectedName, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_REPO_MAP));
@@ -262,7 +253,6 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
 		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		assertEquals(expectedAddress, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_REPO_MAP));

@@ -62,8 +62,6 @@ public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 	public void setup() throws Exception {
 		mockExtIdMapEndpoint.reset();
 		mockProcessOrderEndpoint.reset();
-		mockErrorHandlerEndpoint.reset();
-		mockErrorHandlerEndpoint.expectedMessageCount(0);
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
 			@Override
@@ -84,7 +82,6 @@ public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 		
 		producerTemplate.send(URI_ORDER_HANDLER, exchange);
 		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		assertMessageLogged(Level.INFO, "Skipping event with operation: " + op);
 	}
 	
@@ -97,7 +94,6 @@ public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 		
 		producerTemplate.send(URI_ORDER_HANDLER, exchange);
 		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		assertMessageLogged(Level.INFO, "Skipping event with operation: " + op);
 	}
 	
@@ -120,7 +116,6 @@ public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 		
 		producerTemplate.send(URI_ORDER_HANDLER, exchange);
 		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		mockExtIdMapEndpoint.assertIsSatisfied();
 		mockProcessOrderEndpoint.assertIsSatisfied();
 		assertNull(exchange.getProperty("is-drug-order"));
@@ -147,7 +142,6 @@ public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 		
 		producerTemplate.send(URI_ORDER_HANDLER, exchange);
 		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		mockExtIdMapEndpoint.assertIsSatisfied();
 		mockProcessOrderEndpoint.assertIsSatisfied();
 		assertTrue(exchange.getProperty("is-drug-order", Boolean.class));
@@ -175,7 +169,6 @@ public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 		
 		producerTemplate.send(URI_ORDER_HANDLER, exchange);
 		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		mockExtIdMapEndpoint.assertIsSatisfied();
 		mockProcessOrderEndpoint.assertIsSatisfied();
 		assertNull(exchange.getProperty("is-drug-order"));
@@ -203,7 +196,6 @@ public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 		
 		producerTemplate.send(URI_ORDER_HANDLER, exchange);
 		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		mockExtIdMapEndpoint.assertIsSatisfied();
 		mockProcessOrderEndpoint.assertIsSatisfied();
 		assertTrue(exchange.getProperty("is-drug-order", Boolean.class));
@@ -234,7 +226,6 @@ public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 		
 		producerTemplate.send(URI_ORDER_HANDLER, exchange);
 		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		mockExtIdMapEndpoint.assertIsSatisfied();
 		mockProcessOrderEndpoint.assertIsSatisfied();
 		assertNull(exchange.getProperty("is-drug-order"));
@@ -262,7 +253,6 @@ public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 		
 		producerTemplate.send(URI_ORDER_HANDLER, exchange);
 		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 		mockExtIdMapEndpoint.assertIsSatisfied();
 		mockProcessOrderEndpoint.assertIsSatisfied();
 		assertTrue(exchange.getProperty("is-drug-order", Boolean.class));
