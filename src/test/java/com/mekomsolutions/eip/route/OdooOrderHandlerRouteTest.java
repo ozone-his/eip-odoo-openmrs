@@ -1,132 +1,315 @@
 package com.mekomsolutions.eip.route;
 
-import static com.mekomsolutions.eip.route.TestConstants.EX_PROP_ODOO_ID;
-import static com.mekomsolutions.eip.route.TestConstants.EX_PROP_ODOO_USER_ID;
-import static com.mekomsolutions.eip.route.TestConstants.LISTENER_URI;
-import static com.mekomsolutions.eip.route.TestConstants.ODOO_ID_TYPE_UUID;
-import static com.mekomsolutions.eip.route.TestConstants.ODOO_PRODUCT_CONCEPT_ATTRIB_TYPE_UUID;
-import static com.mekomsolutions.eip.route.TestConstants.ODOO_QTY_UNITS_CONCEPT_ATTRIB_TYPE_UUID;
-import static com.mekomsolutions.eip.route.TestConstants.URI_ODOO_AUTH;
-import static com.mekomsolutions.eip.route.TestConstants.URI_ODOO_CREATE_CUSTOMER;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_TABLE_REPO_MAP;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ORDER_UUID_1;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ORDER_UUID_2;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_EXT_ID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ORDER_HANDLER;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PROCESS_ORDER;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
+import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_URI_ERROR_HANDLER;
+
+import java.util.Map;
 
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.openmrs.eip.TestConstants;
+import org.openmrs.eip.component.entity.DrugOrder;
+import org.openmrs.eip.component.entity.Order;
+import org.openmrs.eip.component.entity.TestOrder;
+import org.openmrs.eip.component.exception.EIPException;
+import org.openmrs.eip.component.repository.OrderRepository;
 import org.openmrs.eip.mysql.watcher.Event;
-import org.openmrs.eip.mysql.watcher.WatcherConstants;
 import org.openmrs.eip.mysql.watcher.route.BaseWatcherRouteTest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 
-@TestPropertySource(properties = TestConstants.PROP_ODOO_ID_TYPE_UUID + "=" + ODOO_ID_TYPE_UUID)
-@TestPropertySource(properties = TestConstants.PROP_ODOO_PRODUCT_CONCEPT_ATTRIB_TYPE_UUID + "=" + ODOO_PRODUCT_CONCEPT_ATTRIB_TYPE_UUID)
-@TestPropertySource(properties = TestConstants.PROP_ODOO_QTY_UNITS_CONCEPT_ATTRIB_TYPE_UUID + "=" + ODOO_QTY_UNITS_CONCEPT_ATTRIB_TYPE_UUID)
-@TestPropertySource(properties = WatcherConstants.PROP_EVENT_DESTINATIONS + "=" + LISTENER_URI)
+import ch.qos.logback.classic.Level;
+
+@TestPropertySource(properties = "camel.springboot.route-filter-include-pattern=direct:odoo-order-handler,direct:test-error-handler")
+@TestPropertySource(properties = PROP_URI_ERROR_HANDLER + "=" + TestConstants.URI_TEST_ERROR_HANDLER)
 @Sql(value = {
         "classpath:test_data.sql" }, config = @SqlConfig(dataSource = "openmrsDataSource", transactionManager = "openmrsTransactionManager"))
 public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
 	
 	private static final String ROUTE_ID = "odoo-order-handler";
 	
-	private static final String TABLE_NAME = "orders";
+	@EndpointInject("mock:odoo-get-external-id-map")
+	private MockEndpoint mockExtIdMapEndpoint;
 	
-	private static final String ORDER_UUID_1 = "16170d8e-d201-4d94-ae89-0be0b0b6d8ba";
+	@EndpointInject("mock:odoo-process-order")
+	private MockEndpoint mockProcessOrderEndpoint;
 	
-	private static final String ORDER_UUID_2 = "26170d8e-d201-4d94-ae89-0be0b0b6d8ba";
-	
-	@EndpointInject("mock:odoo-auth")
-	private MockEndpoint mockOdooAuthEndpoint;
-	
-	@EndpointInject("mock:create-customer")
-	private MockEndpoint mockCreateCustomerEndpoint;
+	@Autowired
+	private OrderRepository orderRepo;
 	
 	@Before
-	public void setup() {
-		mockOdooAuthEndpoint.reset();
+	public void setup() throws Exception {
+		mockExtIdMapEndpoint.reset();
+		mockProcessOrderEndpoint.reset();
 		mockErrorHandlerEndpoint.reset();
-		mockCreateCustomerEndpoint.reset();
-	}
-
-	@Test
-	public void shouldSkipDeleteEvents() throws Exception {
-		Event event = createEvent(TABLE_NAME, "1", ORDER_UUID_1, "d");
 		mockErrorHandlerEndpoint.expectedMessageCount(0);
-
-		producerTemplate.sendBodyAndProperty(LISTENER_URI, null, PROP_EVENT, event);
-
-		mockErrorHandlerEndpoint.assertIsSatisfied();
-	}
-	
-	@Test
-	public void shouldUseTheExistingOdooIdentifierWhenPushingOrderToOdoo() throws Exception {
-		Event event = createEvent(TABLE_NAME, "1", ORDER_UUID_1, "c");
-		mockErrorHandlerEndpoint.expectedMessageCount(0);
-		
-		Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(PROP_EVENT, event);
-		
-		producerTemplate.send(LISTENER_URI, exchange);
-		
-		mockErrorHandlerEndpoint.assertIsSatisfied();
-		Assert.assertEquals("12345", exchange.getProperty(EX_PROP_ODOO_ID));
-	}
-	
-	@Test
-	public void shouldAuthenticateWithOdooAndCreateTheCustomerWithNoOdooId() throws Exception {
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
 			@Override
 			public void configure() {
-				interceptSendToEndpoint(URI_ODOO_AUTH).skipSendToOriginalEndpoint().to(mockOdooAuthEndpoint);
-				interceptSendToEndpoint(URI_ODOO_CREATE_CUSTOMER).skipSendToOriginalEndpoint()
-				        .to(mockCreateCustomerEndpoint);
+				interceptSendToEndpoint(URI_GET_EXT_ID).skipSendToOriginalEndpoint().to(mockExtIdMapEndpoint);
+				interceptSendToEndpoint(URI_PROCESS_ORDER).skipSendToOriginalEndpoint().to(mockProcessOrderEndpoint);
 			}
+			
 		});
-
-		Event event = createEvent(TABLE_NAME, "1", "26170d8e-d201-4d94-ae89-0be0b0b6d8ba", "c");
-		mockErrorHandlerEndpoint.expectedMessageCount(0);
-		mockOdooAuthEndpoint.expectedMessageCount(1);
-		mockCreateCustomerEndpoint.expectedMessageCount(1);
-		
-		producerTemplate.sendBodyAndProperty(LISTENER_URI, null, PROP_EVENT, event);
-		
-		mockOdooAuthEndpoint.assertIsSatisfied();
-		mockCreateCustomerEndpoint.assertIsSatisfied();
-		mockErrorHandlerEndpoint.assertIsSatisfied();
 	}
 	
 	@Test
-	public void shouldCreateTheCustomerWithNoOdooIdAndNotAuthenticateWithOdooIfAlreadyLoggedIn() throws Exception {
-		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
-			
-			@Override
-			public void configure() {
-				interceptSendToEndpoint(URI_ODOO_CREATE_CUSTOMER).skipSendToOriginalEndpoint()
-				        .to(mockCreateCustomerEndpoint);
-			}
-		});
-		
-		Event event = createEvent(TABLE_NAME, "2", ORDER_UUID_2, "c");
-		mockErrorHandlerEndpoint.expectedMessageCount(0);
-		mockCreateCustomerEndpoint.expectedMessageCount(1);
-		mockOdooAuthEndpoint.expectedMessageCount(0);
-		
+	public void shouldSkipADeleteEvent() throws Exception {
+		final String op = "d";
+		Event event = createEvent("orders", "1", ORDER_UUID_2, op);
 		Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(PROP_EVENT, event);
-		exchange.setProperty(EX_PROP_ODOO_USER_ID, 120);
 		
-		producerTemplate.send(LISTENER_URI, exchange);
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
 		
-		mockOdooAuthEndpoint.assertIsSatisfied();
-		mockCreateCustomerEndpoint.assertIsSatisfied();
 		mockErrorHandlerEndpoint.assertIsSatisfied();
+		assertMessageLogged(Level.INFO, "Skipping event with operation: " + op);
+	}
+	
+	@Test
+	public void shouldSkipAnUpdateEvent() throws Exception {
+		final String op = "u";
+		Event event = createEvent("orders", "1", ORDER_UUID_2, op);
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
+		
+		mockErrorHandlerEndpoint.assertIsSatisfied();
+		assertMessageLogged(Level.INFO, "Skipping event with operation: " + op);
+	}
+	
+	@Test
+	public void shouldProcessANewTestOrder() throws Exception {
+		final String op = "c";
+		final Integer expectedProductId = 4;
+		Event event = createEvent("test_order", "1", ORDER_UUID_1, op);
+		TestOrder order = (TestOrder) orderRepo.findByUuid(ORDER_UUID_1);
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		exchange.setProperty(EX_PROP_ENTITY, order);
+		mockExtIdMapEndpoint.expectedMessageCount(1);
+		mockProcessOrderEndpoint.expectedMessageCount(1);
+		mockExtIdMapEndpoint.expectedPropertyReceived("modelName", "product.product");
+		mockExtIdMapEndpoint.expectedPropertyReceived("externalId", order.getConcept().getUuid());
+		mockProcessOrderEndpoint.expectedPropertyReceived("odooProductId", expectedProductId);
+		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
+		
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
+		
+		mockErrorHandlerEndpoint.assertIsSatisfied();
+		mockExtIdMapEndpoint.assertIsSatisfied();
+		mockProcessOrderEndpoint.assertIsSatisfied();
+		assertNull(exchange.getProperty("is-drug-order"));
+		assertTrue(exchange.getProperty("is-new", Boolean.class));
+		assertNull(exchange.getProperty("previousOrder"));
+	}
+	
+	@Test
+	public void shouldProcessANewDrugOrder() throws Exception {
+		final String op = "c";
+		final Integer expectedProductId = 5;
+		Event event = createEvent("drug_order", "2", ORDER_UUID_2, op);
+		DrugOrder order = (DrugOrder) orderRepo.findByUuid(ORDER_UUID_2);
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		exchange.setProperty(EX_PROP_ENTITY, order);
+		mockExtIdMapEndpoint.expectedMessageCount(1);
+		mockProcessOrderEndpoint.expectedMessageCount(1);
+		mockExtIdMapEndpoint.expectedPropertyReceived("modelName", "product.product");
+		mockExtIdMapEndpoint.expectedPropertyReceived("externalId", order.getDrug().getUuid());
+		mockProcessOrderEndpoint.expectedPropertyReceived("odooProductId", expectedProductId);
+		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
+		
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
+		
+		mockErrorHandlerEndpoint.assertIsSatisfied();
+		mockExtIdMapEndpoint.assertIsSatisfied();
+		mockProcessOrderEndpoint.assertIsSatisfied();
+		assertTrue(exchange.getProperty("is-drug-order", Boolean.class));
+		assertTrue(exchange.getProperty("is-new", Boolean.class));
+		assertNull(exchange.getProperty("previousOrder"));
+	}
+	
+	@Test
+	public void shouldProcessARenewalOrder() throws Exception {
+		final String orderId = "56170d8e-d201-4d94-ae89-0be0b0b6d8ba";
+		final String op = "c";
+		final Integer expectedProductId = 4;
+		Event event = createEvent("test_order", "5", orderId, op);
+		TestOrder order = (TestOrder) orderRepo.findByUuid(orderId);
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		exchange.setProperty(EX_PROP_ENTITY, order);
+		mockExtIdMapEndpoint.expectedMessageCount(1);
+		mockProcessOrderEndpoint.expectedMessageCount(1);
+		mockExtIdMapEndpoint.expectedPropertyReceived("modelName", "product.product");
+		mockExtIdMapEndpoint.expectedPropertyReceived("externalId", order.getConcept().getUuid());
+		mockProcessOrderEndpoint.expectedPropertyReceived("odooProductId", expectedProductId);
+		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
+		
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
+		
+		mockErrorHandlerEndpoint.assertIsSatisfied();
+		mockExtIdMapEndpoint.assertIsSatisfied();
+		mockProcessOrderEndpoint.assertIsSatisfied();
+		assertNull(exchange.getProperty("is-drug-order"));
+		assertTrue(exchange.getProperty("is-new", Boolean.class));
+		assertNull(exchange.getProperty("previousOrder"));
+	}
+	
+	@Test
+	public void shouldProcessARevisionOrder() throws Exception {
+		final String orderId = "36170d8e-d201-4d94-ae89-0be0b0b6d8ba";
+		final String op = "c";
+		final Integer expectedProductId = 5;
+		Event event = createEvent("drug_order", "3", orderId, op);
+		DrugOrder order = (DrugOrder) orderRepo.findByUuid(orderId);
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		exchange.setProperty(EX_PROP_ENTITY, order);
+		mockExtIdMapEndpoint.expectedMessageCount(1);
+		mockProcessOrderEndpoint.expectedMessageCount(1);
+		mockExtIdMapEndpoint.expectedPropertyReceived("modelName", "product.product");
+		mockExtIdMapEndpoint.expectedPropertyReceived("externalId", order.getDrug().getUuid());
+		mockProcessOrderEndpoint.expectedPropertyReceived("odooProductId", expectedProductId);
+		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
+		
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
+		
+		mockErrorHandlerEndpoint.assertIsSatisfied();
+		mockExtIdMapEndpoint.assertIsSatisfied();
+		mockProcessOrderEndpoint.assertIsSatisfied();
+		assertTrue(exchange.getProperty("is-drug-order", Boolean.class));
+		assertFalse(exchange.getProperty("is-new", Boolean.class));
+		assertNull(exchange.getProperty("previousOrder"));
+	}
+	
+	@Test
+	public void shouldProcessADiscontinuationOrder() throws Exception {
+		final String orderId = "46170d8e-d201-4d94-ae89-0be0b0b6d8ba";
+		final String op = "c";
+		final Integer expectedProductId = 5;
+		Event event = createEvent("orders", "4", orderId, op);
+		Order order = orderRepo.findByUuid(orderId);
+		assertNotNull(order.getPreviousOrder());
+		DrugOrder prevOrder = (DrugOrder) orderRepo.findByUuid(order.getPreviousOrder().getUuid());
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		exchange.setProperty(EX_PROP_ENTITY, order);
+		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("orders", "orderRepository"));
+		mockExtIdMapEndpoint.expectedMessageCount(1);
+		mockProcessOrderEndpoint.expectedMessageCount(1);
+		mockExtIdMapEndpoint.expectedPropertyReceived("modelName", "product.product");
+		mockExtIdMapEndpoint.expectedPropertyReceived("externalId", prevOrder.getDrug().getUuid());
+		mockProcessOrderEndpoint.expectedPropertyReceived("odooProductId", expectedProductId);
+		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
+		
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
+		
+		mockErrorHandlerEndpoint.assertIsSatisfied();
+		mockExtIdMapEndpoint.assertIsSatisfied();
+		mockProcessOrderEndpoint.assertIsSatisfied();
+		assertNull(exchange.getProperty("is-drug-order"));
+		assertFalse(exchange.getProperty("is-new", Boolean.class));
+		assertEquals(prevOrder, exchange.getProperty("previousOrder"));
+	}
+	
+	@Test
+	public void shouldProcessAVoidedOrder() throws Exception {
+		final String op = "u";
+		final Integer expectedProductId = 6;
+		Event event = createEvent("drug_order", "2", ORDER_UUID_2, op);
+		DrugOrder order = (DrugOrder) orderRepo.findByUuid(ORDER_UUID_2);
+		order.setVoided(true);
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		exchange.setProperty(EX_PROP_ENTITY, order);
+		mockExtIdMapEndpoint.expectedMessageCount(1);
+		mockProcessOrderEndpoint.expectedMessageCount(1);
+		mockExtIdMapEndpoint.expectedPropertyReceived("modelName", "product.product");
+		mockExtIdMapEndpoint.expectedPropertyReceived("externalId", order.getDrug().getUuid());
+		mockProcessOrderEndpoint.expectedPropertyReceived("odooProductId", expectedProductId);
+		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
+		
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
+		
+		mockErrorHandlerEndpoint.assertIsSatisfied();
+		mockExtIdMapEndpoint.assertIsSatisfied();
+		mockProcessOrderEndpoint.assertIsSatisfied();
+		assertTrue(exchange.getProperty("is-drug-order", Boolean.class));
+		assertNull(exchange.getProperty("is-new"));
+		assertNull(exchange.getProperty("previousOrder"));
+	}
+	
+	@Test
+	public void shouldFailIfNoProductIsFoundInOdooMatchingTheExternalId() throws Exception {
+		final String op = "c";
+		Event event = createEvent("test_order", "1", ORDER_UUID_1, op);
+		TestOrder order = (TestOrder) orderRepo.findByUuid(ORDER_UUID_1);
+		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		exchange.setProperty(EX_PROP_ENTITY, order);
+		mockExtIdMapEndpoint.expectedMessageCount(1);
+		mockProcessOrderEndpoint.expectedMessageCount(0);
+		mockExtIdMapEndpoint.expectedPropertyReceived("modelName", "product.product");
+		mockExtIdMapEndpoint.expectedPropertyReceived("externalId", order.getConcept().getUuid());
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] {}));
+		
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
+		mockExtIdMapEndpoint.assertIsSatisfied();
+		mockProcessOrderEndpoint.assertIsSatisfied();
+		final String expectError = "No product found in odoo mapped to uuid: " + order.getConcept().getUuid();
+		assertEquals(expectError, exchange.getProperty("error", EIPException.class).getMessage());
+	}
+	
+	@Test
+	public void shouldFailIfMultipleProductsAreFoundInOdooMatchingTheExternalId() throws Exception {
+		final String op = "c";
+		Event event = createEvent("test_order", "1", ORDER_UUID_1, op);
+		TestOrder order = (TestOrder) orderRepo.findByUuid(ORDER_UUID_1);
+		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		exchange.setProperty(EX_PROP_ENTITY, order);
+		mockExtIdMapEndpoint.expectedMessageCount(1);
+		mockProcessOrderEndpoint.expectedMessageCount(0);
+		mockExtIdMapEndpoint.expectedPropertyReceived("modelName", "product.product");
+		mockExtIdMapEndpoint.expectedPropertyReceived("externalId", order.getConcept().getUuid());
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] { emptyMap(), emptyMap() }));
+		
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
+		mockExtIdMapEndpoint.assertIsSatisfied();
+		mockProcessOrderEndpoint.assertIsSatisfied();
+		final String expectError = "Found 2 products in odoo mapped to uuid: " + order.getConcept().getUuid();
+		assertEquals(expectError, exchange.getProperty("error", EIPException.class).getMessage());
 	}
 	
 }

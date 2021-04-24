@@ -1,18 +1,18 @@
 package com.mekomsolutions.eip.route;
 
-import static com.mekomsolutions.eip.route.TestConstants.ADDRESS_UUID;
-import static com.mekomsolutions.eip.route.TestConstants.EX_PROP_ENTITY;
-import static com.mekomsolutions.eip.route.TestConstants.EX_PROP_ODOO_USER_ID;
-import static com.mekomsolutions.eip.route.TestConstants.EX_PROP_TABLE_REPO_MAP;
-import static com.mekomsolutions.eip.route.TestConstants.LISTENER_URI;
-import static com.mekomsolutions.eip.route.TestConstants.NAME_UUID;
-import static com.mekomsolutions.eip.route.TestConstants.ORDER_UUID_1;
-import static com.mekomsolutions.eip.route.TestConstants.ORDER_UUID_2;
-import static com.mekomsolutions.eip.route.TestConstants.PATIENT_UUID;
-import static com.mekomsolutions.eip.route.TestConstants.URI_ODOO_AUTH;
-import static com.mekomsolutions.eip.route.TestConstants.URI_ORDER_HANDLER;
-import static com.mekomsolutions.eip.route.TestConstants.URI_PATIENT_HANDLER;
-import static com.mekomsolutions.eip.route.TestConstants.URI_PERSON_NAME_ADDRESS_HANDLER;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ADDRESS_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ODOO_USER_ID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_TABLE_REPO_MAP;
+import static com.mekomsolutions.eip.route.OdooTestConstants.LISTENER_URI;
+import static com.mekomsolutions.eip.route.OdooTestConstants.NAME_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ORDER_UUID_1;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ORDER_UUID_2;
+import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ODOO_AUTH;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ORDER_HANDLER;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PATIENT_HANDLER;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PERSON_NAME_ADDRESS_HANDLER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -81,7 +81,6 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 		mockOrderHandlerEndpoint.reset();
 		mockPatientHandlerEndpoint.reset();
 		mockPersonNameAndAddressEndpoint.reset();
-		
 		mockErrorHandlerEndpoint.expectedMessageCount(0);
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
@@ -149,7 +148,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 	
 	@Test
 	public void shouldProcessAnEventForADrugOrder() throws Exception {
-		Event event = createEvent("drug_order", "1", ORDER_UUID_2, "c");
+		Event event = createEvent("drug_order", "2", ORDER_UUID_2, "c");
 		Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(PROP_EVENT, event);
 		mockAuthEndpoint.expectedMessageCount(1);

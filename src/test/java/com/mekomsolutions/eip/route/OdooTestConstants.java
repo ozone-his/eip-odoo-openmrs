@@ -1,8 +1,6 @@
 package com.mekomsolutions.eip.route;
 
-public class TestConstants {
-	
-	public static final String EX_PROP_ODOO_ID = "odoo-id";
+public class OdooTestConstants {
 	
 	public static final String EX_PROP_ODOO_USER_ID = "odoo-user-id";
 	
@@ -20,7 +18,11 @@ public class TestConstants {
 	
 	public static final String URI_PERSON_NAME_ADDRESS_HANDLER = "direct:odoo-person-name-and-address-handler";
 	
-	public static final String ODOO_BASE_URL = "http://odoo.com";
+	public static final String URI_GET_EXT_ID = "direct:odoo-get-external-id-map";
+	
+	public static final String URI_PROCESS_ORDER = "direct:odoo-process-order";
+	
+	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	
 	public static final String LISTENER_URI = "direct:odoo-event-listener";
 	

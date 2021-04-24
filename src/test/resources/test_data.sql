@@ -1,9 +1,5 @@
-SET FOREIGN_KEY_CHECKS=0;
-
 INSERT INTO users (user_id,person_id,system_id,creator,date_created,retired,uuid)
 VALUES  (1, 1, 'admin', 1, '2020-03-05 00:00:00', 1, '2b2636af-6b8c-4c6f-ad23-c5709c50fd40');
-
-SET FOREIGN_KEY_CHECKS=1;
 
 INSERT INTO person (person_id,gender,dead,birthdate_estimated,deathdate_estimated,creator,date_created,voided,uuid)
 VALUES  (1, 'M', 0, 0, 0, 1, '2020-03-05 00:00:00', 0,'ba3b12d1-5c4f-415f-871b-b98a22137604'),
@@ -24,9 +20,9 @@ INSERT INTO patient_identifier_type (patient_identifier_type_id,name,required,ch
 VALUES  (1, 'OpenMRS Id', 0, 0, 1, '2020-03-05 00:00:00', 0, '6e93d0cc-6534-48ed-bebc-4beeda9471a5');
 
 
-INSERT INTO patient_identifier (patient_identifier_id,patient_id,identifier,identifier_type,preferred,location_id,creator,date_created,voided,uuid)
-VALUES  (1, 1, '12345', 1, 1, null, 1, '2020-03-05 00:00:00', 0, '128bcfc0-360a-44a5-9539-e8718cd6e4d8'),
-        (2, 2, 'QWERT', 1, 1, null, 1, '2020-03-05 00:00:00', 0, '228bcfc0-360a-44a5-9539-e8718cd6e4d8');
+INSERT INTO patient_identifier (patient_identifier_id,patient_id,identifier,identifier_type,preferred,creator,date_created,voided,uuid)
+VALUES  (1, 1, '12345', 1, 1, 1, '2020-03-05 00:00:00', 0, '128bcfc0-360a-44a5-9539-e8718cd6e4d8'),
+        (2, 2, 'QWERT', 1, 1, 1, '2020-03-05 00:00:00', 0, '228bcfc0-360a-44a5-9539-e8718cd6e4d8');
 
 INSERT INTO care_setting (care_setting_id,name,care_setting_type,creator,date_created,retired,uuid)
 VALUES  (1, 'Out-Patient', 'OUTPATIENT', 1, '2020-03-05 00:00:00', 1, '638bcfc0-360a-44a3-9539-e8718cd6e4d8');
@@ -59,6 +55,9 @@ VALUES  (1, 1, 1, 'FURN_8888', 1, '2020-03-05 00:00:00', 0, '156584a3-6c4a-4cb5-
         (2, 2, 2, 'Dozens', 1, '2020-03-05 00:00:00', 0, '256584a3-6c4a-4cb5-bb66-964aa9614221'),
         (3, 3, 2, 'Units', 1, '2020-03-05 00:00:00', 0, '356584a3-6c4a-4cb5-bb66-964aa9614221');
 
+INSERT INTO drug (drug_id,concept_id,combination,creator,date_created,retired,uuid)
+VALUES (1, 1, 0, 1, '2020-03-05 00:00:00', 0, '1a93d0dd-6534-48ed-bebc-4aeeda9471e6');
+
 INSERT INTO provider (provider_id, creator,date_created,retired,uuid)
 VALUES  (1, 1, '2020-03-05 00:00:00', 0, '675584a3-6c4a-4cb5-ea66-964aa9614239');
 
@@ -66,14 +65,16 @@ INSERT INTO order_type (order_type_id, name,java_class_name,creator,date_created
 VALUES  (1, 'Test Order', 'org.openmrs.TestOrder', 1, '2020-03-05 00:00:00', 0, '2e93d0cc-6534-48ed-bebc-4aeeda9471a5');
 
 INSERT INTO orders (order_id,order_type_id,patient_id,encounter_id,concept_id,urgency,order_number,order_action,care_setting,orderer,previous_order_id,creator,date_activated,date_created,voided,uuid)
-VALUES  (1, 1, 1, 1, 1, 'NO-URGENCY', 'ORD-1','NEW', 1, 1, null, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '16170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
-        (2, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-1','NEW', 1, 1, null, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '26170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
-        (3, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-1','REVISE', 1, 1, 2, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '36170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
-        (4, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-1','DISCONTINUE', 1, 1, 3, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '46170d8e-d201-4d94-ae89-0be0b0b6d8ba');
+VALUES  (1, 1, 2, 1, 1, 'NO-URGENCY', 'ORD-1','NEW', 1, 1, null, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '16170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
+        (2, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-2','NEW', 1, 1, null, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '26170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
+        (3, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-3','REVISE', 1, 1, 2, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '36170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
+        (4, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-4','DISCONTINUE', 1, 1, 3, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '46170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
+        (5, 1, 2, 2, 1, 'NO-URGENCY', 'ORD-5','RENEW', 1, 1, 1, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '56170d8e-d201-4d94-ae89-0be0b0b6d8ba');
 
 INSERT INTO test_order (order_id)
-VALUES  (1);
+VALUES  (1),
+        (5);
 
-INSERT INTO drug_order (order_id,dispense_as_written,quantity,quantity_units)
-VALUES  (2, 0, 2.0, 2),
-        (3, 0, 3.0, 3);
+INSERT INTO drug_order (order_id,drug_inventory_id,dispense_as_written,quantity,quantity_units)
+VALUES  (2, 1, 0, 2.0, 2),
+        (3, 1, 0, 3.0, 3);
