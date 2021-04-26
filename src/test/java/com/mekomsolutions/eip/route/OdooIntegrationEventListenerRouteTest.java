@@ -39,11 +39,9 @@ import org.openmrs.eip.component.repository.PersonNameRepository;
 import org.openmrs.eip.mysql.watcher.Event;
 import org.openmrs.eip.mysql.watcher.route.BaseWatcherRouteTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 
-@TestPropertySource(properties = "camel.springboot.route-filter-include-pattern=direct:odoo-event-listener")
 @Sql(value = {
         "classpath:test_data.sql" }, config = @SqlConfig(dataSource = "openmrsDataSource", transactionManager = "openmrsTransactionManager"))
 public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest {

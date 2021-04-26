@@ -41,7 +41,6 @@ import org.springframework.test.context.jdbc.SqlConfig;
 
 import ch.qos.logback.classic.Level;
 
-@TestPropertySource(properties = "camel.springboot.route-filter-include-pattern=direct:odoo-order-handler,direct:test-error-handler")
 @TestPropertySource(properties = PROP_URI_ERROR_HANDLER + "=" + TestConstants.URI_TEST_ERROR_HANDLER)
 @Sql(value = {
         "classpath:test_data.sql" }, config = @SqlConfig(dataSource = "openmrsDataSource", transactionManager = "openmrsTransactionManager"))
