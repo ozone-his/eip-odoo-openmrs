@@ -26,7 +26,7 @@ public class OdooTestConstants {
 	
 	public static final String URI_PERSON_NAME_ADDRESS_HANDLER = "direct:odoo-person-name-and-address-handler";
 	
-	public static final String URI_GET_EXT_ID = "`direct:odoo-get-external-id-map`";
+	public static final String URI_GET_EXT_ID = "direct:odoo-get-external-id-map";
 	
 	public static final String URI_PROCESS_ORDER = "direct:odoo-process-order";
 	

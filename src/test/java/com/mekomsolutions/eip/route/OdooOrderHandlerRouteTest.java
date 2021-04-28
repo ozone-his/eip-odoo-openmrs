@@ -15,7 +15,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
-import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_URI_ERROR_HANDLER;
 
 import java.util.Map;
 
@@ -26,25 +25,17 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
 import org.junit.Before;
 import org.junit.Test;
-import org.openmrs.eip.TestConstants;
 import org.openmrs.eip.component.entity.DrugOrder;
 import org.openmrs.eip.component.entity.Order;
 import org.openmrs.eip.component.entity.TestOrder;
 import org.openmrs.eip.component.exception.EIPException;
 import org.openmrs.eip.component.repository.OrderRepository;
 import org.openmrs.eip.mysql.watcher.Event;
-import org.openmrs.eip.mysql.watcher.route.BaseWatcherRouteTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlConfig;
 
 import ch.qos.logback.classic.Level;
 
-@TestPropertySource(properties = PROP_URI_ERROR_HANDLER + "=" + TestConstants.URI_TEST_ERROR_HANDLER)
-@Sql(value = {
-        "classpath:test_data.sql" }, config = @SqlConfig(dataSource = "openmrsDataSource", transactionManager = "openmrsTransactionManager"))
-public class OdooOrderHandlerRouteTest extends BaseWatcherRouteTest {
+public class OdooOrderHandlerRouteTest extends BaseOdooRouteTest {
 	
 	private static final String ROUTE_ID = "odoo-order-handler";
 	
