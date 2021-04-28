@@ -217,6 +217,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 		exchange.setProperty(PROP_EVENT, event);
 		mockAuthEndpoint.expectedMessageCount(1);
 		mockPersonNameAndAddressEndpoint.expectedMessageCount(1);
+		mockPersonNameAndAddressEndpoint.expectedPropertyReceived("patientAssociationName", "Person Name");
 		mockPatientHandlerEndpoint.expectedMessageCount(0);
 		mockOrderHandlerEndpoint.expectedMessageCount(0);
 		PersonName expectedName = nameRepo.findByUuid(NAME_UUID);
@@ -240,6 +241,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseWatcherRouteTest 
 		exchange.setProperty(PROP_EVENT, event);
 		mockAuthEndpoint.expectedMessageCount(1);
 		mockPersonNameAndAddressEndpoint.expectedMessageCount(1);
+        mockPersonNameAndAddressEndpoint.expectedPropertyReceived("patientAssociationName", "Person Address");
 		mockPatientHandlerEndpoint.expectedMessageCount(0);
 		mockOrderHandlerEndpoint.expectedMessageCount(0);
 		PersonAddress expectedAddress = addressRepo.findByUuid(ADDRESS_UUID);
