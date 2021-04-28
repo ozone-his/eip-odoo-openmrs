@@ -11,7 +11,7 @@
         
         <when>
             <simple>${body.length} > 1</simple>
-            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) existing customers in odoo with ref: ${exchangeProperty.patient.uuid}" />
+            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} existing customers in odoo with ref: ${exchangeProperty.patient.uuid}" />
         </when>
 
         <when>
@@ -25,12 +25,19 @@
             <when>
                 <!-- Only process events for patients with customer records in Odoo or if the event is for an Order -->
                 <simple>${exchangeProperty.patient-odoo-id} != null || ${exchangeProperty.entity-instance} is 'org.openmrs.eip.component.entity.Order'</simple>
-                <when>
-                    <simple>${exchangeProperty.event.tableName} == 'patient'</simple>
-                    <setProperty name="isPatientVoidedOrDeleted">
-                        <spel>#{getProperty('patient').patientVoided == true || getProperty('event').operation == 'd'}</spel>
-                    </setProperty>
-                </when>
+                <choice>
+                    <when>
+                        <simple>${exchangeProperty.event.tableName} == 'patient' &amp;&amp; ${exchangeProperty.event.operation} == 'd'</simple>
+                        <setProperty name="isPatientVoidedOrDeleted">
+                            <simple>true</simple>
+                        </setProperty>
+                    </when>
+                    <otherwise>
+                        <setProperty name="isPatientVoidedOrDeleted">
+                            <spel>#{getProperty('patient').patientVoided == true}</spel>
+                        </setProperty>
+                    </otherwise>
+                </choice>
 
                 <when>
                     <simple>${exchangeProperty.isPatientVoidedOrDeleted} != true</simple>
@@ -93,7 +100,7 @@
                         <choice>
                             <when>
                                 <simple>${exchangeProperty.isPatientVoidedOrDeleted} == true</simple>
-                                <log message="No action to take for a deleted or voided patient since they have no customer record in odoo" />
+                                <log message="No action to take for voided patient since they have no customer record in odoo" />
                             </when>
                             <otherwise>
                                 <setProperty name="odoo-operation">
@@ -120,15 +127,15 @@
                                 <to uri="direct:odoo-get-quotations" />
 
                                 <when>
-                                    <spel>${body.length} == 0</spel>
+                                    <simple>${body.length} > 0</simple>
                                     <setProperty name="quotationIds">
                                         <simple>${body}</simple>
                                     </setProperty>
 
                                     <log message="Cancelling ${body.length} existing quotation(s) in odoo for the patient -> ${exchangeProperty.quotationIds}" />
-                                </when>
 
-                                <to uri="direct:odoo-cancel-quotations" />
+                                    <to uri="direct:odoo-cancel-quotations" />
+                                </when>
 
                                 <log message="Archiving existing customer in odoo" />
                             </when>
