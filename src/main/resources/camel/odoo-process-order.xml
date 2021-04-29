@@ -36,7 +36,7 @@
 						<simple>${body}</simple>
 					</setProperty>
 					<setProperty name="order-line-count">
-						<simple>0</simple>
+						<spel>#{T(java.lang.Integer).valueOf(0)}</spel>
 					</setProperty>
 				</when>
 			</when>
@@ -56,7 +56,7 @@
 				<choice>
 					<when>
 						<simple>${body.length} > 1</simple>
-						<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) lines for the same product added to the draft quotation in odoo" />
+						<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} lines for the same product added to the draft quotation in odoo" />
 					</when>
 					<when>
 						<simple>${body.length} == 0</simple>
