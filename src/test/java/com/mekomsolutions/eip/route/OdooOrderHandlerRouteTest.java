@@ -140,33 +140,6 @@ public class OdooOrderHandlerRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldProcessARenewalOrder() throws Exception {
-		final String orderId = "56170d8e-d201-4d94-ae89-0be0b0b6d8ba";
-		final String op = "c";
-		final Integer expectedProductId = 4;
-		Event event = createEvent("test_order", "5", orderId, op);
-		TestOrder order = (TestOrder) orderRepo.findByUuid(orderId);
-		Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(PROP_EVENT, event);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		mockExtIdMapEndpoint.expectedMessageCount(1);
-		mockProcessOrderEndpoint.expectedMessageCount(1);
-		mockExtIdMapEndpoint.expectedPropertyReceived("modelName", "product.product");
-		mockExtIdMapEndpoint.expectedPropertyReceived("externalId", order.getConcept().getUuid());
-		mockProcessOrderEndpoint.expectedPropertyReceived("odooProductId", expectedProductId);
-		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
-		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
-		
-		producerTemplate.send(URI_ORDER_HANDLER, exchange);
-		
-		mockExtIdMapEndpoint.assertIsSatisfied();
-		mockProcessOrderEndpoint.assertIsSatisfied();
-		assertNull(exchange.getProperty("is-drug-order"));
-		assertTrue(exchange.getProperty("is-new", Boolean.class));
-		assertNull(exchange.getProperty("previousOrder"));
-	}
-	
-	@Test
 	public void shouldProcessARevisionOrder() throws Exception {
 		final String orderId = "36170d8e-d201-4d94-ae89-0be0b0b6d8ba";
 		final String op = "c";
@@ -290,6 +263,36 @@ public class OdooOrderHandlerRouteTest extends BaseOdooRouteTest {
 		mockProcessOrderEndpoint.assertIsSatisfied();
 		final String expectError = "Found 2 products in odoo mapped to uuid: " + order.getConcept().getUuid();
 		assertEquals(expectError, exchange.getProperty("error", EIPException.class).getMessage());
+	}
+	
+	@Test
+	public void shouldSkipARenewOrderActionThatIsNotSupported() {
+		Event event = createEvent("test_order", "1", ORDER_UUID_1, "c");
+		final String action = "RENEW";
+		Order order = orderRepo.findByUuid(ORDER_UUID_1);
+		order.setAction(action);
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		exchange.setProperty(EX_PROP_ENTITY, order);
+		
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
+		
+		assertMessageLogged(Level.WARN, "Don't know how to handle Order with action: " + action);
+	}
+	
+	@Test
+	public void shouldSkipAnUnknownOrderAction() {
+		Event event = createEvent("test_order", "1", ORDER_UUID_1, "c");
+		final String action = "UNKNOWN_ACTION";
+		Order order = orderRepo.findByUuid(ORDER_UUID_1);
+		order.setAction(action);
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		exchange.setProperty(EX_PROP_ENTITY, order);
+		
+		producerTemplate.send(URI_ORDER_HANDLER, exchange);
+		
+		assertMessageLogged(Level.WARN, "Don't know how to handle Order with action: " + action);
 	}
 	
 }

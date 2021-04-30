@@ -8,70 +8,82 @@
         <choice>
             <when>
                 <simple>${exchangeProperty.event.operation} == 'c' || ${exchangeProperty.entity-instance.voided} == true</simple>
-                <when>
-                    <simple>${exchangeProperty.entity-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
-                    <setProperty name="is-drug-order">
-                        <simple>true</simple>
-                    </setProperty>
-                </when>
-
-                <when>
-                    <simple>${exchangeProperty.entity-instance.voided} != true</simple>
-                    <setProperty name="is-new">
-                        <spel>#{getProperty('entity-instance').action == 'NEW' || getProperty('entity-instance').action == 'RENEW'}</spel>
-                    </setProperty>
-                </when>
-
-                <setProperty name="modelName">
-                    <simple>product.product</simple>
-                </setProperty>
-                <setProperty name="externalId">
-                    <simple>${exchangeProperty.entity-instance.concept.uuid}</simple>
+                <setProperty name="orderAction">
+                    <simple>${exchangeProperty.entity-instance.action}</simple>
                 </setProperty>
 
-                <when>
-                    <simple>${exchangeProperty.is-drug-order} == true</simple>
-                    <setProperty name="externalId">
-                        <simple>${exchangeProperty.entity-instance.drug.uuid}</simple>
-                    </setProperty>
-                </when>
-
-                <when>
-                    <simple>${exchangeProperty.entity-instance.action} == 'DISCONTINUE'</simple>
-                    <setProperty name="previousOrder">
-                        <spel>#{exchange.context.registry.lookupByName(getProperty("tables-repo-map").get(getProperty('event').tableName)).findByUuid(getProperty('entity-instance').previousOrder.uuid)}</spel>
-                    </setProperty>
-                    <setProperty name="externalId">
-                        <simple>${exchangeProperty.previousOrder.concept.uuid}</simple>
-                    </setProperty>
-
+                <choice>
                     <when>
-                        <simple>${exchangeProperty.is-drug-order} == true || ${exchangeProperty.previousOrder} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
-                        <setProperty name="externalId">
-                            <simple>${exchangeProperty.previousOrder.drug.uuid}</simple>
+                        <simple>${exchangeProperty.orderAction} == 'NEW' || ${exchangeProperty.orderAction} == 'REVISE' || ${exchangeProperty.orderAction} == 'DISCONTINUE'</simple>
+                        <when>
+                            <simple>${exchangeProperty.entity-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
+                            <setProperty name="is-drug-order">
+                                <simple>true</simple>
+                            </setProperty>
+                        </when>
+
+                        <when>
+                            <simple>${exchangeProperty.entity-instance.voided} != true</simple>
+                            <setProperty name="is-new">
+                                <spel>#{getProperty('entity-instance').action == 'NEW' || getProperty('entity-instance').action == 'RENEW'}</spel>
+                            </setProperty>
+                        </when>
+
+                        <setProperty name="modelName">
+                            <simple>product.product</simple>
                         </setProperty>
+                        <setProperty name="externalId">
+                            <simple>${exchangeProperty.entity-instance.concept.uuid}</simple>
+                        </setProperty>
+
+                        <when>
+                            <simple>${exchangeProperty.is-drug-order} == true</simple>
+                            <setProperty name="externalId">
+                                <simple>${exchangeProperty.entity-instance.drug.uuid}</simple>
+                            </setProperty>
+                        </when>
+
+                        <when>
+                            <simple>${exchangeProperty.entity-instance.action} == 'DISCONTINUE'</simple>
+                            <setProperty name="previousOrder">
+                                <spel>#{exchange.context.registry.lookupByName(getProperty("tables-repo-map").get(getProperty('event').tableName)).findByUuid(getProperty('entity-instance').previousOrder.uuid)}</spel>
+                            </setProperty>
+                            <setProperty name="externalId">
+                                <simple>${exchangeProperty.previousOrder.concept.uuid}</simple>
+                            </setProperty>
+
+                            <when>
+                                <simple>${exchangeProperty.is-drug-order} == true || ${exchangeProperty.previousOrder} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
+                                <setProperty name="externalId">
+                                    <simple>${exchangeProperty.previousOrder.drug.uuid}</simple>
+                                </setProperty>
+                            </when>
+                        </when>
+
+                        <to uri="direct:odoo-get-external-id-map" />
+
+                        <when>
+                            <simple>${body.length} == 0</simple>
+                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No product found in odoo mapped to uuid: ${exchangeProperty.externalId}" />
+                        </when>
+
+                        <when>
+                            <simple>${body.length} > 1</simple>
+                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} products in odoo mapped to uuid: ${exchangeProperty.externalId}" />
+                        </when>
+
+                        <setProperty name="odooProductId">
+                            <simple>${body[0].get('res_id')}</simple>
+                        </setProperty>
+
+                        <log message="Odoo product id: ${exchangeProperty.odooProductId}" loggingLevel="DEBUG" />
+
+                        <to uri="direct:odoo-process-order" />
                     </when>
-                </when>
-
-                <to uri="direct:odoo-get-external-id-map" />
-
-                <when>
-                    <simple>${body.length} == 0</simple>
-                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No product found in odoo mapped to uuid: ${exchangeProperty.externalId}" />
-                </when>
-
-                <when>
-                    <simple>${body.length} > 1</simple>
-                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} products in odoo mapped to uuid: ${exchangeProperty.externalId}" />
-                </when>
-
-                <setProperty name="odooProductId">
-                    <simple>${body[0].get('res_id')}</simple>
-                </setProperty>
-
-                <log message="Odoo product id: ${exchangeProperty.odooProductId}" loggingLevel="DEBUG" />
-
-                <to uri="direct:odoo-process-order" />
+                    <otherwise>
+                        <log message="Don't know how to handle Order with action: ${exchangeProperty.orderAction}" loggingLevel="WARN" />
+                    </otherwise>
+                </choice>
             </when>
             <otherwise>
                 <log message="Skipping event with operation: ${exchangeProperty.event.operation}" />
