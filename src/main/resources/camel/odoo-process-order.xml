@@ -6,131 +6,143 @@
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
         <setProperty name="patient">
-            <simple>${exchangeProperty.entity-instance.patient}</simple>
+            <spel>#{exchange.context.registry.lookupByName(getProperty('tables-repo-map').get('patient')).findByUuid(getProperty('entity-instance').patient.uuid)}</spel>
         </setProperty>
 
         <to uri="direct:odoo-patient-handler" />
-		
-		<to uri="direct:odoo-get-draft-quotations" />
 
-		<log message="Found ${body.length} existing draft quotation(s) for the patient in Odoo" loggingLevel="DEBUG" />
+        <setProperty name="isDcOrVoidedOrder">
+            <spel>#{getProperty('entity-instance').voided == true || getProperty('entity-instance').action == 'DISCONTINUE'}</spel>
+        </setProperty>
+        
+        <choice>
+            <when>
+                <simple>${exchangeProperty.isDcOrVoidedOrder} == true &amp;&amp; ${exchangeProperty.patient-odoo-id} == null</simple>
+                <log message="No action to take for a voided or discontinuation order because the patient has no customer record in odoo" />
+            </when>
+            <otherwise>
+                <to uri="direct:odoo-get-draft-quotations" />
 
-		<choice>
-			<when>
-				<simple>${body.length} > 1</simple>
-				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} existing draft quotation(s) for the same patient created by this system in odoo" />
-			</when>
-			<when>
-				<simple>${body.length} == 0</simple>
-				<when>
-					<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
-					<setProperty name="odoo-operation">
-						<simple>create</simple>
-					</setProperty>
+                <log message="Found ${body.length} existing draft quotation(s) for the patient in Odoo" loggingLevel="DEBUG" />
 
-					<log message="Creating new quotation" />
+                <choice>
+                    <when>
+                        <simple>${body.length} > 1</simple>
+                        <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} existing draft quotation(s) for the same patient created by this system in odoo" />
+                    </when>
+                    <when>
+                        <simple>${body.length} == 0</simple>
+                        <when>
+                            <simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
+                            <setProperty name="odoo-operation">
+                                <simple>create</simple>
+                            </setProperty>
 
-					<to uri="direct:odoo-manage-quotation" />
+                            <log message="Creating new quotation" />
 
-					<setProperty name="quotation-id">
-						<simple>${body}</simple>
-					</setProperty>
-					<setProperty name="order-line-count">
-						<spel>#{T(java.lang.Integer).valueOf(0)}</spel>
-					</setProperty>
-				</when>
-			</when>
-			<otherwise>
-				<log message="Existing draft quotation id: ${body[0].get('id')}" loggingLevel="DEBUG" />
-				<setProperty name="quotation-id">
-					<spel>#{T(java.lang.Integer).valueOf(body[0].get('id'))}</spel>
-				</setProperty>
-				<setProperty name="order-line-count">
-					<spel>#{T(java.lang.Integer).valueOf(body[0].get('order_line').length)}</spel>
-				</setProperty>
+                            <to uri="direct:odoo-manage-quotation" />
 
-				<log message="Order line count on the existing draft quotation in odoo: ${exchangeProperty.order-line-count}" loggingLevel="DEBUG" />
-
-				<to uri="direct:odoo-get-order-line" />
-
-				<choice>
-					<when>
-						<simple>${body.length} > 1</simple>
-						<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} lines for the same product added to the draft quotation in odoo" />
-					</when>
-					<when>
-						<simple>${body.length} == 0</simple>
-						<log message="No order line found on the draft quotation in odoo" loggingLevel="DEBUG" />
-					</when>
-					<otherwise>
-						<log message="Found existing order line in odoo on the draft quotation for the orderable" />
-
-						<setProperty name="order-line">
-							<simple>${body[0]}</simple>
-						</setProperty>
-					</otherwise>
-				</choice>
-			</otherwise>
-		</choice>
-
-		<choice>
-			<when>
-				<simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
-				<when>
-					<simple>${exchangeProperty.is-drug-order} == true</simple>
-
-					<setProperty name="order-quantity">
-						<simple>${exchangeProperty.entity-instance.quantity}</simple>
-					</setProperty>
-
-					<when>
-						<simple>${exchangeProperty.order-quantity} != null</simple>
-                        <setProperty name="modelName">
-                            <simple>uom.uom</simple>
+                            <setProperty name="quotation-id">
+                                <simple>${body}</simple>
+                            </setProperty>
+                            <setProperty name="order-line-count">
+                                <spel>#{T(java.lang.Integer).valueOf(0)}</spel>
+                            </setProperty>
+                        </when>
+                    </when>
+                    <otherwise>
+                        <log message="Existing draft quotation id: ${body[0].get('id')}" loggingLevel="DEBUG" />
+                        <setProperty name="quotation-id">
+                            <spel>#{T(java.lang.Integer).valueOf(body[0].get('id'))}</spel>
                         </setProperty>
-						<setProperty name="externalId">
-							<simple>${exchangeProperty.entity-instance.quantityUnits.uuid}</simple>
-						</setProperty>
-
-                        <to uri="direct:odoo-get-external-id-map" />
-
-                        <when>
-                            <simple>${body.length} == 0</simple>
-                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No units of measure found in odoo mapped to uuid: ${exchangeProperty.externalId}" />
-                        </when>
-
-                        <when>
-                            <simple>${body.length} > 1</simple>
-                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) units of measure in odoo mapped to uuid: ${exchangeProperty.externalId}" />
-                        </when>
-
-                        <setProperty name="unitsId">
-                            <simple>${body[0].get('res_id')}</simple>
+                        <setProperty name="order-line-count">
+                            <spel>#{T(java.lang.Integer).valueOf(body[0].get('order_line').length)}</spel>
                         </setProperty>
 
-                        <log message="Odoo units of measure id: ${exchangeProperty.unitsId}" loggingLevel="DEBUG" />
-					</when>
-				</when>
+                        <log message="Order line count on the existing draft quotation in odoo: ${exchangeProperty.order-line-count}" loggingLevel="DEBUG" />
 
-				<choice>
-					<when>
-						<simple>${exchangeProperty.is-new} == true</simple>
-						<to uri="direct:odoo-process-new-order" />
-					</when>
-					<otherwise>
-						<to uri="direct:odoo-process-revision-order" />
-					</otherwise>
-				</choice>
-			</when>
-			<when>
-				<simple>${exchangeProperty.entity-instance.action} == 'DISCONTINUE' || ${exchangeProperty.entity-instance.voided} == true</simple>
-				<to uri="direct:odoo-process-dc-or-voided-order" />
-			</when>
-			<otherwise>
-				<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order action: ${exchangeProperty.entity-instance.action}" />
-			</otherwise>
-		</choice>
+                        <to uri="direct:odoo-get-order-line" />
 
+                        <choice>
+                            <when>
+                                <simple>${body.length} > 1</simple>
+                                <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} lines for the same product added to the draft quotation in odoo" />
+                            </when>
+                            <when>
+                                <simple>${body.length} == 0</simple>
+                                <log message="No order line found on the draft quotation in odoo" loggingLevel="DEBUG" />
+                            </when>
+                            <otherwise>
+                                <log message="Found existing order line in odoo on the draft quotation for the orderable" />
+
+                                <setProperty name="order-line">
+                                    <simple>${body[0]}</simple>
+                                </setProperty>
+                            </otherwise>
+                        </choice>
+                    </otherwise>
+                </choice>
+
+                <choice>
+                    <when>
+                        <simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
+                        <when>
+                            <simple>${exchangeProperty.is-drug-order} == true</simple>
+
+                            <setProperty name="order-quantity">
+                                <simple>${exchangeProperty.entity-instance.quantity}</simple>
+                            </setProperty>
+
+                            <when>
+                                <simple>${exchangeProperty.order-quantity} != null</simple>
+                                <setProperty name="modelName">
+                                    <simple>uom.uom</simple>
+                                </setProperty>
+                                <setProperty name="externalId">
+                                    <simple>${exchangeProperty.entity-instance.quantityUnits.uuid}</simple>
+                                </setProperty>
+
+                                <to uri="direct:odoo-get-external-id-map" />
+
+                                <when>
+                                    <simple>${body.length} == 0</simple>
+                                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No units of measure found in odoo mapped to uuid: ${exchangeProperty.externalId}" />
+                                </when>
+
+                                <when>
+                                    <simple>${body.length} > 1</simple>
+                                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) units of measure in odoo mapped to uuid: ${exchangeProperty.externalId}" />
+                                </when>
+
+                                <setProperty name="unitsId">
+                                    <simple>${body[0].get('res_id')}</simple>
+                                </setProperty>
+
+                                <log message="Odoo units of measure id: ${exchangeProperty.unitsId}" loggingLevel="DEBUG" />
+                            </when>
+                        </when>
+
+                        <choice>
+                            <when>
+                                <simple>${exchangeProperty.is-new} == true</simple>
+                                <to uri="direct:odoo-process-new-order" />
+                            </when>
+                            <otherwise>
+                                <to uri="direct:odoo-process-revision-order" />
+                            </otherwise>
+                        </choice>
+                    </when>
+                    <when>
+                        <simple>${exchangeProperty.isDcOrVoidedOrder} == true</simple>
+                        <to uri="direct:odoo-process-dc-or-voided-order" />
+                    </when>
+                    <otherwise>
+                        <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order action: ${exchangeProperty.entity-instance.action}" />
+                    </otherwise>
+                </choice>
+            </otherwise>
+        </choice>
+        
 		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
 	</route>
 
