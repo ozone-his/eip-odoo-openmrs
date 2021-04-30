@@ -46,6 +46,8 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	
 	public static final String EX_PROP_PATIENT = "patient";
 	
+	public static final String EX_PROP_CREATE_PATIENT = "createPatient";
+	
 	@EndpointInject("mock:odoo-get-customer")
 	private MockEndpoint mockGetCustomerEndpoint;
 	
@@ -144,12 +146,13 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldAddPatientToOdooIfTheyDoNotExistWhenEventIsForAnOrder() throws Exception {
+	public void shouldAddPatientToOdooIfTheyDoNotExistAddCreatePatientPropIsSetToTrue() throws Exception {
 		Event event = createEvent("orders", "1", "order-uuid", "c");
 		final Exchange exchange = new DefaultExchange(camelContext);
 		Patient patient = patientRepo.findByUuid(PATIENT_UUID);
 		exchange.setProperty(EX_PROP_PATIENT, patient);
 		exchange.setProperty(EX_PROP_ENTITY, new Order());
+		exchange.setProperty(EX_PROP_CREATE_PATIENT, true);
 		exchange.setProperty(PROP_EVENT, event);
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
 		
@@ -199,12 +202,13 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldAddPatientWithoutAddressToOdooIfTheyDoNotExistWhenEventIsForAnOrder() throws Exception {
+	public void shouldAddPatientWithoutAddressToOdooIfTheyDoNotExistAndCreatePatientPropIsSetToTrue() throws Exception {
 		Event event = createEvent("orders", "1", "order-uuid", "c");
 		final Exchange exchange = new DefaultExchange(camelContext);
 		Patient patient = patientRepo.findByUuid(PATIENT_UUID);
 		exchange.setProperty(EX_PROP_PATIENT, patient);
 		exchange.setProperty(EX_PROP_ENTITY, new Order());
+		exchange.setProperty(EX_PROP_CREATE_PATIENT, true);
 		exchange.setProperty(PROP_EVENT, event);
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
 		mockProcessAddressEndpoint.expectedMessageCount(0);
@@ -283,7 +287,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldNotAddAVoidedPatientToOdooIfTheyDoNotExistWhenProcessingAnOrderEvent() throws Exception {
+	public void shouldNotAddAVoidedPatientToOdooIfTheyDoNotExist() throws Exception {
 		Event event = createEvent("orders", "1", "some-uuid", "c");
 		final Exchange exchange = new DefaultExchange(camelContext);
 		Patient patient = patientRepo.findByUuid(PATIENT_UUID);
@@ -291,14 +295,11 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_PATIENT, patient);
 		exchange.setProperty(EX_PROP_ENTITY, new Order());
 		exchange.setProperty(PROP_EVENT, event);
-		mockManageCustomerEndpoint.expectedMessageCount(0);
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
 		
 		producerTemplate.send(URI_PATIENT_HANDLER, exchange);
 		
 		assertMessageLogged(Level.INFO, "No action to take for voided patient since they have no customer record in odoo");
-		assertTrue(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
-		mockManageCustomerEndpoint.assertIsSatisfied();
 	}
 	
 	@Test
@@ -346,42 +347,6 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		patient.setPatientVoided(true);
 		exchange.setProperty(EX_PROP_PATIENT, patient);
 		exchange.setProperty(EX_PROP_ENTITY, patient);
-		exchange.setProperty(PROP_EVENT, event);
-		mockFetchResourceEndpoint.expectedMessageCount(0);
-		mockProcessAddressEndpoint.expectedMessageCount(0);
-		
-		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] { patientId }));
-		
-		mockManageCustomerEndpoint.expectedMessageCount(1);
-		mockManageCustomerEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_WRITE);
-		
-		mockGetQuotesEndpoint.expectedMessageCount(1);
-		mockGetQuotesEndpoint.expectedPropertyReceived(EX_PROP_ODOO_PATIENT_ID, patientId);
-		final Integer[] quotationIds = new Integer[] { 1, 2 };
-		mockGetQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quotationIds));
-		
-		mockCancelQuotesEndpoint.expectedMessageCount(1);
-		mockCancelQuotesEndpoint.expectedPropertyReceived("quotationIds", quotationIds);
-		
-		producerTemplate.send(URI_PATIENT_HANDLER, exchange);
-		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		mockProcessAddressEndpoint.assertIsSatisfied();
-		mockManageCustomerEndpoint.assertIsSatisfied();
-		mockGetQuotesEndpoint.assertIsSatisfied();
-		mockCancelQuotesEndpoint.assertIsSatisfied();
-		assertTrue(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
-	}
-	
-	@Test
-	public void shouldInactiveCustomerAndCancelTheirQuotationsForAVoidedPatientWhenProcessingOrderEvent() throws Exception {
-		final Integer patientId = 18;
-		Event event = createEvent("orders", "1", "some-uuid", "c");
-		final Exchange exchange = new DefaultExchange(camelContext);
-		Patient patient = patientRepo.findByUuid(PATIENT_UUID);
-		patient.setPatientVoided(true);
-		exchange.setProperty(EX_PROP_PATIENT, patient);
-		exchange.setProperty(EX_PROP_ENTITY, new Order());
 		exchange.setProperty(PROP_EVENT, event);
 		mockFetchResourceEndpoint.expectedMessageCount(0);
 		mockProcessAddressEndpoint.expectedMessageCount(0);

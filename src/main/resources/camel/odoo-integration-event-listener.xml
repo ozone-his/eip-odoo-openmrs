@@ -86,6 +86,7 @@
                     <log message="Done processing event!" />
                 </when>
                 <otherwise>
+                    <!-- TODO entity was most likely deleted, why?-->
                     <log message="No entity found with uuid: ${exchangeProperty.event.identifier}" loggingLevel="WARN" />
                 </otherwise>
             </choice>
