@@ -68,12 +68,10 @@ INSERT INTO orders (order_id,order_type_id,patient_id,encounter_id,concept_id,ur
 VALUES  (1, 1, 2, 1, 1, 'NO-URGENCY', 'ORD-1','NEW', 1, 1, null, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '16170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
         (2, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-2','NEW', 1, 1, null, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '26170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
         (3, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-3','REVISE', 1, 1, 2, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '36170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
-        (4, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-4','DISCONTINUE', 1, 1, 3, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '46170d8e-d201-4d94-ae89-0be0b0b6d8ba'),
-        (5, 1, 2, 2, 1, 'NO-URGENCY', 'ORD-5','RENEW', 1, 1, 1, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '56170d8e-d201-4d94-ae89-0be0b0b6d8ba');
+        (4, 1, 1, 2, 1, 'NO-URGENCY', 'ORD-4','DISCONTINUE', 1, 1, 3, 1, '2020-03-05 00:00:00', '2020-03-05 00:00:00', 0, '46170d8e-d201-4d94-ae89-0be0b0b6d8ba');
 
 INSERT INTO test_order (order_id)
-VALUES  (1),
-        (5);
+VALUES  (1);
 
 INSERT INTO drug_order (order_id,drug_inventory_id,dispense_as_written,quantity,quantity_units)
 VALUES  (2, 1, 0, 2.0, 2),

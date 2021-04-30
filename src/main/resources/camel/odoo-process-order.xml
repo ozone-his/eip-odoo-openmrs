@@ -61,25 +61,30 @@
 
                         <log message="Order line count on the existing draft quotation in odoo: ${exchangeProperty.order-line-count}" loggingLevel="DEBUG" />
 
-                        <to uri="direct:odoo-get-order-line" />
+                        <when>
+                            <simple>${exchangeProperty.order-line-count} > 0</simple>
+                            <to uri="direct:odoo-get-order-line" />
 
-                        <choice>
-                            <when>
-                                <simple>${body.length} > 1</simple>
-                                <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} lines for the same product added to the draft quotation in odoo" />
-                            </when>
-                            <when>
-                                <simple>${body.length} == 0</simple>
-                                <log message="No order line found on the draft quotation in odoo" loggingLevel="DEBUG" />
-                            </when>
-                            <otherwise>
-                                <log message="Found existing order line in odoo on the draft quotation for the orderable" />
+                            <choice>
+                                <when>
+                                    <simple>${body.length} > 1</simple>
+                                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} lines for the same product added to the draft quotation in odoo" />
+                                </when>
+                                <when>
+                                    <simple>${body.length} == 1</simple>
+                                    <log message="Found existing order line in odoo on the draft quotation for the orderable" />
 
-                                <setProperty name="order-line">
-                                    <simple>${body[0]}</simple>
-                                </setProperty>
-                            </otherwise>
-                        </choice>
+                                    <setProperty name="order-line">
+                                        <simple>${body[0]}</simple>
+                                    </setProperty>
+                                </when>
+                            </choice>
+                        </when>
+
+                        <when>
+                            <simple>${exchangeProperty.order-line} == null</simple>
+                            <log message="No order line found on the draft quotation in odoo" />
+                        </when>
                     </otherwise>
                 </choice>
 
@@ -111,7 +116,7 @@
 
                                 <when>
                                     <simple>${body.length} > 1</simple>
-                                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found multiple(${body.length}) units of measure in odoo mapped to uuid: ${exchangeProperty.externalId}" />
+                                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} units of measure in odoo mapped to uuid: ${exchangeProperty.externalId}" />
                                 </when>
 
                                 <setProperty name="unitsId">
@@ -132,12 +137,9 @@
                             </otherwise>
                         </choice>
                     </when>
-                    <when>
-                        <simple>${exchangeProperty.isDcOrVoidedOrder} == true</simple>
-                        <to uri="direct:odoo-process-dc-or-voided-order" />
-                    </when>
                     <otherwise>
-                        <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Don't know how to handle Order action: ${exchangeProperty.entity-instance.action}" />
+                        <!-- This is a DC order or a voided (NEW, RENEW, REVISE) order -->
+                        <to uri="direct:odoo-process-dc-or-voided-order" />
                     </otherwise>
                 </choice>
             </otherwise>
