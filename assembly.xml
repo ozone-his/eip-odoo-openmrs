@@ -16,5 +16,10 @@
             </includes>
         </fileSet>
     </fileSets>
-
+    <files>
+        <file>
+            <source>src/main/resources/config/application.properties</source>
+            <outputDirectory>config</outputDirectory>
+        </file>
+    </files>
 </assembly>
