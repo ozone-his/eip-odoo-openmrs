@@ -51,5 +51,7 @@ public class OdooTestConstants {
 	public static final String ODOO_OP_CREATE = "create";
 	
 	public static final String ODOO_OP_WRITE = "write";
+
+    public static final String ODOO_OP_UNLINK = "unlink";
 	
 }
