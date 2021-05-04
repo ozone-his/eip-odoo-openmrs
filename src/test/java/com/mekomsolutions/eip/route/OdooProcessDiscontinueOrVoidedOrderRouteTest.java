@@ -15,7 +15,7 @@ import org.apache.camel.support.DefaultExchange;
 import org.junit.Before;
 import org.junit.Test;
 
-public class OdooProcessRevisionOrDiscontinueOrderRouteTest extends BaseOdooRouteTest {
+public class OdooProcessDiscontinueOrVoidedOrderRouteTest extends BaseOdooRouteTest {
 	
 	private static final String ROUTE_ID = "odoo-process-dc-or-voided-order";
 	
