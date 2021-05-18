@@ -9,6 +9,10 @@
             <spel>#{exchange.context.registry.lookupByName(getProperty('tables-repo-map').get('patient')).findByUuid(getProperty('entity-instance').patient.uuid)}</spel>
         </setProperty>
 
+        <setProperty name="createPatient">
+            <spel>#{getProperty('is-new') == true || getProperty('entity-instance').action == 'REVISE'}</spel>
+        </setProperty>
+
         <to uri="direct:odoo-patient-handler" />
 
         <setProperty name="isDcOrVoidedOrder">

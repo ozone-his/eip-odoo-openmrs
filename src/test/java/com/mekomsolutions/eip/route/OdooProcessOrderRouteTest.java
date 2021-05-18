@@ -10,6 +10,7 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PROCESS_ORDER;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
 import java.util.HashMap;
@@ -53,6 +54,8 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	public static final String EX_PROP_QUOTE_ID = "quotation-id";
 	
 	public static final String EX_PROP_UNITS_ID = "unitsId";
+	
+	public static final String EX_PROP_CREATE_CUSTOMER = "createPatient";
 	
 	@EndpointInject("mock:odoo-patient-handler")
 	private MockEndpoint mockPatientHandlerEndpoint;
@@ -164,6 +167,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -200,6 +204,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockProcessRevOrderEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -251,6 +256,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockProcessDcOrVoidedOrderEndpoint.assertIsSatisfied();
 		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
 		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+        assertFalse(exchange.getProperty(EX_PROP_CREATE_CUSTOMER, Boolean.class));
 	}
 	
 	@Test
@@ -281,6 +287,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockProcessDcOrVoidedOrderEndpoint.assertIsSatisfied();
 		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
 		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+		assertFalse(exchange.getProperty(EX_PROP_CREATE_CUSTOMER, Boolean.class));
 	}
 	
 	@Test
@@ -299,6 +306,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -341,6 +349,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -409,6 +418,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		assertEquals(orderLine, exchange.getProperty(EX_PROP_ORDER_LINE));
 		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
+        assertFalse(exchange.getProperty(EX_PROP_CREATE_CUSTOMER, Boolean.class));
 	}
 	
 	@Test
@@ -450,6 +460,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		assertEquals(orderLine, exchange.getProperty(EX_PROP_ORDER_LINE));
 		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
+		assertFalse(exchange.getProperty(EX_PROP_CREATE_CUSTOMER, Boolean.class));
 	}
 	
 	@Test
@@ -502,6 +513,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -580,6 +592,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockGetOrderLineEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -619,6 +632,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -665,6 +679,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);

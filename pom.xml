@@ -14,7 +14,7 @@
     <properties>
         <javaCompilerVersion>1.8</javaCompilerVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <openmrsWatcherVersion>2.0-SNAPSHOT</openmrsWatcherVersion>
+        <openmrsWatcherVersion>2.0.0-SNAPSHOT</openmrsWatcherVersion>
         <sprintBootVersion>2.3.0.RELEASE</sprintBootVersion>
         <camelVersion>3.3.0</camelVersion>
         <testContainersVersion>1.15.2</testContainersVersion>
