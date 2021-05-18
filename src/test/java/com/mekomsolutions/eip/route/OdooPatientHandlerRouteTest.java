@@ -46,7 +46,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	
 	public static final String EX_PROP_PATIENT = "patient";
 	
-	public static final String EX_PROP_CREATE_PATIENT = "createPatient";
+	public static final String EX_PROP_CREATE_CUSTOMER = "createCustomer";
 	
 	@EndpointInject("mock:odoo-get-customer")
 	private MockEndpoint mockGetCustomerEndpoint;
@@ -146,13 +146,13 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldAddPatientToOdooIfTheyDoNotExistAddCreatePatientPropIsSetToTrue() throws Exception {
+	public void shouldAddPatientToOdooIfTheyDoNotExistAddCreateCustomerPropIsSetToTrue() throws Exception {
 		Event event = createEvent("orders", "1", "order-uuid", "c");
 		final Exchange exchange = new DefaultExchange(camelContext);
 		Patient patient = patientRepo.findByUuid(PATIENT_UUID);
 		exchange.setProperty(EX_PROP_PATIENT, patient);
 		exchange.setProperty(EX_PROP_ENTITY, new Order());
-		exchange.setProperty(EX_PROP_CREATE_PATIENT, true);
+		exchange.setProperty(EX_PROP_CREATE_CUSTOMER, true);
 		exchange.setProperty(PROP_EVENT, event);
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
 		
@@ -202,13 +202,13 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldAddPatientWithoutAddressToOdooIfTheyDoNotExistAndCreatePatientPropIsSetToTrue() throws Exception {
+	public void shouldAddPatientWithoutAddressToOdooIfTheyDoNotExistAndCreateCustomerPropIsSetToTrue() throws Exception {
 		Event event = createEvent("orders", "1", "order-uuid", "c");
 		final Exchange exchange = new DefaultExchange(camelContext);
 		Patient patient = patientRepo.findByUuid(PATIENT_UUID);
 		exchange.setProperty(EX_PROP_PATIENT, patient);
 		exchange.setProperty(EX_PROP_ENTITY, new Order());
-		exchange.setProperty(EX_PROP_CREATE_PATIENT, true);
+		exchange.setProperty(EX_PROP_CREATE_CUSTOMER, true);
 		exchange.setProperty(PROP_EVENT, event);
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
 		mockProcessAddressEndpoint.expectedMessageCount(0);

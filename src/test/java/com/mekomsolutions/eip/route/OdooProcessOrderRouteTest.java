@@ -55,7 +55,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	
 	public static final String EX_PROP_UNITS_ID = "unitsId";
 	
-	public static final String EX_PROP_CREATE_CUSTOMER = "createPatient";
+	public static final String EX_PROP_CREATE_CUSTOMER = "createCustomer";
 	
 	@EndpointInject("mock:odoo-patient-handler")
 	private MockEndpoint mockPatientHandlerEndpoint;
@@ -256,7 +256,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockProcessDcOrVoidedOrderEndpoint.assertIsSatisfied();
 		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
 		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
-        assertFalse(exchange.getProperty(EX_PROP_CREATE_CUSTOMER, Boolean.class));
+		assertFalse(exchange.getProperty(EX_PROP_CREATE_CUSTOMER, Boolean.class));
 	}
 	
 	@Test
@@ -418,7 +418,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		assertEquals(orderLine, exchange.getProperty(EX_PROP_ORDER_LINE));
 		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
-        assertFalse(exchange.getProperty(EX_PROP_CREATE_CUSTOMER, Boolean.class));
+		assertFalse(exchange.getProperty(EX_PROP_CREATE_CUSTOMER, Boolean.class));
 	}
 	
 	@Test

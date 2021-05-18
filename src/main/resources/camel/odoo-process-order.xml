@@ -9,7 +9,7 @@
             <spel>#{exchange.context.registry.lookupByName(getProperty('tables-repo-map').get('patient')).findByUuid(getProperty('entity-instance').patient.uuid)}</spel>
         </setProperty>
 
-        <setProperty name="createPatient">
+        <setProperty name="createCustomer">
             <spel>#{getProperty('is-new') == true || getProperty('entity-instance').action == 'REVISE'}</spel>
         </setProperty>
 
