@@ -32,7 +32,7 @@
                 <choice>
                     <when>
                         <simple>${body.length} > 1</simple>
-                        <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} existing draft quotation(s) for the same patient created by this system in odoo" />
+                        <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} existing draft quotation(s) for the same patient created by this system in odoo" />
                     </when>
                     <when>
                         <simple>${body.length} == 0</simple>
@@ -72,7 +72,7 @@
                             <choice>
                                 <when>
                                     <simple>${body.length} > 1</simple>
-                                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} lines for the same product added to the draft quotation in odoo" />
+                                    <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} lines for the same product added to the draft quotation in odoo" />
                                 </when>
                                 <when>
                                     <simple>${body.length} == 1</simple>
@@ -115,12 +115,12 @@
 
                                 <when>
                                     <simple>${body.length} == 0</simple>
-                                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No units of measure found in odoo mapped to uuid: ${exchangeProperty.externalId}" />
+                                    <throwException exceptionType="org.openmrs.eip.EIPException" message="No units of measure found in odoo mapped to uuid: ${exchangeProperty.externalId}" />
                                 </when>
 
                                 <when>
                                     <simple>${body.length} > 1</simple>
-                                    <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} units of measure in odoo mapped to uuid: ${exchangeProperty.externalId}" />
+                                    <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} units of measure in odoo mapped to uuid: ${exchangeProperty.externalId}" />
                                 </when>
 
                                 <setProperty name="unitsId">

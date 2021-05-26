@@ -64,12 +64,12 @@
 
                         <when>
                             <simple>${body.length} == 0</simple>
-                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="No product found in odoo mapped to uuid: ${exchangeProperty.externalId}" />
+                            <throwException exceptionType="org.openmrs.eip.EIPException" message="No product found in odoo mapped to uuid: ${exchangeProperty.externalId}" />
                         </when>
 
                         <when>
                             <simple>${body.length} > 1</simple>
-                            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} products in odoo mapped to uuid: ${exchangeProperty.externalId}" />
+                            <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} products in odoo mapped to uuid: ${exchangeProperty.externalId}" />
                         </when>
 
                         <setProperty name="odooProductId">

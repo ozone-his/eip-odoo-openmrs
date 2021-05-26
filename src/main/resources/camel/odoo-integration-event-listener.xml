@@ -5,37 +5,77 @@
 
         <log message="Received DB event: ${exchangeProperty.event}" loggingLevel="DEBUG" />
 
-		<setProperty name="tables-repo-map">
+		<setProperty name="tables-resource-map">
 			<spel>#{new java.util.HashMap(6)}</spel>
 		</setProperty>
 
 		<script>
 			<spel>
-				#{getProperty('tables-repo-map').put('orders', 'orderRepository')}
-				#{getProperty('tables-repo-map').put('test_order', 'orderRepository')}
-				#{getProperty('tables-repo-map').put('drug_order', 'orderRepository')}
-				#{getProperty('tables-repo-map').put('patient', 'patientRepository')}
-				#{getProperty('tables-repo-map').put('person_name', 'personNameRepository')}
-				#{getProperty('tables-repo-map').put('person_address', 'personAddressRepository')}
+				#{getProperty('tables-resource-map').put('orders', 'order')}
+				#{getProperty('tables-resource-map').put('test_order', 'order')}
+				#{getProperty('tables-resource-map').put('drug_order', 'order')}
+				#{getProperty('tables-resource-map').put('patient', 'patient')}
+				#{getProperty('tables-resource-map').put('person_name', 'name')}
+				#{getProperty('tables-resource-map').put('person_address', 'address')}
 			</spel>
 		</script>
 
         <when>
-            <simple>${exchangeProperty.event.snapshot} == false &amp;&amp; ${exchangeProperty.tables-repo-map.containsKey(${exchangeProperty.event.tableName})} == true</simple>
+            <simple>${exchangeProperty.event.snapshot} == false &amp;&amp; ${exchangeProperty.tables-resource-map.containsKey(${exchangeProperty.event.tableName})} == true</simple>
             <log message="Processing event..." />
-            <log message="Loading entity from DB..." loggingLevel="DEBUG" />
 
-            <setBody>
-                <spel>#{exchange.context.registry.lookupByName(getProperty("tables-repo-map").get(getProperty('event').tableName)).findByUuid(getProperty('event').identifier)}</spel>
-            </setBody>
+            <setProperty name="isSubResource">
+                <simple>${exchangeProperty.event.tableName} == 'person_name' || ${exchangeProperty.event.tableName} == 'person_address'</simple>
+            </setProperty>
+            <choice>
+                <when>
+                    <simple>${exchangeProperty.event.tableName} == 'person_name' || ${exchangeProperty.event.tableName} == 'person_address'</simple>
+                    <log message="Fetching uuid for associated person record" />
 
-            <log message="Loaded entity -> ${body}" loggingLevel="DEBUG" />
+                    <toD uri="sql:SELECT uuid FROM person WHERE person_id = ${exchangeProperty.event.primaryKeyId}?dataSource=openmrsDataSource" />
+
+                    <!-- TODO Check if no row was found -->
+
+                    <setProperty name="isSubResource">
+                        <simple>true</simple>
+                    </setProperty>
+                    <setProperty name="resourceName">
+                        <simple>person</simple>
+                    </setProperty>
+                    <setProperty name="resourceId">
+                        <simple>${body[0].get('uuid')}</simple>
+                    </setProperty>
+                    <setProperty name="subResourceName">
+                        <spel>#{getProperty("tables-resource-map").get(getProperty('event').tableName)}</spel>
+                    </setProperty>
+                    <setProperty name="subResourceId">
+                        <simple>${exchangeProperty.event.identifier}</simple>
+                    </setProperty>
+                </when>
+                <otherwise>
+                    <setProperty name="isSubResource">
+                        <simple>false</simple>
+                    </setProperty>
+                    <setProperty name="resourceName">
+                        <spel>#{getProperty("tables-resource-map").get(getProperty('event').tableName)}</spel>
+                    </setProperty>
+                    <setProperty name="resourceId">
+                        <simple>${exchangeProperty.event.identifier}</simple>
+                    </setProperty>
+                </otherwise>
+            </choice>
+            
+            <log message="Fetching resource from OpenMRS..." loggingLevel="DEBUG" />
+            
+            <to uri="direct:odoo-fetch-resource" />
+
+            <log message="Fetched resource -> ${body}" loggingLevel="DEBUG" />
 
             <choice>
                 <when>
                     <simple>${body} != null</simple>
                     <setProperty name="entity-instance">
-                        <simple>${body}</simple>
+                        <jsonpath>$</jsonpath>
                     </setProperty>
 
                     <toD uri="direct:odoo-authentication" />
@@ -47,7 +87,7 @@
                     <choice>
                         <when>
                             <simple>${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.event.tableName} == 'test_order' || ${exchangeProperty.event.tableName} == 'drug_order'</simple>
-                            <log message="Processing Order with action: ${exchangeProperty.entity-instance.action}" />
+                            <log message="Processing Order with action: ${exchangeProperty.entity-instance.get('action')}" />
 
                             <to uri="direct:odoo-order-handler" />
                         </when>

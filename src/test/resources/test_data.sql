@@ -1,22 +1,19 @@
-INSERT INTO users (user_id,person_id,system_id,creator,date_created,retired,uuid)
-VALUES  (1, 1, 'admin', 1, '2020-03-05 00:00:00', 1, '2b2636af-6b8c-4c6f-ad23-c5709c50fd40');
+INSERT INTO person (person_id,gender,voided,uuid)
+VALUES  (1, 'M', 0,'ba3b12d1-5c4f-415f-871b-b98a22137604'),
+        (2, 'F', 0,'2d93d0cc-6534-48ed-bebc-4accda9471a5');
 
-INSERT INTO person (person_id,gender,dead,birthdate_estimated,deathdate_estimated,creator,date_created,voided,uuid)
-VALUES  (1, 'M', 0, 0, 0, 1, '2020-03-05 00:00:00', 0,'ba3b12d1-5c4f-415f-871b-b98a22137604'),
-        (2, 'F', 0, 0, 0, 1, '2020-03-05 00:00:00', 0,'2d93d0cc-6534-48ed-bebc-4accda9471a5');
+INSERT INTO person_name (person_name_id,person_id,given_name,family_name,uuid)
+VALUES  (1, 1, 'John', 'Doe', '0bca417f-fc68-40d7-ae6f-cffca7a5eff1'),
+        (2, 2, 'Mary', 'Jane', '448bcfc0-360a-44b5-9539-e8718cd6e46e');
 
-INSERT INTO person_name (person_name_id,person_id,given_name,family_name,preferred,creator,date_created,voided,uuid)
-VALUES  (1, 1, 'John', 'Doe', 1, 1, '2020-03-05 00:00:00', 0, '0bca417f-fc68-40d7-ae6f-cffca7a5eff1'),
-        (2, 2, 'Mary', 'Jane', 1, 1, '2020-03-05 00:00:00', 0, '448bcfc0-360a-44b5-9539-e8718cd6e46e');
+INSERT INTO person_address (person_address_id,person_id,address1,address2,city_village,state_province,postal_code,country,uuid)
+VALUES  (1, 1, '25 Ocean Drive', 'Apt 1', 'Fort Lauderdale', 'FL', '33301', 'United States', '359022bf-4a58-4732-8cce-1e57f72f47b0');
 
-INSERT INTO person_address (person_address_id,person_id,address1,address2,city_village,state_province,postal_code,country,preferred,creator,date_created,voided,uuid)
-VALUES  (1, 1, '25 Ocean Drive', 'Apt 1', 'Fort Lauderdale', 'FL', '33301', 'United States', 1, 1, '2020-03-05 00:00:00', 0, '359022bf-4a58-4732-8cce-1e57f72f47b0');
+INSERT INTO patient (patient_id)
+VALUES  (1),
+        (2);
 
-INSERT INTO patient (patient_id,creator,date_created,voided,allergy_status)
-VALUES  (1, 1, '2020-03-05 00:00:00', 0, 'Unknown'),
-        (2, 1, '2020-03-05 00:00:00', 0, 'Unknown');
-
-INSERT INTO patient_identifier_type (patient_identifier_type_id,name,required,check_digit,creator,date_created,retired,uuid)
+/*INSERT INTO patient_identifier_type (patient_identifier_type_id,name,required,check_digit,creator,date_created,retired,uuid)
 VALUES  (1, 'OpenMRS Id', 0, 0, 1, '2020-03-05 00:00:00', 0, '6e93d0cc-6534-48ed-bebc-4beeda9471a5');
 
 
@@ -66,4 +63,4 @@ VALUES  (1);
 
 INSERT INTO drug_order (order_id,drug_inventory_id,dispense_as_written,quantity,quantity_units)
 VALUES  (2, 1, 0, 2.0, 2),
-        (3, 1, 0, 3.0, 3);
+        (3, 1, 0, 3.0, 3);*/

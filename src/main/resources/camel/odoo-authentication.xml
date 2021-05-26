@@ -38,7 +38,7 @@
 
         <when>
             <simple>${body} == false</simple>
-            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Invalid odoo username, password or database" />
+            <throwException exceptionType="org.openmrs.eip.EIPException" message="Invalid odoo username, password or database" />
         </when>
 
         <log message="Successfully authenticated with odoo!" />

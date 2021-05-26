@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+	    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet author="wluyima" id="20210524-1501">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="person" />
+            </not>
+        </preConditions>
+        <comment>Adding person table</comment>
+
+        <createTable tableName="person">
+            <column autoIncrement="true" name="person_id" type="INT">
+                <constraints nullable="false" primaryKey="true" />
+            </column>
+            <column name="gender" type="VARCHAR(50)" />
+            <column name="voided" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+            <column name="uuid" type="varchar(38)">
+                <constraints nullable="false" unique="true" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="wluyima" id="20210524-1502">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="patient" />
+            </not>
+        </preConditions>
+        <comment>Adding patient table</comment>
+
+        <createTable tableName="patient">
+            <column autoIncrement="true" name="patient_id" type="INT">
+                <constraints nullable="false" primaryKey="true" />
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+            constraintName="patient_person_fk"
+            baseTableName="patient"
+            baseColumnNames="patient_id"
+            referencedTableName="person"
+            referencedColumnNames="person_id" />
+    </changeSet>
+
+    <changeSet author="wluyima" id="20210524-1503">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="person_name" />
+            </not>
+        </preConditions>
+        <comment>Adding person_name table</comment>
+
+        <createTable tableName="person_name">
+            <column autoIncrement="true" name="person_name_id" type="INT">
+                <constraints nullable="false" primaryKey="true" />
+            </column>
+            <column name="person_id" type="INT">
+                <constraints nullable="false" />
+            </column>
+            <column name="given_name" type="VARCHAR(50)" />
+            <column name="family_name" type="VARCHAR(50)" />
+            <column name="uuid" type="varchar(38)">
+                <constraints nullable="false" unique="true" />
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+                constraintName="person_name_person_fk"
+                baseTableName="person_name"
+                baseColumnNames="person_id"
+                referencedTableName="person"
+                referencedColumnNames="person_id" />
+    </changeSet>
+
+    <changeSet author="wluyima" id="20210524-1504">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="person_address" />
+            </not>
+        </preConditions>
+        <comment>Adding person_address table</comment>
+
+        <createTable tableName="person_address">
+            <column autoIncrement="true" name="person_address_id" type="INT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="person_id" type="INT">
+                <constraints nullable="false" />
+            </column>
+            <column name="address1" type="VARCHAR(255)" />
+            <column name="address2" type="VARCHAR(255)" />
+            <column name="city_village" type="VARCHAR(255)" />
+            <column name="state_province" type="VARCHAR(255)" />
+            <column name="postal_code" type="VARCHAR(50)" />
+            <column name="country" type="VARCHAR(50)" />
+            <column name="uuid" type="varchar(38)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+                constraintName="person_address_person_fk"
+                baseTableName="person_address"
+                baseColumnNames="person_id"
+                referencedTableName="person"
+                referencedColumnNames="person_id" />
+    </changeSet>
+
+</databaseChangeLog>

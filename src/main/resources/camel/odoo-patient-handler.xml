@@ -11,7 +11,7 @@
         
         <when>
             <simple>${body.length} > 1</simple>
-            <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} existing customers in odoo with ref: ${exchangeProperty.patient.uuid}" />
+            <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} existing customers in odoo with ref: ${exchangeProperty.patient.uuid}" />
         </when>
 
         <when>

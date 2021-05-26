@@ -42,7 +42,7 @@
 
             <when>
                 <simple>${body.length} > 1</simple>
-                <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} states in odoo matching name: ${exchangeProperty.stateName}" />
+                <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} states in odoo matching name: ${exchangeProperty.stateName}" />
             </when>
 
             <choice>
@@ -71,7 +71,7 @@
 
             <when>
                 <simple>${body.length} > 1</simple>
-                <throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="Found ${body.length} countries in odoo matching name: ${exchangeProperty.countryName}" />
+                <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} countries in odoo matching name: ${exchangeProperty.countryName}" />
             </when>
 
             <choice>

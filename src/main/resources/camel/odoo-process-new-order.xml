@@ -8,7 +8,7 @@
 		<when>
 			<simple>${exchangeProperty.order-line} != null &amp;&amp; ${exchangeProperty.event.tableName} == 'orders'</simple>
 			<!-- TODO may be update the existing -->
-			<throwException exceptionType="org.openmrs.eip.component.exception.EIPException" message="There is already an existing order line on the quotation for the same orderable in odoo" />
+			<throwException exceptionType="org.openmrs.eip.EIPException" message="There is already an existing order line on the quotation for the same orderable in odoo" />
 		</when>
 
         <choice>
