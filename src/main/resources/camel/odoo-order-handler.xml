@@ -7,25 +7,25 @@
 
         <choice>
             <when>
-                <simple>${exchangeProperty.event.operation} == 'c' || ${exchangeProperty.entity-instance.voided} == true</simple>
+                <simple>${exchangeProperty.event.operation} == 'c' || ${exchangeProperty.entity-instance.get('voided')} == true</simple>
                 <setProperty name="orderAction">
-                    <simple>${exchangeProperty.entity-instance.action}</simple>
+                    <simple>${exchangeProperty.entity-instance.get('action')}</simple>
                 </setProperty>
 
                 <choice>
                     <when>
                         <simple>${exchangeProperty.orderAction} == 'NEW' || ${exchangeProperty.orderAction} == 'REVISE' || ${exchangeProperty.orderAction} == 'DISCONTINUE'</simple>
                         <when>
-                            <simple>${exchangeProperty.entity-instance} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
+                            <simple>${exchangeProperty.entity-instance.get('type')} == 'drugorder'</simple>
                             <setProperty name="is-drug-order">
                                 <simple>true</simple>
                             </setProperty>
                         </when>
 
                         <when>
-                            <simple>${exchangeProperty.entity-instance.voided} != true</simple>
+                            <simple>${exchangeProperty.entity-instance.get('voided')} != true</simple>
                             <setProperty name="is-new">
-                                <spel>#{getProperty('entity-instance').action == 'NEW' || getProperty('entity-instance').action == 'RENEW'}</spel>
+                                <spel>#{getProperty('entity-instance').get('action') == 'NEW' || getProperty('entity-instance').get('action') == 'RENEW'}</spel>
                             </setProperty>
                         </when>
 
@@ -33,31 +33,14 @@
                             <simple>product.product</simple>
                         </setProperty>
                         <setProperty name="externalId">
-                            <simple>${exchangeProperty.entity-instance.concept.uuid}</simple>
+                            <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')}</simple>
                         </setProperty>
 
                         <when>
                             <simple>${exchangeProperty.is-drug-order} == true</simple>
                             <setProperty name="externalId">
-                                <simple>${exchangeProperty.entity-instance.drug.uuid}</simple>
+                                <simple>${exchangeProperty.entity-instance.get('drug').get('uuid')}</simple>
                             </setProperty>
-                        </when>
-
-                        <when>
-                            <simple>${exchangeProperty.entity-instance.action} == 'DISCONTINUE'</simple>
-                            <setProperty name="previousOrder">
-                                <spel>#{exchange.context.registry.lookupByName(getProperty("tables-repo-map").get(getProperty('event').tableName)).findByUuid(getProperty('entity-instance').previousOrder.uuid)}</spel>
-                            </setProperty>
-                            <setProperty name="externalId">
-                                <simple>${exchangeProperty.previousOrder.concept.uuid}</simple>
-                            </setProperty>
-
-                            <when>
-                                <simple>${exchangeProperty.is-drug-order} == true || ${exchangeProperty.previousOrder} is 'org.openmrs.eip.component.entity.DrugOrder'</simple>
-                                <setProperty name="externalId">
-                                    <simple>${exchangeProperty.previousOrder.drug.uuid}</simple>
-                                </setProperty>
-                            </when>
                         </when>
 
                         <to uri="direct:odoo-get-external-id-map" />

@@ -8,10 +8,9 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.openmrs.eip.BaseCamelTest;
 
 @Ignore
-public class OdooAuthenticationRouteTest extends BaseCamelTest {
+public class OdooAuthenticationRouteTest extends BaseOdooRouteTest {
 	
 	@EndpointInject("mock:http")
 	private MockEndpoint mockHttpEndpoint;

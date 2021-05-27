@@ -1,13 +1,8 @@
 package com.mekomsolutions.eip.route;
 
-import java.util.Collections;
-import java.util.Map;
-
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import org.hibernate.cfg.AvailableSettings;
-import org.hibernate.dialect.MySQLDialect;
 import org.openmrs.eip.Constants;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
@@ -27,7 +22,6 @@ public class TestConfig {
 	public LocalContainerEntityManagerFactoryBean entityManager(final EntityManagerFactoryBuilder builder,
 	                                                            @Qualifier(Constants.OPENMRS_DATASOURCE_NAME) final DataSource dataSource) {
 		
-		Map<String, ?> props = Collections.singletonMap(AvailableSettings.DIALECT, MySQLDialect.class.getName());
 		return builder.dataSource(dataSource).packages("org.openmrs.eip").persistenceUnit("openmrs").build();
 	}
 	

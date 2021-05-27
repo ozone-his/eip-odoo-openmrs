@@ -4,7 +4,7 @@ public class OdooTestConstants {
 	
 	public static final String EX_PROP_ODOO_USER_ID = "odoo-user-id";
 	
-	public static final String EX_PROP_TABLE_REPO_MAP = "tables-repo-map";
+	public static final String EX_PROP_TABLE_RESOURCE_MAP = "tables-resource-map";
 	
 	public static final String EX_PROP_ENTITY = "entity-instance";
 	
@@ -14,9 +14,13 @@ public class OdooTestConstants {
 	
 	public static final String EX_PROP_RESOURCE_ID = "resourceId";
 	
+	public static final String EX_PROP_SUB_RESOURCE_NAME = "subResourceName";
+	
+	public static final String EX_PROP_SUB_RESOURCE_ID = "subResourceId";
+	
 	public static final String EX_PROP_ODOO_OP = "odoo-operation";
 
-    public static final String EX_PROP_ODOO_PATIENT_ID = "patient-odoo-id";
+	public static final String EX_PROP_ODOO_PATIENT_ID = "patient-odoo-id";
 	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
@@ -51,7 +55,7 @@ public class OdooTestConstants {
 	public static final String ODOO_OP_CREATE = "create";
 	
 	public static final String ODOO_OP_WRITE = "write";
-
-    public static final String ODOO_OP_UNLINK = "unlink";
+	
+	public static final String ODOO_OP_UNLINK = "unlink";
 	
 }
