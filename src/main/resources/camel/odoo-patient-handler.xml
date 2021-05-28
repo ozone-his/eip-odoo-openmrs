@@ -11,7 +11,7 @@
         
         <when>
             <simple>${body.length} > 1</simple>
-            <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} existing customers in odoo with ref: ${exchangeProperty.patient.uuid}" />
+            <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} existing customers in odoo with ref: ${exchangeProperty.patient.get('uuid')}" />
         </when>
 
         <when>
@@ -23,7 +23,7 @@
 
         <choice>
             <when>
-                <simple>${exchangeProperty.patient-odoo-id} == null &amp;&amp; ${exchangeProperty.patient.patientVoided} == true</simple>
+                <simple>${exchangeProperty.patient-odoo-id} == null &amp;&amp; ${exchangeProperty.patient.get('patientVoided')} == true</simple>
                 <log message="No action to take for voided patient since they have no customer record in odoo" />
             </when>
             <otherwise>
@@ -32,7 +32,8 @@
                         <!-- Only process events for patients with customer records in Odoo or if we MUST create one -->
                         <simple>${exchangeProperty.patient-odoo-id} != null || ${exchangeProperty.createCustomer} == true</simple>
                         <setProperty name="isPatientVoidedOrDeleted">
-                            <spel>#{getProperty('patient').patientVoided == true}</spel>
+                            <!-- TODO support deleted patient -->
+                            <spel>#{getProperty('patient').get('patientVoided') == true}</spel>
                         </setProperty>
 
                         <when>
@@ -44,16 +45,10 @@
                                 <simple>patient</simple>
                             </setProperty>
                             <setProperty name="resourceId">
-                                <simple>${exchangeProperty.patient.uuid}</simple>
+                                <simple>${exchangeProperty.patient.get('uuid')}</simple>
                             </setProperty>
-
-                            <log message="Fetching patient record from OpenMRS" />
-
-                            <to uri="direct:odoo-fetch-resource" />
-
-                            <!-- TODO check if no record was found -->
                             <setProperty name="person">
-                                <jsonpath>$.person</jsonpath>
+                                <simple>${exchangeProperty.patient.get('person')}</simple>
                             </setProperty>
                             <setProperty name="patient-name">
                                 <simple>${exchangeProperty.person.get('display')}</simple>
@@ -62,7 +57,7 @@
                                 <simple>${exchangeProperty.person.get('preferredAddress')}</simple>
                             </setProperty>
 
-                            <toD uri="sql:SELECT i.identifier, i.identifier_type FROM patient_identifier i WHERE i.patient_id = ${exchangeProperty.patient.id} AND preferred = 1 AND i.voided = 0?dataSource=openmrsDataSource" />
+                            <toD uri="sql:SELECT i.identifier, i.identifier_type FROM patient_identifier i WHERE i.patient_id = (SELECT person_id FROM person WHERE uuid='${exchangeProperty.patient.get('uuid')}') AND preferred = 1 AND i.voided = 0?dataSource=openmrsDataSource" />
 
                             <setProperty name="patientIdentifier">
                                 <simple>${body[0].get("identifier")}</simple>

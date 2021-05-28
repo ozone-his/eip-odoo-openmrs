@@ -87,7 +87,7 @@
 
         <createTable tableName="person_address">
             <column autoIncrement="true" name="person_address_id" type="INT">
-                <constraints nullable="false" primaryKey="true"/>
+                <constraints nullable="false" primaryKey="true" />
             </column>
             <column name="person_id" type="INT">
                 <constraints nullable="false" />
@@ -99,7 +99,7 @@
             <column name="postal_code" type="VARCHAR(50)" />
             <column name="country" type="VARCHAR(50)" />
             <column name="uuid" type="varchar(38)">
-                <constraints nullable="false" unique="true"/>
+                <constraints nullable="false" unique="true" />
             </column>
         </createTable>
         <addForeignKeyConstraint
@@ -108,6 +108,66 @@
                 baseColumnNames="person_id"
                 referencedTableName="person"
                 referencedColumnNames="person_id" />
+    </changeSet>
+
+    <changeSet author="wluyima" id="20210524-1505">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="patient_identifier_type" />
+            </not>
+        </preConditions>
+        <comment>Adding patient_identifier_type table</comment>
+
+        <createTable tableName="patient_identifier_type">
+            <column autoIncrement="true" name="patient_identifier_type_id" type="INT">
+                <constraints nullable="false" primaryKey="true" />
+            </column>
+            <column name="name" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="wluyima" id="20210524-1506">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="patient_identifier" />
+            </not>
+        </preConditions>
+        <comment>Adding patient_identifier table</comment>
+
+        <createTable tableName="patient_identifier">
+            <column autoIncrement="true" name="patient_identifier_id" type="INT">
+                <constraints nullable="false" primaryKey="true" />
+            </column>
+            <column name="patient_id" type="INT">
+                <constraints nullable="false" />
+            </column>
+            <column name="identifier_type" type="INT">
+                <constraints nullable="false" />
+            </column>
+            <column name="identifier" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="preferred" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+            <column name="voided" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+                constraintName="patient_identifier_type_fk"
+                baseTableName="patient_identifier"
+                baseColumnNames="identifier_type"
+                referencedTableName="patient_identifier_type"
+                referencedColumnNames="patient_identifier_type_id" />
+        <addForeignKeyConstraint
+                constraintName="patient_fk"
+                baseTableName="patient_identifier"
+                baseColumnNames="patient_id"
+                referencedTableName="patient"
+                referencedColumnNames="patient_id" />
     </changeSet>
 
 </databaseChangeLog>
