@@ -5,25 +5,33 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
-        <log message="Loading patient associated to the ${exchangeProperty.patientAssociationName} from DB..." loggingLevel="DEBUG" />
+        <log message="Fetching patient associated to the ${exchangeProperty.patientAssociationName} from OpenMRS..." loggingLevel="DEBUG" />
 
-        <setBody>
-            <spel>#{exchange.context.registry.lookupByName(getProperty('tables-repo-map').get('patient')).findByUuid(getProperty('entity-instance').person.uuid)}</spel>
-        </setBody>
+        <setProperty name="isSubResource">
+            <simple>false</simple>
+        </setProperty>
+        <setProperty name="resourceName">
+            <simple>simple</simple>
+        </setProperty>
+        <setProperty name="resourceId">
+            <simple>${exchangeProperty.entity-instance.get('person').get('uuid')}</simple>
+        </setProperty>
 
-        <log message="Loaded associated patient -> ${body}" loggingLevel="DEBUG" />
+        <to uri="direct:odoo-fetch-resource" />
+
+        <log message="Fetched associated patient -> ${body}" loggingLevel="DEBUG" />
 
         <choice>
             <when>
                 <simple>${body} != null</simple>
                 <setProperty name="patient">
-                    <simple>${body}</simple>
+                    <jsonpath>$</jsonpath>
                 </setProperty>
 
                 <toD uri="direct:odoo-patient-handler" />
             </when>
             <otherwise>
-                <log message="No associated patient found with uuid: ${exchangeProperty.entity-instance.person.uuid}" loggingLevel="WARN" />
+                <log message="No associated patient found with uuid: ${exchangeProperty.entity-instance.get('person').get('uuid')}" loggingLevel="WARN" />
             </otherwise>
         </choice>
 
