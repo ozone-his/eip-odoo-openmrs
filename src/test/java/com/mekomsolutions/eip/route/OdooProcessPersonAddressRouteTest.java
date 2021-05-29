@@ -14,9 +14,6 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
 import org.junit.Before;
 import org.junit.Test;
-import org.openmrs.eip.component.entity.Patient;
-import org.openmrs.eip.component.repository.PatientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.qos.logback.classic.Level;
@@ -60,9 +57,6 @@ public class OdooProcessPersonAddressRouteTest extends BaseOdooRouteTest {
 	@EndpointInject("mock:odoo-fetch-resource")
 	private MockEndpoint mockFetchResourceEndpoint;
 	
-	@Autowired
-	private PatientRepository patientRepo;
-	
 	@Before
 	public void setup() throws Exception {
 		mockFetchResourceEndpoint.reset();
@@ -93,9 +87,9 @@ public class OdooProcessPersonAddressRouteTest extends BaseOdooRouteTest {
 		final Integer countryId = 8;
 		final String state = "TX";
 		final String country = "US";
-		Patient patient = patientRepo.findByUuid(PATIENT_UUID);
 		Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_PATIENT, patient);
+		Map patientResource = singletonMap("uuid", PATIENT_UUID);
+		exchange.setProperty(EX_PROP_PATIENT, patientResource);
 		exchange.setProperty(EX_PROP_PREF_ADDRESS, singletonMap("uuid", ADDRESS_UUID));
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RES_ID, PATIENT_UUID);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_SUB_RES_ID, ADDRESS_UUID);
@@ -126,9 +120,9 @@ public class OdooProcessPersonAddressRouteTest extends BaseOdooRouteTest {
 	public void shouldNotSetStateOrCountryIfTheyExistOnTheAddressAndHaveNoMuchInOdoo() throws Exception {
 		final String state = "TX";
 		final String country = "US";
-		Patient patient = patientRepo.findByUuid(PATIENT_UUID);
 		Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_PATIENT, patient);
+		Map patientResource = singletonMap("uuid", PATIENT_UUID);
+		exchange.setProperty(EX_PROP_PATIENT, patientResource);
 		exchange.setProperty(EX_PROP_PREF_ADDRESS, singletonMap("uuid", ADDRESS_UUID));
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RES_ID, PATIENT_UUID);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_SUB_RES_ID, ADDRESS_UUID);
@@ -158,9 +152,9 @@ public class OdooProcessPersonAddressRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldFailIfMultipleStatesAreFoundInOdooMatchingTheStateUuid() throws Exception {
 		final String state = "TX";
-		Patient patient = patientRepo.findByUuid(PATIENT_UUID);
 		Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_PATIENT, patient);
+		Map patientResource = singletonMap("uuid", PATIENT_UUID);
+		exchange.setProperty(EX_PROP_PATIENT, patientResource);
 		exchange.setProperty(EX_PROP_PREF_ADDRESS, singletonMap("uuid", ADDRESS_UUID));
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RES_ID, PATIENT_UUID);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_SUB_RES_ID, ADDRESS_UUID);
@@ -184,9 +178,9 @@ public class OdooProcessPersonAddressRouteTest extends BaseOdooRouteTest {
 		final Integer stateId = 6;
 		final String state = "TX";
 		final String country = "US";
-		Patient patient = patientRepo.findByUuid(PATIENT_UUID);
 		Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_PATIENT, patient);
+		Map patientResource = singletonMap("uuid", PATIENT_UUID);
+		exchange.setProperty(EX_PROP_PATIENT, patientResource);
 		exchange.setProperty(EX_PROP_PREF_ADDRESS, singletonMap("uuid", ADDRESS_UUID));
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RES_ID, PATIENT_UUID);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_SUB_RES_ID, ADDRESS_UUID);

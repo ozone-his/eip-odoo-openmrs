@@ -12,7 +12,7 @@
             <simple>person</simple>
         </setProperty>
         <setProperty name="resourceId">
-            <simple>${exchangeProperty.patient.uuid}</simple>
+            <simple>${exchangeProperty.patient.get('uuid')}</simple>
         </setProperty>
         <setProperty name="subResourceName">
             <simple>address</simple>
@@ -29,6 +29,8 @@
         <setProperty name="personAddress">
             <jsonpath>$</jsonpath>
         </setProperty>
+
+        <log message="Fetched address: ${exchangeProperty.personAddress}" />
 
         <when>
             <simple>${exchangeProperty.personAddress.get('stateProvince')} != null</simple>

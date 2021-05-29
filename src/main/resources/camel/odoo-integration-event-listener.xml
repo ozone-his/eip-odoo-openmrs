@@ -34,7 +34,7 @@
 
                     <toD uri="sql:SELECT uuid FROM person WHERE person_id = ${exchangeProperty.event.primaryKeyId}?dataSource=openmrsDataSource" />
 
-                    <!-- TODO Check if no row was not found -->
+                    <!-- TODO Check if no row was found -->
 
                     <setProperty name="isSubResource">
                         <simple>true</simple>

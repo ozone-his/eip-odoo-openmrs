@@ -9,7 +9,7 @@
         
         <toD uri="sql:SELECT uuid FROM person WHERE person_id = (SELECT person_id FROM ${exchangeProperty.event.tableName} WHERE uuid = '${exchangeProperty.entity-instance.get('uuid')}')?dataSource=openmrsDataSource" />
 
-        <!-- TODO Check if no row was not found -->
+        <!-- TODO Check if no row was found -->
         <setProperty name="resourceId">
             <simple>${body[0].get('uuid')}</simple>
         </setProperty>
