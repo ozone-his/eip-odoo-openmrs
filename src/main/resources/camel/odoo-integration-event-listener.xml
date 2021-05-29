@@ -34,7 +34,7 @@
 
                     <toD uri="sql:SELECT uuid FROM person WHERE person_id = ${exchangeProperty.event.primaryKeyId}?dataSource=openmrsDataSource" />
 
-                    <!-- TODO Check if no row was found -->
+                    <!-- TODO Check if no row was not found -->
 
                     <setProperty name="isSubResource">
                         <simple>true</simple>
@@ -69,8 +69,6 @@
             
             <to uri="direct:odoo-fetch-resource" />
 
-            <log message="Fetched resource -> ${body}" loggingLevel="DEBUG" />
-
             <choice>
                 <when>
                     <simple>${body} != null</simple>
@@ -78,6 +76,8 @@
                         <jsonpath>$</jsonpath>
                     </setProperty>
 
+                    <log message="Fetched resource -> ${exchangeProperty.entity-instance}" loggingLevel="DEBUG" />
+                    
                     <toD uri="direct:odoo-authentication" />
 
                     <setProperty name="odoo-user-id">

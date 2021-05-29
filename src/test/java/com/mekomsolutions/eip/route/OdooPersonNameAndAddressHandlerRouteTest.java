@@ -1,10 +1,14 @@
 package com.mekomsolutions.eip.route;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOURCE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PERSON_NAME_ADDRESS_HANDLER;
 import static java.util.Collections.singletonMap;
+import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +20,7 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
 import org.junit.Before;
 import org.junit.Test;
+import org.openmrs.eip.mysql.watcher.Event;
 
 import ch.qos.logback.classic.Level;
 
@@ -49,16 +54,22 @@ public class OdooPersonNameAndAddressHandlerRouteTest extends BaseOdooRouteTest 
 	
 	@Test
 	public void shouldLoadThePatientWhenProcessingPersonName() throws Exception {
-		final String personUuid = "person-uuid";
+		final String personUuid = "ba3b12d1-5c4f-415f-871b-b98a22137604";
 		Map personResource = singletonMap("uuid", personUuid);
 		Map nameResource = new HashMap();
-		nameResource.put("uuid", "name-uuid");
+		final String nameUuid = "0bca417f-fc68-40d7-ae6f-cffca7a5eff1";
+		nameResource.put("uuid", nameUuid);
 		nameResource.put("person", personResource);
 		Map patientResource = new HashMap();
 		patientResource.put("uuid", personUuid);
+		Event event = createEvent("person_name", "1", nameUuid, "c");
 		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
 		exchange.setProperty(EX_PROP_ENTITY, nameResource);
 		mockFetchResourceEndpoint.expectedMessageCount(1);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, personUuid);
 		final String patientJson = mapper.writeValueAsString(patientResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
@@ -72,16 +83,22 @@ public class OdooPersonNameAndAddressHandlerRouteTest extends BaseOdooRouteTest 
 	
 	@Test
 	public void shouldLoadThePatientWhenProcessingPersonAddress() throws Exception {
-		final String personUuid = "person-uuid";
+		final String personUuid = "ba3b12d1-5c4f-415f-871b-b98a22137604";
 		Map personResource = singletonMap("uuid", personUuid);
 		Map addressResource = new HashMap();
-		addressResource.put("uuid", "address-uuid");
+		final String addressUuid = "359022bf-4a58-4732-8cce-1e57f72f47b0";
+		addressResource.put("uuid", addressUuid);
 		addressResource.put("person", personResource);
 		Map patientResource = new HashMap();
 		patientResource.put("uuid", personUuid);
+		Event event = createEvent("person_address", "1", addressUuid, "c");
 		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
 		exchange.setProperty(EX_PROP_ENTITY, addressResource);
 		mockFetchResourceEndpoint.expectedMessageCount(1);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, personUuid);
 		final String patientJson = mapper.writeValueAsString(patientResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
@@ -95,21 +112,28 @@ public class OdooPersonNameAndAddressHandlerRouteTest extends BaseOdooRouteTest 
 	
 	@Test
 	public void shouldFailIfNoPatientIsFound() throws Exception {
-		final String badPersonUuid = "bad-uuid";
-		Map personResource = singletonMap("uuid", badPersonUuid);
+		final String personUuid = "ba3b12d1-5c4f-415f-871b-b98a22137604";
+		Map personResource = singletonMap("uuid", personUuid);
 		Map addressResource = new HashMap();
-		addressResource.put("uuid", "address-uuid");
+		final String addressUuid = "359022bf-4a58-4732-8cce-1e57f72f47b0";
+		addressResource.put("uuid", addressUuid);
 		addressResource.put("person", personResource);
+		Event event = createEvent("person_address", "1", addressUuid, "c");
 		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		addressResource.put("person", personResource);
 		exchange.setProperty(EX_PROP_ENTITY, addressResource);
 		mockFetchResourceEndpoint.expectedMessageCount(1);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, personUuid);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(null));
 		mockPatientHandlerEndpoint.expectedMessageCount(0);
 		
 		producerTemplate.send(URI_PERSON_NAME_ADDRESS_HANDLER, exchange);
 		
 		mockPatientHandlerEndpoint.assertIsSatisfied();
-		assertMessageLogged(Level.WARN, "No associated patient found with uuid: " + badPersonUuid);
+		assertMessageLogged(Level.WARN, "No associated patient found with uuid: " + personUuid);
 	}
 	
 }

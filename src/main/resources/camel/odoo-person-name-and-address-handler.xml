@@ -5,21 +5,26 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
+        <log message="Fetching person uuid associated to the person name from DB" />
+        
+        <toD uri="sql:SELECT uuid FROM person WHERE person_id = (SELECT person_id FROM ${exchangeProperty.event.tableName} WHERE uuid = '${exchangeProperty.entity-instance.get('uuid')}')?dataSource=openmrsDataSource" />
+
+        <!-- TODO Check if no row was not found -->
+        <setProperty name="resourceId">
+            <simple>${body[0].get('uuid')}</simple>
+        </setProperty>
+
+        <log message="Retrieved person uuid: ${exchangeProperty.resourceId}" />
         <log message="Fetching patient associated to the ${exchangeProperty.patientAssociationName} from OpenMRS..." loggingLevel="DEBUG" />
 
         <setProperty name="isSubResource">
             <simple>false</simple>
         </setProperty>
         <setProperty name="resourceName">
-            <simple>simple</simple>
-        </setProperty>
-        <setProperty name="resourceId">
-            <simple>${exchangeProperty.entity-instance.get('person').get('uuid')}</simple>
+            <simple>patient</simple>
         </setProperty>
 
         <to uri="direct:odoo-fetch-resource" />
-
-        <log message="Fetched associated patient -> ${body}" loggingLevel="DEBUG" />
 
         <choice>
             <when>
@@ -28,10 +33,12 @@
                     <jsonpath>$</jsonpath>
                 </setProperty>
 
+                <log message="Fetched patient -> ${exchangeProperty.patient}" loggingLevel="DEBUG" />
+
                 <toD uri="direct:odoo-patient-handler" />
             </when>
             <otherwise>
-                <log message="No associated patient found with uuid: ${exchangeProperty.entity-instance.get('person').get('uuid')}" loggingLevel="WARN" />
+                <log message="No associated patient found with uuid: ${exchangeProperty.resourceId}" loggingLevel="WARN" />
             </otherwise>
         </choice>
 
