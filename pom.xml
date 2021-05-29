@@ -26,11 +26,18 @@
             <groupId>org.openmrs.eip</groupId>
             <artifactId>openmrs-watcher</artifactId>
             <version>${openmrsEipVersion}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.xmlrpc</groupId>
             <artifactId>xmlrpc-client</artifactId>
             <version>${xmlRpcClientVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-http</artifactId>
+            <version>${camelVersion}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!--Test dependencies -->

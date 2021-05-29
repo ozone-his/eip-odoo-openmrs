@@ -23,7 +23,24 @@
 			<simple>${null}</simple>
 		</setBody>
 
-		<toD uri="${exchangeProperty.resourceUrl}?httpMethod=GET&amp;authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}" />
+		<toD uri="${exchangeProperty.resourceUrl}?throwExceptionOnFailure=false&amp;httpMethod=GET&amp;authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}" />
+
+        <choice>
+            <when>
+                <simple>${headers.CamelHttpResponseCode} == 404</simple>
+                <log message="Resource Not Found -> Response Status Code: ${headers.CamelHttpResponseCode}, Response Body: ${body}" />
+
+                <setBody>
+                    <simple>${null}</simple>
+                </setBody>
+            </when>
+            <otherwise>
+                <when>
+                    <simple>${headers.CamelHttpResponseCode} != 200</simple>
+                    <throwException exceptionType="org.openmrs.eip.EIPException" message="An error occurred while fetching the resource from OpenMRS" />
+                </when>
+            </otherwise>
+        </choice>
 
 		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
 	</route>
