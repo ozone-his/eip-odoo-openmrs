@@ -5,18 +5,35 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
-        <setProperty name="patient">
-            <spel>#{exchange.context.registry.lookupByName(getProperty('tables-repo-map').get('patient')).findByUuid(getProperty('entity-instance').patient.uuid)}</spel>
+        <setProperty name="isSubResource">
+            <simple>false</simple>
+        </setProperty>
+        <setProperty name="resourceName">
+            <simple>patient</simple>
+        </setProperty>
+        <setProperty name="resourceId">
+            <simple>${exchangeProperty.entity-instance.get('patient').get('uuid')}</simple>
         </setProperty>
 
+        <log message="Fetching patient associated to the order from OpenMRS..." loggingLevel="DEBUG" />
+
+        <to uri="direct:odoo-fetch-resource" />
+
+        <!-- TODO Check if no matching patient was found -->
+        <setProperty name="patient">
+            <jsonpath>$</jsonpath>
+        </setProperty>
+
+        <log message="Fetched patient -> ${exchangeProperty.patient}" loggingLevel="DEBUG" />
+
         <setProperty name="createCustomer">
-            <spel>#{getProperty('is-new') == true || getProperty('entity-instance').action == 'REVISE'}</spel>
+            <spel>#{getProperty('is-new') == true || getProperty('entity-instance').get('action') == 'REVISE'}</spel>
         </setProperty>
 
         <to uri="direct:odoo-patient-handler" />
 
         <setProperty name="isDcOrVoidedOrder">
-            <spel>#{getProperty('entity-instance').voided == true || getProperty('entity-instance').action == 'DISCONTINUE'}</spel>
+            <spel>#{getProperty('entity-instance').get('voided') == true || getProperty('entity-instance').get('action') == 'DISCONTINUE'}</spel>
         </setProperty>
         
         <choice>
@@ -37,7 +54,7 @@
                     <when>
                         <simple>${body.length} == 0</simple>
                         <when>
-                            <simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
+                            <simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.get('action')} == 'REVISE'</simple>
                             <setProperty name="odoo-operation">
                                 <simple>create</simple>
                             </setProperty>
@@ -94,12 +111,12 @@
 
                 <choice>
                     <when>
-                        <simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.action} == 'REVISE'</simple>
+                        <simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.get('action')} == 'REVISE'</simple>
                         <when>
                             <simple>${exchangeProperty.is-drug-order} == true</simple>
 
                             <setProperty name="order-quantity">
-                                <simple>${exchangeProperty.entity-instance.quantity}</simple>
+                                <simple>${exchangeProperty.entity-instance.get('quantity')}</simple>
                             </setProperty>
 
                             <when>
@@ -108,7 +125,7 @@
                                     <simple>uom.uom</simple>
                                 </setProperty>
                                 <setProperty name="externalId">
-                                    <simple>${exchangeProperty.entity-instance.quantityUnits.uuid}</simple>
+                                    <simple>${exchangeProperty.entity-instance.get('quantityUnits').get('uuid')}</simple>
                                 </setProperty>
 
                                 <to uri="direct:odoo-get-external-id-map" />

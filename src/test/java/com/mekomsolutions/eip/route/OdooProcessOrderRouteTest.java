@@ -1,11 +1,17 @@
 package com.mekomsolutions.eip.route;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ODOO_OP;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ODOO_PATIENT_ID;
-import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_TABLE_REPO_MAP;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_SUB_RESOURCE_ID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_TABLE_RESOURCE_MAP;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_OP_CREATE;
-import static com.mekomsolutions.eip.route.OdooTestConstants.ORDER_UUID_2;
+import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PROCESS_ORDER;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -24,12 +30,6 @@ import org.apache.camel.support.DefaultExchange;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openmrs.eip.component.entity.DrugOrder;
-import org.openmrs.eip.component.entity.Order;
-import org.openmrs.eip.component.entity.Patient;
-import org.openmrs.eip.component.repository.OrderRepository;
-import org.openmrs.eip.component.repository.PatientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import ch.qos.logback.classic.Level;
 
@@ -81,14 +81,12 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@EndpointInject("mock:odoo-process-dc-or-voided-order")
 	private MockEndpoint mockProcessDcOrVoidedOrderEndpoint;
 	
-	@Autowired
-	private OrderRepository orderRepo;
-	
-	@Autowired
-	private PatientRepository patientRepo;
+	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
+	private MockEndpoint mockFetchResourceEndpoint;
 	
 	@Before
 	public void setup() throws Exception {
+		mockFetchResourceEndpoint.reset();
 		mockPatientHandlerEndpoint.reset();
 		mockGetDraftQuotesEndpoint.reset();
 		mockManageQuoteEndpoint.reset();
@@ -97,12 +95,14 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockProcessNewOrderEndpoint.reset();
 		mockProcessRevOrderEndpoint.reset();
 		mockProcessDcOrVoidedOrderEndpoint.reset();
+		mockFetchResourceEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
 			@Override
 			public void configure() {
+				interceptSendToEndpoint(URI_FETCH_RESOURCE).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
 				interceptSendToEndpoint("direct:odoo-patient-handler").skipSendToOriginalEndpoint()
 				        .to(mockPatientHandlerEndpoint);
 				interceptSendToEndpoint("direct:odoo-get-draft-quotations").skipSendToOriginalEndpoint()
@@ -126,6 +126,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	
 	@After
 	public void tearDown() throws Exception {
+		mockFetchResourceEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
 		mockGetDraftQuotesEndpoint.assertIsSatisfied();
 	}
@@ -133,13 +134,20 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldFailIfThereIsMultipleDraftQuotationsForThePatient() throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid(ORDER_UUID_2);
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -155,18 +163,24 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldProcessANewOrderForAPatientWithNoExistingQuote() throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid("16170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		assertEquals("NEW", order.getAction());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_IS_NEW, true);
 		mockProcessNewOrderEndpoint.expectedMessageCount(1);
 		mockProcessRevOrderEndpoint.expectedMessageCount(0);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
@@ -193,17 +207,23 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldProcessARevisionOrderForAPatientWithNoExistingQuote() throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid("36170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		assertEquals("REVISE", order.getAction());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "REVISE");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockProcessNewOrderEndpoint.expectedMessageCount(0);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
 		mockProcessRevOrderEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
@@ -230,18 +250,24 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldProcessADiscontinueOrderAndThePatientHasNoExistingQuote() throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid("46170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		assertEquals("DISCONTINUE", order.getAction());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "DISCONTINUE");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockProcessNewOrderEndpoint.expectedMessageCount(0);
 		mockProcessRevOrderEndpoint.expectedMessageCount(0);
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -262,18 +288,25 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldProcessAVoidedOrderAndThePatientHasNoExistingQuote() throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid("16170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		order.setVoided(true);
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
+		orderResource.put("voided", true);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockProcessNewOrderEndpoint.expectedMessageCount(0);
 		mockProcessRevOrderEndpoint.expectedMessageCount(0);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(1);
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -293,19 +326,25 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldProcessANewOrderForAPatientWithAnExistingQuote() throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid("16170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		assertEquals("NEW", order.getAction());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_IS_NEW, true);
 		mockProcessRevOrderEndpoint.expectedMessageCount(0);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
 		mockProcessNewOrderEndpoint.expectedMessageCount(1);
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
@@ -337,18 +376,24 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldProcessARevisionOrderForAPatientWithAnExistingQuote() throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid("36170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		assertEquals("REVISE", order.getAction());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "REVISE");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockProcessNewOrderEndpoint.expectedMessageCount(0);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
 		mockProcessRevOrderEndpoint.expectedMessageCount(1);
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
@@ -380,19 +425,25 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldProcessADiscontinueOrderAndThePatientHasAnExistingQuote() throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid("46170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		assertEquals("DISCONTINUE", order.getAction());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "DISCONTINUE");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockProcessNewOrderEndpoint.expectedMessageCount(0);
 		mockProcessRevOrderEndpoint.expectedMessageCount(0);
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(1);
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -424,18 +475,25 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldProcessAVoidedOrderAndThePatientHasAnExistingQuote() throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid("16170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		order.setVoided(true);
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
+		orderResource.put("voided", true);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockProcessNewOrderEndpoint.expectedMessageCount(0);
 		mockProcessRevOrderEndpoint.expectedMessageCount(0);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(1);
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -466,16 +524,21 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldFailIfMultipleLinesAreFoundForTheSameOrderableOnAnExistingQuotation() throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid("16170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		assertEquals("NEW", order.getAction());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
-		exchange.setProperty(EX_PROP_IS_NEW, true);
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -500,19 +563,25 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldProcessOrderIfNoLinesIsFoundForTheOrderableOnAnExistingQuotationAndOrderLineCountWasGreaterThanZero()
+	public void shouldProcessOrderIfNoLineIsFoundForTheOrderableOnAnExistingQuotationAndOrderLineCountWasGreaterThanZero()
 	    throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid("16170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		assertEquals("NEW", order.getAction());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_IS_NEW, true);
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
@@ -539,15 +608,22 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	
 	@Test
 	public void shouldNotProcessAVoidedOrderForAPatientWithNoOdooRecord() throws Exception {
-		Order order = orderRepo.findByUuid("16170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		order.setVoided(true);
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
+		orderResource.put("voided", true);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockGetDraftQuotesEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		
 		producerTemplate.send(URI_PROCESS_ORDER, exchange);
 		
@@ -558,15 +634,21 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	
 	@Test
 	public void shouldNotProcessADiscontinueOrderForAPatientWithNoOdooRecord() throws Exception {
-		Order order = orderRepo.findByUuid("46170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		assertEquals("DISCONTINUE", order.getAction());
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "DISCONTINUE");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		mockGetDraftQuotesEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		
 		producerTemplate.send(URI_PROCESS_ORDER, exchange);
 		
@@ -578,12 +660,18 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldProcessAnOrderWithNoExistingLineForAnExistingQuotation() throws Exception {
 		final Integer odooPatientId = 5;
-		Order order = orderRepo.findByUuid("16170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		assertEquals("NEW", order.getAction());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_IS_NEW, true);
 		mockProcessRevOrderEndpoint.expectedMessageCount(0);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
@@ -591,7 +679,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		mockManageQuoteEndpoint.expectedMessageCount(0);
 		mockGetOrderLineEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
@@ -619,19 +707,25 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldProcessQuantityDetailsForANewDrugOrder() throws Exception {
 		final Integer odooPatientId = 5;
-		DrugOrder order = (DrugOrder) orderRepo.findByUuid(ORDER_UUID_2);
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		assertEquals("NEW", order.getAction());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "DISCONTINUE");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_IS_NEW, true);
 		exchange.setProperty(EX_PROP_IS_DRUG_ORDER, true);
 		mockProcessNewOrderEndpoint.expectedMessageCount(1);
 		mockProcessRevOrderEndpoint.expectedMessageCount(0);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
@@ -644,9 +738,13 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		final Integer quoteId = 9;
 		mockManageQuoteEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quoteId));
 		
+		final String qtyUnitsUuid = "some-units-uuid";
+		final Map quantityUnits = singletonMap("uuid", qtyUnitsUuid);
+		orderResource.put("quantity", 2);
+		orderResource.put("quantityUnits", quantityUnits);
 		mockGetExtIdMapEndpoint.expectedMessageCount(1);
 		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_MODEL_NAME, "uom.uom");
-		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_EXT_ID, order.getQuantityUnits().getUuid());
+		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_EXT_ID, qtyUnitsUuid);
 		final Integer unitsId = 4;
 		mockGetExtIdMapEndpoint
 		        .whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] { singletonMap("res_id", unitsId) }));
@@ -667,18 +765,24 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldProcessQuantityDetailsForARevisionDrugOrder() throws Exception {
 		final Integer odooPatientId = 5;
-		DrugOrder order = (DrugOrder) orderRepo.findByUuid("36170d8e-d201-4d94-ae89-0be0b0b6d8ba");
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
-		assertEquals("REVISE", order.getAction());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "REVISE");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_IS_DRUG_ORDER, true);
 		mockProcessNewOrderEndpoint.expectedMessageCount(0);
 		mockProcessRevOrderEndpoint.expectedMessageCount(1);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
@@ -691,9 +795,13 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		final Integer quoteId = 9;
 		mockManageQuoteEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quoteId));
 		
+		final String qtyUnitsUuid = "some-units-uuid";
+		final Map quantityUnits = singletonMap("uuid", qtyUnitsUuid);
+		orderResource.put("quantity", 2);
+		orderResource.put("quantityUnits", quantityUnits);
 		mockGetExtIdMapEndpoint.expectedMessageCount(1);
 		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_MODEL_NAME, "uom.uom");
-		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_EXT_ID, order.getQuantityUnits().getUuid());
+		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_EXT_ID, qtyUnitsUuid);
 		final Integer unitsId = 4;
 		mockGetExtIdMapEndpoint
 		        .whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] { singletonMap("res_id", unitsId) }));
@@ -714,20 +822,26 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldNotProcessQuantityDetailsIfTheyAreNoSetOnTheDrugOrder() throws Exception {
 		final Integer odooPatientId = 5;
-		DrugOrder order = (DrugOrder) orderRepo.findByUuid(ORDER_UUID_2);
-		order.setQuantity(null);
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_IS_NEW, true);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
 		exchange.setProperty(EX_PROP_IS_DRUG_ORDER, true);
 		mockProcessNewOrderEndpoint.expectedMessageCount(1);
 		mockProcessRevOrderEndpoint.expectedMessageCount(0);
 		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
 		mockGetExtIdMapEndpoint.expectedMessageCount(0);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -755,15 +869,22 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldFailIfTheQuantityUnitsAreNotMappedToAnyOdooUnits() throws Exception {
 		final Integer odooPatientId = 5;
-		DrugOrder order = (DrugOrder) orderRepo.findByUuid(ORDER_UUID_2);
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_IS_NEW, true);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
 		exchange.setProperty(EX_PROP_IS_DRUG_ORDER, true);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -775,9 +896,13 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		final Integer quoteId = 9;
 		mockManageQuoteEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quoteId));
 		
+		final String qtyUnitsUuid = "some-units-uuid";
+		final Map quantityUnits = singletonMap("uuid", qtyUnitsUuid);
+		orderResource.put("quantity", 2);
+		orderResource.put("quantityUnits", quantityUnits);
 		mockGetExtIdMapEndpoint.expectedMessageCount(1);
 		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_MODEL_NAME, "uom.uom");
-		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_EXT_ID, order.getQuantityUnits().getUuid());
+		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_EXT_ID, qtyUnitsUuid);
 		mockGetExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] {}));
 		
 		producerTemplate.send(URI_PROCESS_ORDER, exchange);
@@ -787,22 +912,29 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
 		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
-		assertEquals("No units of measure found in odoo mapped to uuid: " + order.getQuantityUnits().getUuid(),
-		    getErrorMessage(exchange));
+		assertEquals("No units of measure found in odoo mapped to uuid: " + qtyUnitsUuid, getErrorMessage(exchange));
 	}
 	
 	@Test
 	public void shouldFailIfTheQuantityUnitsAreMappedToMultipleOdooUnits() throws Exception {
 		final Integer odooPatientId = 5;
-		DrugOrder order = (DrugOrder) orderRepo.findByUuid(ORDER_UUID_2);
-		Patient patient = patientRepo.findByUuid(order.getPatient().getUuid());
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "NEW");
+		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, order);
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_IS_NEW, true);
-		exchange.setProperty(EX_PROP_TABLE_REPO_MAP, singletonMap("patient", "patientRepository"));
+		exchange.setProperty(EX_PROP_TABLE_RESOURCE_MAP, singletonMap("patient", "patientRepository"));
 		exchange.setProperty(EX_PROP_IS_DRUG_ORDER, true);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patient);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
 		
 		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
@@ -814,9 +946,13 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		final Integer quoteId = 9;
 		mockManageQuoteEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quoteId));
 		
+		final String qtyUnitsUuid = "some-units-uuid";
+		final Map quantityUnits = singletonMap("uuid", qtyUnitsUuid);
+		orderResource.put("quantity", 2);
+		orderResource.put("quantityUnits", quantityUnits);
 		mockGetExtIdMapEndpoint.expectedMessageCount(1);
 		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_MODEL_NAME, "uom.uom");
-		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_EXT_ID, order.getQuantityUnits().getUuid());
+		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_EXT_ID, qtyUnitsUuid);
 		mockGetExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] { emptyMap(), emptyMap() }));
 		
 		producerTemplate.send(URI_PROCESS_ORDER, exchange);
@@ -826,8 +962,7 @@ public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
 		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
 		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
-		assertEquals("Found 2 units of measure in odoo mapped to uuid: " + order.getQuantityUnits().getUuid(),
-		    getErrorMessage(exchange));
+		assertEquals("Found 2 units of measure in odoo mapped to uuid: " + qtyUnitsUuid, getErrorMessage(exchange));
 	}
 	
 }
