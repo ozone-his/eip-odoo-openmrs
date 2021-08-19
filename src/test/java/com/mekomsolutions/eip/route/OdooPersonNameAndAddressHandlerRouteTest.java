@@ -4,6 +4,8 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
+import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_ID_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PERSON_NAME_ADDRESS_HANDLER;
@@ -109,6 +111,32 @@ public class OdooPersonNameAndAddressHandlerRouteTest extends BaseOdooRouteTest 
 		mockFetchResourceEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
 	}
+
+    @Test
+    public void shouldLoadThePatientWhenProcessingPatientIdentifier() throws Exception {
+        Map patientResource = new HashMap();
+        patientResource.put("uuid", PATIENT_UUID);
+        Map idResource = new HashMap();
+        idResource.put("uuid", PATIENT_ID_UUID);
+        idResource.put("patient", patientResource);
+        Event event = createEvent("patient_identifier", "1", PATIENT_ID_UUID, "c");
+        final Exchange exchange = new DefaultExchange(camelContext);
+        exchange.setProperty(PROP_EVENT, event);
+        exchange.setProperty(EX_PROP_ENTITY, idResource);
+        mockFetchResourceEndpoint.expectedMessageCount(1);
+        mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+        mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+        mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+        final String patientJson = mapper.writeValueAsString(patientResource);
+        mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
+        mockPatientHandlerEndpoint.expectedMessageCount(1);
+        mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
+
+        producerTemplate.send(URI_PERSON_NAME_ADDRESS_HANDLER, exchange);
+
+        mockFetchResourceEndpoint.assertIsSatisfied();
+        mockPatientHandlerEndpoint.assertIsSatisfied();
+    }
 	
 	@Test
 	public void shouldFailIfNoPatientIsFound() throws Exception {

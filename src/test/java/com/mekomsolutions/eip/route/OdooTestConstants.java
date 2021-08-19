@@ -51,6 +51,8 @@ public class OdooTestConstants {
 	public static final String NAME_UUID = "0bca417f-fc68-40d7-ae6f-cffca7a5eff1";
 	
 	public static final String ADDRESS_UUID = "359022bf-4a58-4732-8cce-1e57f72f47b0";
+
+    public static final String PATIENT_ID_UUID = "148bcfc1-360a-44b5-9539-e8718cd6e46f";
 	
 	public static final String ODOO_OP_CREATE = "create";
 	

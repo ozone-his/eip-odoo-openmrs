@@ -17,6 +17,7 @@
 				#{getProperty('tables-resource-map').put('patient', 'patient')}
 				#{getProperty('tables-resource-map').put('person_name', 'name')}
 				#{getProperty('tables-resource-map').put('person_address', 'address')}
+                #{getProperty('tables-resource-map').put('patient_identifier', 'identifier')}
 			</spel>
 		</script>
 
@@ -25,23 +26,31 @@
             <log message="Processing event..." />
 
             <setProperty name="isSubResource">
-                <simple>${exchangeProperty.event.tableName} == 'person_name' || ${exchangeProperty.event.tableName} == 'person_address'</simple>
+                <spel>#{getProperty('event').tableName == 'person_name' || getProperty('event').tableName == 'person_address' || getProperty('event').tableName == 'patient_identifier'}</spel>
             </setProperty>
+            
             <choice>
                 <when>
-                    <simple>${exchangeProperty.event.tableName} == 'person_name' || ${exchangeProperty.event.tableName} == 'person_address'</simple>
+                    <simple>${exchangeProperty.isSubResource} == true</simple>
                     <log message="Fetching uuid for associated person record" />
 
                     <toD uri="sql:SELECT uuid FROM person WHERE person_id = ${exchangeProperty.event.primaryKeyId}?dataSource=openmrsDataSource" />
 
                     <!-- TODO Check if no row was found -->
 
-                    <setProperty name="isSubResource">
-                        <simple>true</simple>
-                    </setProperty>
-                    <setProperty name="resourceName">
-                        <simple>person</simple>
-                    </setProperty>
+                    <choice>
+                        <when>
+                            <simple>${exchangeProperty.event.tableName} == 'patient_identifier'</simple>
+                            <setProperty name="resourceName">
+                                <simple>patient</simple>
+                            </setProperty>
+                        </when>
+                        <otherwise>
+                            <setProperty name="resourceName">
+                                <simple>person</simple>
+                            </setProperty>
+                        </otherwise>
+                    </choice>
                     <setProperty name="resourceId">
                         <simple>${body[0].get('uuid')}</simple>
                     </setProperty>
@@ -53,9 +62,6 @@
                     </setProperty>
                 </when>
                 <otherwise>
-                    <setProperty name="isSubResource">
-                        <simple>false</simple>
-                    </setProperty>
                     <setProperty name="resourceName">
                         <spel>#{getProperty("tables-resource-map").get(getProperty('event').tableName)}</spel>
                     </setProperty>
@@ -102,7 +108,7 @@
                             <to uri="direct:odoo-patient-handler" />
                         </when>
                         <when>
-                            <simple>${exchangeProperty.event.tableName} == 'person_name' || ${exchangeProperty.event.tableName} == 'person_address'</simple>
+                            <simple>${exchangeProperty.isSubResource} == true</simple>
                             <choice>
                                 <when>
                                     <simple>${exchangeProperty.event.tableName} == 'person_name'</simple>
@@ -110,9 +116,15 @@
                                         <simple>Person Name</simple>
                                     </setProperty>
                                 </when>
-                                <otherwise>
+                                <when>
+                                    <simple>${exchangeProperty.event.tableName} == 'person_address'</simple>
                                     <setProperty name="patientAssociationName">
                                         <simple>Person Address</simple>
+                                    </setProperty>
+                                </when>
+                                <otherwise>
+                                    <setProperty name="patientAssociationName">
+                                        <simple>Patient Identifier</simple>
                                     </setProperty>
                                 </otherwise>
                             </choice>

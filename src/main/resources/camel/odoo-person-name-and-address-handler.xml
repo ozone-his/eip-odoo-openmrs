@@ -5,9 +5,23 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
-        <log message="Fetching person uuid associated to the person name from DB" />
+        <log message="Looking up uuid for person associated to the ${exchangeProperty.patientAssociationName} from the DB" />
+
+        <choice>
+            <when>
+                <simple>${exchangeProperty.event.tableName} == 'patient_identifier'</simple>
+                <setProperty name="lookUpColumn">
+                    <simple>patient_id</simple>
+                </setProperty>
+            </when>
+            <otherwise>
+                <setProperty name="lookUpColumn">
+                    <simple>person_id</simple>
+                </setProperty>
+            </otherwise>
+        </choice>
         
-        <toD uri="sql:SELECT uuid FROM person WHERE person_id = (SELECT person_id FROM ${exchangeProperty.event.tableName} WHERE uuid = '${exchangeProperty.entity-instance.get('uuid')}')?dataSource=openmrsDataSource" />
+        <toD uri="sql:SELECT uuid FROM person WHERE person_id = (SELECT t.${exchangeProperty.lookUpColumn} FROM ${exchangeProperty.event.tableName} t WHERE t.uuid = '${exchangeProperty.entity-instance.get('uuid')}')?dataSource=openmrsDataSource" />
 
         <!-- TODO Check if no row was found -->
         <setProperty name="resourceId">

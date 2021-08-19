@@ -155,6 +155,9 @@
             <column name="voided" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false" />
             </column>
+            <column name="uuid" type="varchar(38)">
+                <constraints nullable="false" unique="true" />
+            </column>
         </createTable>
         <addForeignKeyConstraint
                 constraintName="patient_identifier_type_fk"

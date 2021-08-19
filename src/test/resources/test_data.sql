@@ -17,11 +17,11 @@ INSERT INTO patient_identifier_type (patient_identifier_type_id,name)
 VALUES  (1, 'OpenMRS Id');
 
 
-INSERT INTO patient_identifier (patient_identifier_id,patient_id,identifier,identifier_type,preferred,voided)
-VALUES  (1, 1, 'UVWYY', 1, 0, 0),
-        (2, 1, 'UVWYZ', 1, 1, 1),
-        (3, 1, '12345', 1, 1, 0),
-        (4, 2, 'QWERT', 1, 1, 0);
+INSERT INTO patient_identifier (patient_identifier_id,patient_id,identifier,identifier_type,preferred,voided,uuid)
+VALUES  (1, 1, 'UVWYY', 1, 0, 0, '148bcfc1-360a-44b5-9539-e8718cd6e46f'),
+        (2, 1, 'UVWYZ', 1, 1, 1, '248bcfc1-360a-44b5-9539-e8718cd6e46f'),
+        (3, 1, '12345', 1, 1, 0, '348bcfc1-360a-44b5-9539-e8718cd6e46f'),
+        (4, 2, 'QWERT', 1, 1, 0, '448bcfc1-360a-44b5-9539-e8718cd6e46f');
 
 /*INSERT INTO care_setting (care_setting_id,name,care_setting_type,creator,date_created,retired,uuid)
 VALUES  (1, 'Out-Patient', 'OUTPATIENT', 1, '2020-03-05 00:00:00', 1, '638bcfc0-360a-44a3-9539-e8718cd6e4d8');
