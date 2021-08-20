@@ -19,8 +19,8 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ODOO_AUTH;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ORDER_HANDLER;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PATIENT_ASSOCIATION_HANDLER;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PATIENT_HANDLER;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PERSON_NAME_ADDRESS_HANDLER;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -51,8 +51,8 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 	@EndpointInject("mock:odoo-patient-handler")
 	private MockEndpoint mockPatientHandlerEndpoint;
 	
-	@EndpointInject("mock:odoo-person-name-and-address-handler")
-	private MockEndpoint mockPersonNameAndAddressEndpoint;
+	@EndpointInject("mock:odoo-patient-association-handler")
+	private MockEndpoint mockPatientAssociationEndpoint;
 	
 	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
 	private MockEndpoint mockFetchResourceEndpoint;
@@ -63,7 +63,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 		mockAuthEndpoint.reset();
 		mockOrderHandlerEndpoint.reset();
 		mockPatientHandlerEndpoint.reset();
-		mockPersonNameAndAddressEndpoint.reset();
+		mockPatientAssociationEndpoint.reset();
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
 			@Override
@@ -72,8 +72,8 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 				interceptSendToEndpoint(URI_FETCH_RESOURCE).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
 				interceptSendToEndpoint(URI_ORDER_HANDLER).skipSendToOriginalEndpoint().to(mockOrderHandlerEndpoint);
 				interceptSendToEndpoint(URI_PATIENT_HANDLER).skipSendToOriginalEndpoint().to(mockPatientHandlerEndpoint);
-				interceptSendToEndpoint(URI_PERSON_NAME_ADDRESS_HANDLER).skipSendToOriginalEndpoint()
-				        .to(mockPersonNameAndAddressEndpoint);
+				interceptSendToEndpoint(URI_PATIENT_ASSOCIATION_HANDLER).skipSendToOriginalEndpoint()
+				        .to(mockPatientAssociationEndpoint);
 			}
 		});
 	}
@@ -105,13 +105,13 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 	
 	@Test
 	public void shouldProcessAnEventForAnOrder() throws Exception {
-		Event event = createEvent("orders", "1", ORDER_UUID_1, "c");
+		Event event = createEvent("orders", "2", ORDER_UUID_1, "c");
 		Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(PROP_EVENT, event);
 		mockAuthEndpoint.expectedMessageCount(1);
 		mockOrderHandlerEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedMessageCount(0);
-		mockPersonNameAndAddressEndpoint.expectedMessageCount(0);
+		mockPatientAssociationEndpoint.expectedMessageCount(0);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "order");
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, ORDER_UUID_1);
@@ -125,7 +125,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 		mockAuthEndpoint.assertIsSatisfied();
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
-		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
+		mockPatientAssociationEndpoint.assertIsSatisfied();
 		assertEquals(orderResource, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_RESOURCE_MAP));
@@ -133,13 +133,13 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 	
 	@Test
 	public void shouldProcessAnEventForADrugOrder() throws Exception {
-		Event event = createEvent("drug_order", "2", ORDER_UUID_2, "c");
+		Event event = createEvent("drug_order", "3", ORDER_UUID_2, "c");
 		Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(PROP_EVENT, event);
 		mockAuthEndpoint.expectedMessageCount(1);
 		mockOrderHandlerEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedMessageCount(0);
-		mockPersonNameAndAddressEndpoint.expectedMessageCount(0);
+		mockPatientAssociationEndpoint.expectedMessageCount(0);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "order");
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, ORDER_UUID_2);
@@ -153,7 +153,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 		mockAuthEndpoint.assertIsSatisfied();
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
-		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
+		mockPatientAssociationEndpoint.assertIsSatisfied();
 		assertEquals(orderResource, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_RESOURCE_MAP));
@@ -161,13 +161,13 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 	
 	@Test
 	public void shouldProcessAnEventForATestOrder() throws Exception {
-		Event event = createEvent("test_order", "1", ORDER_UUID_1, "c");
+		Event event = createEvent("test_order", "4", ORDER_UUID_1, "c");
 		Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(PROP_EVENT, event);
 		mockAuthEndpoint.expectedMessageCount(1);
 		mockOrderHandlerEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedMessageCount(0);
-		mockPersonNameAndAddressEndpoint.expectedMessageCount(0);
+		mockPatientAssociationEndpoint.expectedMessageCount(0);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "order");
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, ORDER_UUID_1);
@@ -181,7 +181,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 		mockAuthEndpoint.assertIsSatisfied();
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
-		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
+		mockPatientAssociationEndpoint.assertIsSatisfied();
 		assertEquals(orderResource, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_RESOURCE_MAP));
@@ -189,14 +189,14 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 	
 	@Test
 	public void shouldProcessAnEventForAPatient() throws Exception {
-		Event event = createEvent("patient", "1", PATIENT_UUID, "c");
+		Event event = createEvent("patient", "5", PATIENT_UUID, "c");
 		Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(PROP_EVENT, event);
 		mockAuthEndpoint.expectedMessageCount(1);
 		mockPatientHandlerEndpoint.expectedMessageCount(1);
 		mockOrderHandlerEndpoint.expectedMessageCount(0);
-		mockPersonNameAndAddressEndpoint.expectedMessageCount(0);
-		mockPersonNameAndAddressEndpoint.expectedMessageCount(0);
+		mockPatientAssociationEndpoint.expectedMessageCount(0);
+		mockPatientAssociationEndpoint.expectedMessageCount(0);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
@@ -210,7 +210,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 		mockAuthEndpoint.assertIsSatisfied();
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
-		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
+		mockPatientAssociationEndpoint.assertIsSatisfied();
 		assertEquals(patientResource, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_RESOURCE_MAP));
@@ -218,12 +218,12 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 	
 	@Test
 	public void shouldProcessAnEventForAPersonName() throws Exception {
-		Event event = createEvent("person_name", "1", NAME_UUID, "c");
+		Event event = createEvent("person_name", "6", NAME_UUID, "c");
 		Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(PROP_EVENT, event);
 		mockAuthEndpoint.expectedMessageCount(1);
-		mockPersonNameAndAddressEndpoint.expectedMessageCount(1);
-		mockPersonNameAndAddressEndpoint.expectedPropertyReceived("patientAssociationName", "Person Name");
+		mockPatientAssociationEndpoint.expectedMessageCount(1);
+		mockPatientAssociationEndpoint.expectedPropertyReceived("patientAssociationName", "Person Name");
 		mockPatientHandlerEndpoint.expectedMessageCount(0);
 		mockOrderHandlerEndpoint.expectedMessageCount(0);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, true);
@@ -241,7 +241,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 		mockAuthEndpoint.assertIsSatisfied();
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
-		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
+		mockPatientAssociationEndpoint.assertIsSatisfied();
 		assertEquals(nameResource, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_RESOURCE_MAP));
@@ -249,12 +249,12 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 	
 	@Test
 	public void shouldProcessAnEventForAPersonAddress() throws Exception {
-		Event event = createEvent("person_address", "1", ADDRESS_UUID, "c");
+		Event event = createEvent("person_address", "7", ADDRESS_UUID, "c");
 		Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(PROP_EVENT, event);
 		mockAuthEndpoint.expectedMessageCount(1);
-		mockPersonNameAndAddressEndpoint.expectedMessageCount(1);
-		mockPersonNameAndAddressEndpoint.expectedPropertyReceived("patientAssociationName", "Person Address");
+		mockPatientAssociationEndpoint.expectedMessageCount(1);
+		mockPatientAssociationEndpoint.expectedPropertyReceived("patientAssociationName", "Person Address");
 		mockPatientHandlerEndpoint.expectedMessageCount(0);
 		mockOrderHandlerEndpoint.expectedMessageCount(0);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, true);
@@ -272,41 +272,41 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 		mockAuthEndpoint.assertIsSatisfied();
 		mockOrderHandlerEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
-		mockPersonNameAndAddressEndpoint.assertIsSatisfied();
+		mockPatientAssociationEndpoint.assertIsSatisfied();
 		assertEquals(addressResource, exchange.getProperty(EX_PROP_ENTITY));
 		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_RESOURCE_MAP));
 	}
-
-    @Test
-    public void shouldProcessAnEventForAPatientIdentifier() throws Exception {
-        Event event = createEvent("patient_identifier", "1", PATIENT_ID_UUID, "c");
-        Exchange exchange = new DefaultExchange(camelContext);
-        exchange.setProperty(PROP_EVENT, event);
-        mockAuthEndpoint.expectedMessageCount(1);
-        mockPersonNameAndAddressEndpoint.expectedMessageCount(1);
-        mockPersonNameAndAddressEndpoint.expectedPropertyReceived("patientAssociationName", "Patient Identifier");
-        mockPatientHandlerEndpoint.expectedMessageCount(0);
-        mockOrderHandlerEndpoint.expectedMessageCount(0);
-        mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, true);
-        mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
-        mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
-        mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_SUB_RESOURCE_NAME, "identifier");
-        mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_SUB_RESOURCE_ID, PATIENT_ID_UUID);
-        Map idResource = singletonMap("uuid", PATIENT_ID_UUID);
-        final String idJson = mapper.writeValueAsString(idResource);
-        mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(idJson));
-
-        producerTemplate.send(LISTENER_URI, exchange);
-
-        mockFetchResourceEndpoint.assertIsSatisfied();
-        mockAuthEndpoint.assertIsSatisfied();
-        mockOrderHandlerEndpoint.assertIsSatisfied();
-        mockPatientHandlerEndpoint.assertIsSatisfied();
-        mockPersonNameAndAddressEndpoint.assertIsSatisfied();
-        assertEquals(idResource, exchange.getProperty(EX_PROP_ENTITY));
-        assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
-        assertNotNull(exchange.getProperty(EX_PROP_TABLE_RESOURCE_MAP));
-    }
+	
+	@Test
+	public void shouldProcessAnEventForAPatientIdentifier() throws Exception {
+		Event event = createEvent("patient_identifier", "8", PATIENT_ID_UUID, "c");
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		mockAuthEndpoint.expectedMessageCount(1);
+		mockPatientAssociationEndpoint.expectedMessageCount(1);
+		mockPatientAssociationEndpoint.expectedPropertyReceived("patientAssociationName", "Patient Identifier");
+		mockPatientHandlerEndpoint.expectedMessageCount(0);
+		mockOrderHandlerEndpoint.expectedMessageCount(0);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, true);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_SUB_RESOURCE_NAME, "identifier");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_SUB_RESOURCE_ID, PATIENT_ID_UUID);
+		Map idResource = singletonMap("uuid", PATIENT_ID_UUID);
+		final String idJson = mapper.writeValueAsString(idResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(idJson));
+		
+		producerTemplate.send(LISTENER_URI, exchange);
+		
+		mockFetchResourceEndpoint.assertIsSatisfied();
+		mockAuthEndpoint.assertIsSatisfied();
+		mockOrderHandlerEndpoint.assertIsSatisfied();
+		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockPatientAssociationEndpoint.assertIsSatisfied();
+		assertEquals(idResource, exchange.getProperty(EX_PROP_ENTITY));
+		assertNotNull(exchange.getProperty(EX_PROP_ODOO_USER_ID));
+		assertNotNull(exchange.getProperty(EX_PROP_TABLE_RESOURCE_MAP));
+	}
 	
 }

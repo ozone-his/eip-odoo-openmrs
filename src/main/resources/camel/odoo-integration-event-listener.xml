@@ -32,11 +32,7 @@
             <choice>
                 <when>
                     <simple>${exchangeProperty.isSubResource} == true</simple>
-                    <log message="Fetching uuid for associated person record" />
-
-                    <toD uri="sql:SELECT uuid FROM person WHERE person_id = ${exchangeProperty.event.primaryKeyId}?dataSource=openmrsDataSource" />
-
-                    <!-- TODO Check if no row was found -->
+                    <log message="Fetching uuid for associated patient record" />
 
                     <choice>
                         <when>
@@ -44,13 +40,24 @@
                             <setProperty name="resourceName">
                                 <simple>patient</simple>
                             </setProperty>
+                            <setProperty name="lookUpColumn">
+                                <simple>patient_id</simple>
+                            </setProperty>
                         </when>
                         <otherwise>
                             <setProperty name="resourceName">
                                 <simple>person</simple>
                             </setProperty>
+                            <setProperty name="lookUpColumn">
+                                <simple>person_id</simple>
+                            </setProperty>
                         </otherwise>
                     </choice>
+
+                    <toD uri="sql:SELECT uuid FROM person WHERE person_id = (SELECT t.${exchangeProperty.lookUpColumn} FROM ${exchangeProperty.event.tableName} t WHERE t.uuid = '${exchangeProperty.event.identifier}')?dataSource=openmrsDataSource" />
+
+                    <!-- TODO Check if no row was found -->
+
                     <setProperty name="resourceId">
                         <simple>${body[0].get('uuid')}</simple>
                     </setProperty>
@@ -70,7 +77,7 @@
                     </setProperty>
                 </otherwise>
             </choice>
-            
+
             <log message="Fetching resource from OpenMRS..." loggingLevel="DEBUG" />
             
             <to uri="direct:odoo-fetch-resource" />
@@ -131,7 +138,7 @@
 
                             <log message="Processing ${exchangeProperty.patientAssociationName}" loggingLevel="DEBUG" />
 
-                            <to uri="direct:odoo-person-name-and-address-handler" />
+                            <to uri="direct:odoo-patient-association-handler" />
                         </when>
                     </choice>
 

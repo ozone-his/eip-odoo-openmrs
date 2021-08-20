@@ -1,7 +1,7 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
-	<route id="odoo-person-name-and-address-handler" errorHandlerRef="watcherErrorHandler">
-		<from uri="direct:odoo-person-name-and-address-handler" />
+	<route id="odoo-patient-association-handler" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:odoo-patient-association-handler" />
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
