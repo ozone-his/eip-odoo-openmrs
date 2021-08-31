@@ -14,7 +14,7 @@
     <properties>
         <javaCompilerVersion>1.8</javaCompilerVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <openmrsEipVersion>2.0.0-SNAPSHOT</openmrsEipVersion>
+        <openmrsEipVersion>3.0.0-SNAPSHOT</openmrsEipVersion>
         <sprintBootVersion>2.3.0.RELEASE</sprintBootVersion>
         <camelVersion>3.3.0</camelVersion>
         <testContainersVersion>1.15.2</testContainersVersion>
@@ -74,7 +74,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
     <build>
         <plugins>
             <plugin>
@@ -112,5 +112,13 @@
             </plugin>
         </plugins>
     </build>
-    
+
+  <repositories>
+     <repository>
+         <id>openmrs-repo</id>
+         <name>OpenMRS Nexus Repository</name>
+         <url>http://mavenrepo.openmrs.org/nexus/content/repositories/public</url>
+     </repository>
+  </repositories>
+
 </project>
