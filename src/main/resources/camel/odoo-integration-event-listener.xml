@@ -78,6 +78,8 @@
                 </otherwise>
             </choice>
 
+            <process ref="oauthProcessor" />
+
             <log message="Fetching resource from OpenMRS..." loggingLevel="DEBUG" />
             
             <to uri="direct:odoo-fetch-resource" />
