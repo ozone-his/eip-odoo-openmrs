@@ -1,0 +1,81 @@
+version: "2.4"
+
+services:
+  # Database
+  odoo-postgres:
+    image: icrcregistry.azurecr.io/pearlii/box-postgresql:latest
+    restart: unless-stopped
+    environment:
+      - TZ=UTC
+      - APP_ODOO_ACTIVATED=true
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - ODOO_POSTGRES_MAIN_USER=odoo_db_main_user
+      - ODOO_POSTGRES_MAIN_PASSWORD=pwd
+    volumes:
+      - odoo-postgres-data:/bitnami/postgresql
+    ports:
+      - "5432:5432"
+
+  odoo-web:
+    image: icrcregistry.azurecr.io/pearlii/odoo-web:v2-dev-latest
+    restart: unless-stopped
+    ports:
+      - "8069:8069"
+    depends_on:
+      - odoo-postgres
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+    mem_limit: 3g
+    volumes:
+      - odoo-web-logs:/var/log/odoo
+      - odoo-web-lib:/var/lib/odoo
+    environment:
+      - TZ=UTC
+      - ODOO_MASTER_PASSWORD=pwd
+      - ODOO_POSTGRES_MAIN_USER=odoo_db_main_user
+      - ODOO_POSTGRES_MAIN_PASSWORD=pwd
+      - ODOO_DATABASE_HOST=odoo-postgres
+      - ODOO_DATABASE_PORT=5432
+      - ODOO_DATABASE_NAME=odoo
+      - ODOO_DATABASE_USER=odoo_user #should be the same than the admin user defined in the backup
+      - ODOO_DATABASE_PASSWORD=pwd
+      - OPENMRS_TO_ODOO_USER=openmrs-to-odoo
+      - OPENMRS_TO_ODOO_PASSWORD=pwd
+      # change it to true after first installation
+      - SKIP_INSTALLATION=true
+      # change it to true after first installation
+      - SKIP_UPGRADE=true
+      - ODOO_LOG_HANDLER=DEBUG
+      - ODOO_LOG_LEVEL=debug
+      - SKIP_MANAGE_TMPL_USER=true
+
+    # Nginx
+  odoo-nginx:
+    image: icrcregistry.azurecr.io/pearlii/odoo-nginx:v2-dev-latest
+    restart: unless-stopped
+    mem_limit: 1g
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+    depends_on:
+      - odoo-web
+    ports:
+      - "8080:80"
+
+volumes:
+  odoo-postgres-data:
+    name: odoo-postgres-data-icrc
+    driver: local
+  odoo-web-logs:
+    name: odoo-web-logs-icrc
+    driver: local
+  odoo-web-lib:
+    name: odoo-web-lib-icrc
+    driver: local
