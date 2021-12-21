@@ -102,9 +102,9 @@
                     <choice>
                         <when>
                             <simple>${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.event.tableName} == 'test_order' || ${exchangeProperty.event.tableName} == 'drug_order'</simple>
-                            <log message="Processing Order with action: ${exchangeProperty.entity-instance.get('action')}" />
+                            <log message="Invoking custom route -> {{odoo.custom.route}}" />
 
-                            <to uri="direct:odoo-order-handler" />
+                            <to uri="direct:{{odoo.custom.route}}" />
                         </when>
                         <when>
                             <simple>${exchangeProperty.event.tableName} == 'patient'</simple>

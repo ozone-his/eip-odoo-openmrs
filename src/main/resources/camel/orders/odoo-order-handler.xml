@@ -5,6 +5,8 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
+        <log message="Processing Order with action: ${exchangeProperty.entity-instance.get('action')}" />
+
         <choice>
             <when>
                 <simple>${exchangeProperty.event.operation} == 'c' || ${exchangeProperty.entity-instance.get('voided')} == true</simple>
