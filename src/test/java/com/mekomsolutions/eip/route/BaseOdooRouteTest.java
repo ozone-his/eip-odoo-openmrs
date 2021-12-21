@@ -7,7 +7,6 @@ import org.openmrs.eip.Constants;
 import org.openmrs.eip.EIPException;
 import org.openmrs.eip.TestConstants;
 import org.openmrs.eip.mysql.watcher.route.BaseWatcherRouteTest;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -16,7 +15,6 @@ import org.springframework.test.context.jdbc.SqlConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Import(TestConfig.class)
-@ComponentScan("org.openmrs.eip")
 @TestPropertySource(properties = PROP_URI_ERROR_HANDLER + "=" + TestConstants.URI_TEST_ERROR_HANDLER)
 @Sql(value = {
         "classpath:test_data.sql" }, config = @SqlConfig(dataSource = Constants.OPENMRS_DATASOURCE_NAME, transactionManager = "openmrsTestTxManager"))
