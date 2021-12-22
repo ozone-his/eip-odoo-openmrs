@@ -11,15 +11,23 @@
 
 		<script>
 			<spel>
-				#{getProperty('tables-resource-map').put('orders', 'order')}
-				#{getProperty('tables-resource-map').put('test_order', 'order')}
-				#{getProperty('tables-resource-map').put('drug_order', 'order')}
 				#{getProperty('tables-resource-map').put('patient', 'patient')}
 				#{getProperty('tables-resource-map').put('person_name', 'name')}
 				#{getProperty('tables-resource-map').put('person_address', 'address')}
                 #{getProperty('tables-resource-map').put('patient_identifier', 'identifier')}
 			</spel>
 		</script>
+
+        <split parallelProcessing="false">
+            <simple>{{odoo.custom.table.resource.mappings}}</simple>
+            <script>
+                <spel>
+                    #{getProperty('tables-resource-map').put(body.split(":")[0], body.split(":")[1])}
+                </spel>
+            </script>
+        </split>
+
+        <log loggingLevel="DEBUG" message="tables-resource-map -> ${exchangeProperty.tables-resource-map}"/>
 
         <when>
             <simple>${exchangeProperty.event.snapshot} == false &amp;&amp; ${exchangeProperty.tables-resource-map.containsKey(${exchangeProperty.event.tableName})} == true</simple>
@@ -101,7 +109,7 @@
 
                     <choice>
                         <when>
-                            <simple>${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.event.tableName} == 'test_order' || ${exchangeProperty.event.tableName} == 'drug_order'</simple>
+                            <simple>${exchangeProperty.event.tableName} != 'patient' &amp;&amp; ${exchangeProperty.event.tableName} != 'person_name' &amp;&amp; ${exchangeProperty.event.tableName} != 'person_address' &amp;&amp; ${exchangeProperty.event.tableName} != 'patient_identifier'</simple>
                             <log message="Invoking custom route -> {{odoo.custom.route}}" />
 
                             <to uri="direct:{{odoo.custom.route}}" />
