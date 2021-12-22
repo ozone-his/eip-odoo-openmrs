@@ -110,9 +110,9 @@
                     <choice>
                         <when>
                             <simple>${exchangeProperty.event.tableName} != 'patient' &amp;&amp; ${exchangeProperty.event.tableName} != 'person_name' &amp;&amp; ${exchangeProperty.event.tableName} != 'person_address' &amp;&amp; ${exchangeProperty.event.tableName} != 'patient_identifier'</simple>
-                            <log message="Invoking custom route -> {{odoo.custom.route}}" />
+                            <log message="Invoking handler route -> {{odoo.handler.route}}" />
 
-                            <to uri="direct:{{odoo.custom.route}}" />
+                            <to uri="direct:{{odoo.handler.route}}" />
                         </when>
                         <when>
                             <simple>${exchangeProperty.event.tableName} == 'patient'</simple>
