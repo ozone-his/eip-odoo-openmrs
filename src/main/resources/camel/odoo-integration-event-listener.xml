@@ -22,7 +22,7 @@
             <simple>{{odoo.custom.table.resource.mappings}}</simple>
             <script>
                 <spel>
-                    #{getProperty('tables-resource-map').put(body.split(":")[0], body.split(":")[1])}
+                    #{getProperty('tables-resource-map').put(body.split(":")[0].trim(), body.split(":")[1].trim())}
                 </spel>
             </script>
         </split>

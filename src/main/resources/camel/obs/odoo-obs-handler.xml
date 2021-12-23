@@ -4,7 +4,53 @@
 
 		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
-        
+        <setProperty name="obsQnAnsMapKey">
+            <simple>${routeId}-obsQnAnsMap</simple>
+        </setProperty>
+
+        <setProperty name="obsQnAnsMap">
+            <method beanType="org.openmrs.eip.AppContext" method="get(${exchangeProperty.obsQnAnsMapKey})" />
+        </setProperty>
+
+        <when>
+            <simple>${exchangeProperty.obsQnAnsMap} == null</simple>
+
+            <log message="Initializing Obs Question Answer Map"/>
+
+            <setProperty name="obsQnAnsMap">
+                <spel>#{new java.util.HashMap()}</spel>
+            </setProperty>
+
+            <split parallelProcessing="false">
+                <simple>{{odoo.obs.question.answer.mappings}}</simple>
+                <setProperty name="obsQn">
+                    <simple>${body.split(":")[0].trim()}</simple>
+                </setProperty>
+                <setProperty name="obsAnswers">
+                    <simple>${body.split(":")[1].trim()}</simple>
+                </setProperty>
+                <setProperty name="obsAnswerSet">
+                    <spel>#{new java.util.HashSet()}</spel>
+                </setProperty>
+
+                <split parallelProcessing="false" >
+                    <spel>#{T(org.apache.commons.lang3.StringUtils).split(getProperty('obsAnswers'), '^')}</spel>
+
+                    <script>
+                        <simple>${exchangeProperty.obsAnswerSet.add(${body.trim()})}</simple>
+                    </script>
+                </split>
+
+                <script>
+                    <spel>
+                        #{getProperty('obsQnAnsMap').put(getProperty('obsQn'), getProperty('obsAnswerSet'))}
+                        #{T(org.openmrs.eip.AppContext).add(getProperty('obsQnAnsMapKey'), getProperty('obsQnAnsMap'))}
+                    </spel>
+                </script>
+            </split>
+        </when>
+
+        <log loggingLevel="DEBUG" message="Obs Question Answer Map -> ${exchangeProperty.obsQnAnsMap}"/>
 
 		<log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
     </route>

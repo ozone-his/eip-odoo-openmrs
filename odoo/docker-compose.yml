@@ -55,19 +55,19 @@ services:
       - SKIP_MANAGE_TMPL_USER=true
 
     # Nginx
-  odoo-nginx:
-    image: icrcregistry.azurecr.io/pearlii/odoo-nginx:v2-dev-latest
-    restart: unless-stopped
-    mem_limit: 1g
-    logging:
-      driver: json-file
-      options:
-        max-size: "20m"
-        max-file: "5"
-    depends_on:
-      - odoo-web
-    ports:
-      - "8080:80"
+  #odoo-nginx:
+  #  image: icrcregistry.azurecr.io/pearlii/odoo-nginx:v2-dev-latest
+  #  restart: unless-stopped
+  #  mem_limit: 1g
+  #  logging:
+  #    driver: json-file
+  #    options:
+  #      max-size: "20m"
+  #      max-file: "5"
+  #  depends_on:
+  #    - odoo-web
+  #  ports:
+  #    - "8080:80"
 
 volumes:
   odoo-postgres-data:
