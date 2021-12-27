@@ -101,7 +101,7 @@
 
                     <log message="Fetched resource -> ${exchangeProperty.entity-instance}" loggingLevel="DEBUG" />
                     
-                    <toD uri="direct:odoo-authentication" />
+                    <to uri="direct:odoo-authentication" />
 
                     <setProperty name="odoo-user-id">
                         <simple>${body}</simple>

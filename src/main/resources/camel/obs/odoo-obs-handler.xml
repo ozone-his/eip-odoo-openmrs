@@ -22,7 +22,7 @@
             </setProperty>
 
             <split parallelProcessing="false">
-                <simple>{{odoo.obs.question.answer.mappings}}</simple>
+                <simple>{{odoo.obs.concept.question.answer.mappings}}</simple>
                 <setProperty name="obsQn">
                     <simple>${body.split(":")[0].trim()}</simple>
                 </setProperty>
@@ -32,6 +32,8 @@
                 <setProperty name="obsAnswerSet">
                     <spel>#{new java.util.HashSet()}</spel>
                 </setProperty>
+
+                <!-- TODO Check the question concept datatype -->
 
                 <split parallelProcessing="false" >
                     <spel>#{T(org.apache.commons.lang3.StringUtils).split(getProperty('obsAnswers'), '^')}</spel>
@@ -47,6 +49,75 @@
                         #{T(org.openmrs.eip.AppContext).add(getProperty('obsQnAnsMapKey'), getProperty('obsQnAnsMap'))}
                     </spel>
                 </script>
+
+                <setProperty name="obsQnUuid">
+                    <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')}</simple>
+                </setProperty>
+                
+                <choice>
+                    <when>
+                        <spel>#{getProperty('obsQnAnsMap').containsKey(getProperty('obsQnUuid'))}</spel>
+
+                        <log loggingLevel="DEBUG" message="Obs has configured question concept" />
+
+                        <choice>
+                            <when>
+                                <spel>#{getProperty('obsQnAnsMap').get(getProperty('obsQnUuid')).contains(getProperty('entity-instance').get('value').get('uuid'))}</spel>
+
+                                <log message="Obs has configured question and answer concepts" />
+
+                                <choice>
+                                    <when>
+                                        <simple>${exchangeProperty.event.operation} == 'c' || ${exchangeProperty.event.operation} == 'u'</simple>
+
+                                        <log message="Fetching patient associated to the order from OpenMRS..." />
+
+                                        <setProperty name="isSubResource">
+                                            <simple>false</simple>
+                                        </setProperty>
+                                        <setProperty name="resourceName">
+                                            <simple>patient</simple>
+                                        </setProperty>
+                                        <setProperty name="resourceId">
+                                            <simple>${exchangeProperty.entity-instance.get('person').get('uuid')}</simple>
+                                        </setProperty>
+
+                                        <to uri="direct:odoo-fetch-resource" />
+
+                                        <choice>
+                                            <when>
+                                                <simple>${body} != null</simple>
+                                                <setProperty name="patient">
+                                                    <jsonpath>$</jsonpath>
+                                                </setProperty>
+
+                                                <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.patient}" />
+
+                                                <setProperty name="createCustomer">
+                                                    <simple>true</simple>
+                                                </setProperty>
+
+                                                <to uri="direct:odoo-patient-handler" />
+                                            </when>
+                                            <otherwise>
+                                                <log message="No associated patient found with uuid: ${exchangeProperty.resourceId}" />
+                                            </otherwise>
+                                        </choice>
+                                    </when>
+                                    <otherwise>
+                                        <log message="Skipping deleted Obs" />
+                                    </otherwise>
+                                </choice>
+                            </when>
+                            <otherwise>
+                                <log loggingLevel="TRACE" message="Skipping Obs because the answer concept doesn't match" />
+                            </otherwise>
+                        </choice>
+                    </when>
+                    <otherwise>
+                        <log loggingLevel="TRACE" message="Skipping Obs because the question concept doesn't match" />
+                    </otherwise>
+                </choice>
             </split>
         </when>
 

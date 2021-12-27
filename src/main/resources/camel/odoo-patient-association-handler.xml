@@ -49,7 +49,7 @@
 
                 <log message="Fetched patient -> ${exchangeProperty.patient}" loggingLevel="DEBUG" />
 
-                <toD uri="direct:odoo-patient-handler" />
+                <to uri="direct:odoo-patient-handler" />
             </when>
             <otherwise>
                 <log message="No associated patient found with uuid: ${exchangeProperty.resourceId}" loggingLevel="WARN" />
