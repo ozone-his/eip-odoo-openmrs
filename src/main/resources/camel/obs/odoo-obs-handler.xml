@@ -4,56 +4,63 @@
 
 		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
-        <setProperty name="obsQnAnsMapKey">
-            <simple>${routeId}-obsQnAnsMap</simple>
-        </setProperty>
-
-        <setProperty name="obsQnAnsMap">
-            <method beanType="org.openmrs.eip.AppContext" method="get(${exchangeProperty.obsQnAnsMapKey})" />
-        </setProperty>
-
-        <when>
-            <simple>${exchangeProperty.obsQnAnsMap} == null</simple>
-
-            <log message="Initializing Obs Question Answer Map"/>
-
-            <setProperty name="obsQnAnsMap">
-                <spel>#{new java.util.HashMap()}</spel>
-            </setProperty>
-
-            <split parallelProcessing="false">
-                <simple>{{odoo.obs.concept.question.answer.mappings}}</simple>
-                <setProperty name="obsQn">
-                    <simple>${body.split(":")[0].trim()}</simple>
-                </setProperty>
-                <setProperty name="obsAnswers">
-                    <simple>${body.split(":")[1].trim()}</simple>
-                </setProperty>
-                <setProperty name="obsAnswerSet">
-                    <spel>#{new java.util.HashSet()}</spel>
+        <choice>
+            <when>
+                <simple>${exchangeProperty.event.operation} == 'c' || ${exchangeProperty.event.operation} == 'u'</simple>
+                <setProperty name="obsQnAnsMapKey">
+                    <simple>${routeId}-obsQnAnsMap</simple>
                 </setProperty>
 
-                <!-- TODO Check the question concept datatype -->
+                <setProperty name="obsQnAnsMap">
+                    <method beanType="org.openmrs.eip.AppContext" method="get(${exchangeProperty.obsQnAnsMapKey})" />
+                </setProperty>
 
-                <split parallelProcessing="false" >
-                    <spel>#{T(org.apache.commons.lang3.StringUtils).split(getProperty('obsAnswers'), '^')}</spel>
+                <when>
+                    <simple>${exchangeProperty.obsQnAnsMap} == null</simple>
 
-                    <script>
-                        <simple>${exchangeProperty.obsAnswerSet.add(${body.trim()})}</simple>
-                    </script>
-                </split>
+                    <log message="Initializing Obs Question Answer Map"/>
 
-                <script>
-                    <spel>
-                        #{getProperty('obsQnAnsMap').put(getProperty('obsQn'), getProperty('obsAnswerSet'))}
-                        #{T(org.openmrs.eip.AppContext).add(getProperty('obsQnAnsMapKey'), getProperty('obsQnAnsMap'))}
-                    </spel>
-                </script>
+                    <setProperty name="obsQnAnsMap">
+                        <spel>#{new java.util.HashMap()}</spel>
+                    </setProperty>
+
+                    <split parallelProcessing="false">
+                        <simple>{{odoo.obs.concept.question.answer.mappings}}</simple>
+                        <setProperty name="obsQn">
+                            <simple>${body.split(":")[0].trim()}</simple>
+                        </setProperty>
+                        <setProperty name="obsAnswers">
+                            <simple>${body.split(":")[1].trim()}</simple>
+                        </setProperty>
+                        <setProperty name="obsAnswerSet">
+                            <spel>#{new java.util.HashSet()}</spel>
+                        </setProperty>
+
+                        <!-- TODO Check the question concept datatype -->
+
+                        <split parallelProcessing="false" >
+                            <spel>#{T(org.apache.commons.lang3.StringUtils).split(getProperty('obsAnswers'), '^')}</spel>
+
+                            <script>
+                                <simple>${exchangeProperty.obsAnswerSet.add(${body.trim()})}</simple>
+                            </script>
+                        </split>
+
+                        <script>
+                            <spel>
+                                #{getProperty('obsQnAnsMap').put(getProperty('obsQn'), getProperty('obsAnswerSet'))}
+                                #{T(org.openmrs.eip.AppContext).add(getProperty('obsQnAnsMapKey'), getProperty('obsQnAnsMap'))}
+                            </spel>
+                        </script>
+                    </split>
+
+                    <log loggingLevel="DEBUG" message="Obs Question Answer Map -> ${exchangeProperty.obsQnAnsMap}"/>
+                </when>
 
                 <setProperty name="obsQnUuid">
                     <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')}</simple>
                 </setProperty>
-                
+
                 <choice>
                     <when>
                         <spel>#{getProperty('obsQnAnsMap').containsKey(getProperty('obsQnUuid'))}</spel>
@@ -66,62 +73,54 @@
 
                                 <log message="Obs has configured question and answer concepts" />
 
+                                <log message="Fetching patient associated to the Obs from OpenMRS..." />
+
+                                <setProperty name="isSubResource">
+                                    <simple>false</simple>
+                                </setProperty>
+                                <setProperty name="resourceName">
+                                    <simple>patient</simple>
+                                </setProperty>
+                                <setProperty name="resourceId">
+                                    <simple>${exchangeProperty.entity-instance.get('person').get('uuid')}</simple>
+                                </setProperty>
+
+                                <to uri="direct:odoo-fetch-resource" />
+
                                 <choice>
                                     <when>
-                                        <simple>${exchangeProperty.event.operation} == 'c' || ${exchangeProperty.event.operation} == 'u'</simple>
-
-                                        <log message="Fetching patient associated to the order from OpenMRS..." />
-
-                                        <setProperty name="isSubResource">
-                                            <simple>false</simple>
-                                        </setProperty>
-                                        <setProperty name="resourceName">
-                                            <simple>patient</simple>
-                                        </setProperty>
-                                        <setProperty name="resourceId">
-                                            <simple>${exchangeProperty.entity-instance.get('person').get('uuid')}</simple>
+                                        <simple>${body} != null</simple>
+                                        <setProperty name="patient">
+                                            <jsonpath>$</jsonpath>
                                         </setProperty>
 
-                                        <to uri="direct:odoo-fetch-resource" />
+                                        <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.patient}" />
 
-                                        <choice>
-                                            <when>
-                                                <simple>${body} != null</simple>
-                                                <setProperty name="patient">
-                                                    <jsonpath>$</jsonpath>
-                                                </setProperty>
+                                        <setProperty name="createCustomer">
+                                            <simple>true</simple>
+                                        </setProperty>
 
-                                                <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.patient}" />
-
-                                                <setProperty name="createCustomer">
-                                                    <simple>true</simple>
-                                                </setProperty>
-
-                                                <to uri="direct:odoo-patient-handler" />
-                                            </when>
-                                            <otherwise>
-                                                <log message="No associated patient found with uuid: ${exchangeProperty.resourceId}" />
-                                            </otherwise>
-                                        </choice>
+                                        <to uri="direct:odoo-patient-handler" />
                                     </when>
                                     <otherwise>
-                                        <log message="Skipping deleted Obs" />
+                                        <log message="No associated patient found with uuid: ${exchangeProperty.resourceId}" />
                                     </otherwise>
                                 </choice>
                             </when>
                             <otherwise>
-                                <log loggingLevel="TRACE" message="Skipping Obs because the answer concept doesn't match" />
+                                <log loggingLevel="DEBUG" message="Skipping Obs because the answer concept doesn't match" />
                             </otherwise>
                         </choice>
                     </when>
                     <otherwise>
-                        <log loggingLevel="TRACE" message="Skipping Obs because the question concept doesn't match" />
+                        <log loggingLevel="DEBUG" message="Skipping Obs because the question concept doesn't match" />
                     </otherwise>
                 </choice>
-            </split>
-        </when>
-
-        <log loggingLevel="DEBUG" message="Obs Question Answer Map -> ${exchangeProperty.obsQnAnsMap}"/>
+            </when>
+            <otherwise>
+                <log loggingLevel="DEBUG" message="Skipping deleted Obs" />
+            </otherwise>
+        </choice>
 
 		<log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
     </route>
