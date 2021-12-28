@@ -4,9 +4,13 @@
 
 		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
+        <setProperty name="isInsertOrUpdate">
+            <spel>#{getProperty('event').operation == 'c' || getProperty('event').operation == 'u'}</spel>
+        </setProperty>
+
         <choice>
             <when>
-                <simple>${exchangeProperty.event.operation} == 'c' || ${exchangeProperty.event.operation} == 'u'</simple>
+                <simple>${exchangeProperty.entity-instance.get('voided')} != true &amp;&amp; ${exchangeProperty.isInsertOrUpdate} == true</simple>
                 <setProperty name="obsQnAnsMapKey">
                     <simple>${routeId}-obsQnAnsMap</simple>
                 </setProperty>
@@ -118,7 +122,15 @@
                 </choice>
             </when>
             <otherwise>
-                <log loggingLevel="DEBUG" message="Skipping deleted Obs" />
+                <choice>
+                    <when>
+                        <simple>${exchangeProperty.isInsertOrUpdate} != true</simple>
+                        <log loggingLevel="DEBUG" message="Skipping deleted Obs" />
+                    </when>
+                    <otherwise>
+                        <log loggingLevel="DEBUG" message="Skipping voided Obs" />
+                    </otherwise>
+                </choice>
             </otherwise>
         </choice>
 
