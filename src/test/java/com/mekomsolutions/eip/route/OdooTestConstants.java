@@ -38,6 +38,8 @@ public class OdooTestConstants {
 	
 	public static final String URI_MOCK_FETCH_RESOURCE = "mock:odoo-fetch-resource";
 	
+	public static final String URI_OBS_HANDLER = "direct:odoo-obs-handler";
+	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	
 	public static final String LISTENER_URI = "direct:odoo-event-listener";
