@@ -53,6 +53,11 @@
                         <script>
                             <spel>
                                 #{getProperty('obsQnAnsMap').put(getProperty('obsQn'), getProperty('obsAnswerSet'))}
+                            </spel>
+                        </script>
+
+                        <script>
+                            <spel>
                                 #{T(org.openmrs.eip.AppContext).add(getProperty('obsQnAnsMapKey'), getProperty('obsQnAnsMap'))}
                             </spel>
                         </script>
@@ -112,12 +117,12 @@
                                 </choice>
                             </when>
                             <otherwise>
-                                <log loggingLevel="DEBUG" message="Skipping Obs because the answer concept doesn't match" />
+                                <log loggingLevel="DEBUG" message="Skipping Obs because the answer concept doesn't match any configured answer" />
                             </otherwise>
                         </choice>
                     </when>
                     <otherwise>
-                        <log loggingLevel="DEBUG" message="Skipping Obs because the question concept doesn't match" />
+                        <log loggingLevel="DEBUG" message="Skipping Obs because the question concept doesn't match any configured question" />
                     </otherwise>
                 </choice>
             </when>
@@ -125,10 +130,10 @@
                 <choice>
                     <when>
                         <simple>${exchangeProperty.isInsertOrUpdate} != true</simple>
-                        <log loggingLevel="DEBUG" message="Skipping deleted Obs" />
+                        <log loggingLevel="DEBUG" message="Skipping deleted obs" />
                     </when>
                     <otherwise>
-                        <log loggingLevel="DEBUG" message="Skipping voided Obs" />
+                        <log loggingLevel="DEBUG" message="Skipping voided obs" />
                     </otherwise>
                 </choice>
             </otherwise>
