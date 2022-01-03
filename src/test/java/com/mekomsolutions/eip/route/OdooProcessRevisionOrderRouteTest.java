@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.mekomsolutions.eip.route.orders.BaseOrderOdooRouteTest;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -19,7 +20,7 @@ import org.junit.Test;
 
 import ch.qos.logback.classic.Level;
 
-public class OdooProcessRevisionOrderRouteTest extends BaseOdooRouteTest {
+public class OdooProcessRevisionOrderRouteTest extends BaseOrderOdooRouteTest {
 	
 	private static final String ROUTE_ID = "odoo-process-revision-order";
 	

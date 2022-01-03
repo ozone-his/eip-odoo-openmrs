@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
 
+import com.mekomsolutions.eip.route.orders.BaseOrderOdooRouteTest;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -15,7 +16,7 @@ import org.apache.camel.support.DefaultExchange;
 import org.junit.Before;
 import org.junit.Test;
 
-public class OdooProcessDiscontinueOrVoidedOrderRouteTest extends BaseOdooRouteTest {
+public class OdooProcessDiscontinueOrVoidedOrderRouteTest extends BaseOrderOdooRouteTest {
 	
 	private static final String ROUTE_ID = "odoo-process-dc-or-voided-order";
 	

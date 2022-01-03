@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNull;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.mekomsolutions.eip.route.orders.BaseOrderOdooRouteTest;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -32,7 +33,7 @@ import org.junit.Test;
 
 import ch.qos.logback.classic.Level;
 
-public class OdooProcessOrderRouteTest extends BaseOdooRouteTest {
+public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 	
 	private static final String ROUTE_ID = "odoo-process-order";
 	

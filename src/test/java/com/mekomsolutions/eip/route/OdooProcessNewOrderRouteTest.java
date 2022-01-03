@@ -7,6 +7,7 @@ import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
 
 import java.util.Collections;
 
+import com.mekomsolutions.eip.route.orders.BaseOrderOdooRouteTest;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -18,7 +19,7 @@ import org.openmrs.eip.mysql.watcher.Event;
 
 import ch.qos.logback.classic.Level;
 
-public class OdooProcessNewOrderRouteTest extends BaseOdooRouteTest {
+public class OdooProcessNewOrderRouteTest extends BaseOrderOdooRouteTest {
 	
 	private static final String ROUTE_ID = "odoo-process-new-order";
 	

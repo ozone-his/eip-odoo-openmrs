@@ -29,9 +29,11 @@ import org.junit.Test;
 import org.openmrs.eip.EIPException;
 import org.openmrs.eip.mysql.watcher.Event;
 
+import com.mekomsolutions.eip.route.orders.BaseOrderOdooRouteTest;
+
 import ch.qos.logback.classic.Level;
 
-public class OdooOrderHandlerRouteTest extends BaseOdooRouteTest {
+public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 	
 	private static final String ROUTE_ID = "odoo-order-handler";
 	
