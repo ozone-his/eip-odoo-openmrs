@@ -8,4 +8,4 @@ import com.mekomsolutions.eip.route.BaseOdooRouteTest;
 @TestPropertySource(properties = "eip.watchedTables=patient,person_name,person_address,patient_identifier,orders,test_order,drug_order")
 @TestPropertySource(properties = "odoo.handler.route=odoo-order-handler")
 @TestPropertySource(properties = "odoo.custom.table.resource.mappings=orders:order,test_order:order,drug_order:order")
-public class BaseOrderOdooRouteTest extends BaseOdooRouteTest {}
+public abstract class BaseOrderOdooRouteTest extends BaseOdooRouteTest {}

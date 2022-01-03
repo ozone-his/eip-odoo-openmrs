@@ -1,4 +1,4 @@
-package com.mekomsolutions.eip.route;
+package com.mekomsolutions.eip.route.orders;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOURCE;

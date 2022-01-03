@@ -1,4 +1,4 @@
-package com.mekomsolutions.eip.route;
+package com.mekomsolutions.eip.route.orders;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ODOO_OP;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_OP_CREATE;
