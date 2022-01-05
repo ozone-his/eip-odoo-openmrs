@@ -1,13 +1,17 @@
 version: '3.1'
+
 services:
-  db:
+  odoo-native-postgres:
     image: postgres:13
+    container_name: db
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=odoo
       - POSTGRES_USER=odoo
-  web:
+  
+  odoo-native-web:
     image: odoo:14.0
+    container_name: odoo-native-web
     depends_on:
       - db
     ports:

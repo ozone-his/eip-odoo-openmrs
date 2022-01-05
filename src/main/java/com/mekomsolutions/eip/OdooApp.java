@@ -29,11 +29,15 @@ public class OdooApp {
 		XmlRpcClient client = new XmlRpcClient();
 		client.setConfig(config);
 		
-		getModel(client, "res.partner");
-		getRecord(client, "res.partner", 48);
+		//getModelFields(client, "ir.model");
+		//getModelFields(client, "ir.ui.view");
+		//getRecord(client, "res.partner", 7);
+		//getModel(client, "res.partner");
+		//addField(client, 79, "x_emr_id", "char", true, "EMR Identifier");
+		//getRecord(client, "ir.ui.view", 118);
 	}
 	
-	private static void getModel(XmlRpcClient client, String model) throws Exception {
+	private static void getModelFields(XmlRpcClient client, String model) throws Exception {
 		final Map<String, Object> fields = (Map) client.execute("execute_kw",
 		    asList(db, uid, password, model, "fields_get", emptyList(), new HashMap<String, Object>() {
 			    
@@ -48,20 +52,53 @@ public class OdooApp {
 	}
 	
 	private static void getRecord(XmlRpcClient client, String model, int id) throws Exception {
-		Object[] record = (Object[])client.execute("execute_kw", asList(db, uid, password, model, "search_read",
-		    asList(asList(asList("id", "=", id))), new HashMap() {
+		Object[] record = (Object[]) client.execute("execute_kw",
+		    asList(db, uid, password, model, "search_read", asList(asList(asList("id", "=", id))), new HashMap() {
 			    
 			    {
-				    put("fields", asList("name", "comment", "patient", "gender", "company_type", "is_company", "company_type"));
+				    //put("fields", asList("name", "comment", "company_type", "is_company",
+				    //    "company_type", "x_emr_id"));
 				    //put("limit", 5);
 			    }
 		    }));
-
-        List<Object> list = new ArrayList(record.length);
-		for (Object o: Arrays.asList(record)){
-            list.add(o);
-        }
-        System.out.println(list);
+		
+		List<Object> list = new ArrayList(record.length);
+		for (Object o : Arrays.asList(record)) {
+			list.add(o);
+		}
+		
+		System.out.println(list);
+	}
+	
+	private static void getModel(XmlRpcClient client, String name) throws Exception {
+		Object[] model = (Object[]) client.execute("execute_kw",
+		    asList(db, uid, password, "ir.model", "search_read", asList(asList(asList("model", "=", name)))));
+		
+		List<Object> list = new ArrayList(model.length);
+		for (Object o : Arrays.asList(model)) {
+			list.add(o);
+		}
+		
+		System.out.println(list);
+	}
+	
+	private static void addField(XmlRpcClient client, int modelId, String name, String type, boolean required,
+	                             String description)
+	    throws Exception {
+		Object resp = client.execute("execute_kw",
+		    asList(db, uid, password, "ir.model.fields", "create", asList(new HashMap<String, Object>() {
+			    
+			    {
+				    put("model_id", modelId);
+				    put("name", name);
+				    put("field_description", description);
+				    put("ttype", type);
+				    put("state", "manual");
+				    put("required", required);
+			    }
+		    })));
+		
+		System.out.println("Field Id:" + resp);
 	}
 	
 }
