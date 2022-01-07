@@ -18,7 +18,7 @@
                     <simple>create</simple>
                 </setProperty>
 
-                <log message="Adding new order line to the quotation" />
+                <log message="Adding new order line for the orderable to the quotation" />
 
                 <to uri="direct:odoo-manage-order-line" />
             </when>
