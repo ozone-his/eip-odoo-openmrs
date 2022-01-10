@@ -39,7 +39,7 @@
                     <spel>
                         #{getProperty('patientData').put('name', getProperty('patient-name'))}
                         #{getProperty('patientData').put('ref', getProperty('patient').uuid)}
-                        #{getProperty('patientData').put('comment', getProperty('patientIdDisplay'))}
+                        #{getProperty('patientData').put('{{odoo.emr.id.field}}', getProperty('patientIdentifier'))}
                     </spel>
                 </script>
 

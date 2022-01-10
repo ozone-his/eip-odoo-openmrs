@@ -25,9 +25,11 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.openmrs.eip.mysql.watcher.Event;
+import org.springframework.test.context.TestPropertySource;
 
 import ch.qos.logback.classic.Level;
 
+@TestPropertySource(properties = "openmrs.identifier.type.uuid=" + OdooPatientHandlerRouteTest.ID_TYPE_UUID)
 public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	
 	private static final String ROUTE_ID = "odoo-patient-handler";
@@ -35,6 +37,8 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	public static final String EX_PROP_PATIENT = "patient";
 	
 	public static final String EX_PROP_CREATE_CUSTOMER = "createCustomer";
+	
+	public static final String ID_TYPE_UUID = "8d79403a-c2cc-11de-8d13-0010c6dffd0f";
 	
 	@EndpointInject("mock:odoo-get-customer")
 	private MockEndpoint mockGetCustomerEndpoint;
@@ -154,7 +158,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		mockManageCustomerEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
 		mockManageCustomerEndpoint.expectedPropertyReceived("patient-name", name);
 		mockManageCustomerEndpoint.expectedPropertyReceived("patient", patientResource);
-		mockManageCustomerEndpoint.expectedPropertyReceived("patientIdDisplay", "OpenMRS Id: 12345");
+		mockManageCustomerEndpoint.expectedPropertyReceived("patientIdentifier", "12345");
 		mockManageCustomerEndpoint.expectedPropertyReceived("preferredAddress", addressResource);
 		mockManageCustomerEndpoint.expectedPropertyReceived("odooCountryId", countryId);
 		mockManageCustomerEndpoint.expectedPropertyReceived("odooStateId", stateId);
@@ -189,7 +193,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		mockManageCustomerEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
 		mockManageCustomerEndpoint.expectedPropertyReceived("patient-name", name);
 		mockManageCustomerEndpoint.expectedPropertyReceived("patient", patientResource);
-		mockManageCustomerEndpoint.expectedPropertyReceived("patientIdDisplay", "OpenMRS Id: 12345");
+		mockManageCustomerEndpoint.expectedPropertyReceived("patientIdentifier", "12345");
 		final int patientId = 12;
 		mockManageCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientId));
 		
@@ -234,7 +238,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		mockManageCustomerEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_WRITE);
 		mockManageCustomerEndpoint.expectedPropertyReceived("patient-name", name);
 		mockManageCustomerEndpoint.expectedPropertyReceived("patient", patientResource);
-		mockManageCustomerEndpoint.expectedPropertyReceived("patientIdDisplay", "OpenMRS Id: 12345");
+		mockManageCustomerEndpoint.expectedPropertyReceived("patientIdentifier", "12345");
 		mockManageCustomerEndpoint.expectedPropertyReceived("preferredAddress", addressResource);
 		mockManageCustomerEndpoint.expectedPropertyReceived("odooCountryId", countryId);
 		mockManageCustomerEndpoint.expectedPropertyReceived("odooStateId", stateId);
@@ -354,6 +358,29 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		mockGetQuotesEndpoint.assertIsSatisfied();
 		mockCancelQuotesEndpoint.assertIsSatisfied();
 		assertTrue(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
+	}
+	
+	@Test
+	public void shouldFailIfNoPatientIdentifierTypeIsFoundMatchingTheUuid() throws Exception {
+		Event event = createEvent("orders", "1", "order-uuid", "c");
+		final Exchange exchange = new DefaultExchange(camelContext);
+		producerTemplate.send("sql:UPDATE patient_identifier_type set uuid = 'other' WHERE uuid = '" + ID_TYPE_UUID
+		        + "'?dataSource=openmrsDataSource",
+		    exchange);
+		exchange.setProperty(EX_PROP_PATIENT, new HashMap());
+		exchange.setProperty(EX_PROP_CREATE_CUSTOMER, true);
+		exchange.setProperty(PROP_EVENT, event);
+		mockGetCustomerEndpoint.expectedMessageCount(1);
+		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
+		mockProcessAddressEndpoint.expectedMessageCount(0);
+		mockManageCustomerEndpoint.expectedMessageCount(0);
+		
+		producerTemplate.send(URI_PATIENT_HANDLER, exchange);
+		
+		mockGetCustomerEndpoint.assertIsSatisfied();
+		mockProcessAddressEndpoint.assertIsSatisfied();
+		mockManageCustomerEndpoint.assertIsSatisfied();
+		assertEquals("No patient identifier type found with uuid: " + ID_TYPE_UUID, getErrorMessage(exchange));
 	}
 	
 }

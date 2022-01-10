@@ -57,19 +57,40 @@
                                 <simple>${exchangeProperty.person.get('preferredAddress')}</simple>
                             </setProperty>
 
-                            <toD uri="sql:SELECT i.identifier, i.identifier_type FROM patient_identifier i WHERE i.patient_id = (SELECT person_id FROM person WHERE uuid='${exchangeProperty.patient.get('uuid')}') AND preferred = 1 AND i.voided = 0?dataSource=openmrsDataSource" />
+                            <setProperty name="idTypeIdKey">
+                                <simple>${routeId}-idTypeId</simple>
+                            </setProperty>
+
+                            <setProperty name="idTypeId">
+                                <method beanType="org.openmrs.eip.AppContext" method="get(${exchangeProperty.idTypeIdKey})" />
+                            </setProperty>
+
+                            <when>
+                                <simple>${exchangeProperty.idTypeId} == null</simple>
+
+                                <log message="Looking up id for patient identifier type with uuid: {{openmrs.identifier.type.uuid}}" />
+
+                                <toD uri="sql:SELECT t.patient_identifier_type_id FROM patient_identifier_type t WHERE t.uuid = '{{openmrs.identifier.type.uuid}}'?dataSource=openmrsDataSource" />
+
+                                <when>
+                                    <simple>${body.size()} == 0</simple>
+                                    <throwException exceptionType="org.openmrs.eip.EIPException" message="No patient identifier type found with uuid: {{openmrs.identifier.type.uuid}}" />
+                                </when>
+
+                                <setProperty name="idTypeId">
+                                    <simple>${body[0].get("patient_identifier_type_id")}</simple>
+                                </setProperty>
+                                <script>
+                                    <spel>
+                                        #{T(org.openmrs.eip.AppContext).add(getProperty('idTypeIdKey'), getProperty('idTypeId'))}
+                                    </spel>
+                                </script>
+                            </when>
+
+                            <toD uri="sql:SELECT i.identifier FROM patient_identifier i WHERE i.patient_id = (SELECT person_id FROM person WHERE uuid='${exchangeProperty.patient.get('uuid')}') AND i.identifier_type = ${exchangeProperty.idTypeId} AND i.voided = 0?dataSource=openmrsDataSource" />
 
                             <setProperty name="patientIdentifier">
                                 <simple>${body[0].get("identifier")}</simple>
-                            </setProperty>
-                            <setProperty name="patientIdTypeId">
-                                <simple>${body[0].get("identifier_type")}</simple>
-                            </setProperty>
-
-                            <toD uri="sql:SELECT t.name FROM patient_identifier_type t WHERE t.patient_identifier_type_id = ${exchangeProperty.patientIdTypeId}?dataSource=openmrsDataSource" />
-
-                            <setProperty name="patientIdDisplay">
-                                <simple>${body[0].get("name")}: ${exchangeProperty.patientIdentifier}</simple>
                             </setProperty>
 
                             <choice>
