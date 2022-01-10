@@ -105,6 +105,12 @@
                             </choice>
                         </when>
 
+                        <setProperty name="customPatientData">
+                            <spel>#{new java.util.HashMap()}</spel>
+                        </setProperty>
+
+                        <to uri="direct:odoo-get-custom-customer-data" />
+
                         <choice>
                             <when>
                                 <simple>${exchangeProperty.patient-odoo-id} == null</simple>

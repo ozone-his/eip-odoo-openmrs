@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.openmrs.eip.AppContext;
 import org.openmrs.eip.mysql.watcher.Event;
 import org.springframework.test.context.TestPropertySource;
 
@@ -38,7 +39,11 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	
 	public static final String EX_PROP_CREATE_CUSTOMER = "createCustomer";
 	
+	public static final String EX_PROP_CUSTOM_DATA = "customPatientData";
+	
 	public static final String ID_TYPE_UUID = "8d79403a-c2cc-11de-8d13-0010c6dffd0f";
+	
+	public static final String ID_TYPE_ID_KEY = "odoo-patient-handler-idTypeId";
 	
 	@EndpointInject("mock:odoo-get-customer")
 	private MockEndpoint mockGetCustomerEndpoint;
@@ -55,19 +60,26 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	@EndpointInject("mock:odoo-process-person-address")
 	private MockEndpoint mockProcessAddressEndpoint;
 	
+	@EndpointInject("mock:odoo-get-custom-customer-data")
+	private MockEndpoint mockGetCustomDataEndpoint;
+	
 	@Before
 	public void setup() throws Exception {
+		AppContext.remove(ID_TYPE_ID_KEY);
 		mockGetCustomerEndpoint.reset();
 		mockManageCustomerEndpoint.reset();
 		mockProcessAddressEndpoint.reset();
 		mockGetQuotesEndpoint.reset();
 		mockCancelQuotesEndpoint.reset();
+		mockGetCustomDataEndpoint.reset();
 		mockGetCustomerEndpoint.expectedMessageCount(1);
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
 			@Override
 			public void configure() {
 				interceptSendToEndpoint("direct:odoo-get-customer").skipSendToOriginalEndpoint().to(mockGetCustomerEndpoint);
+				interceptSendToEndpoint("direct:odoo-get-custom-customer-data").skipSendToOriginalEndpoint()
+				        .to(mockGetCustomDataEndpoint);
 				interceptSendToEndpoint("direct:odoo-manage-customer").skipSendToOriginalEndpoint()
 				        .to(mockManageCustomerEndpoint);
 				interceptSendToEndpoint("direct:odoo-process-person-address").skipSendToOriginalEndpoint()
@@ -154,6 +166,8 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 			e.setProperty("odooStateId", stateId);
 		});
 		
+		mockGetCustomDataEndpoint.expectedMessageCount(1);
+		mockGetCustomDataEndpoint.expectedPropertyReceived(EX_PROP_CUSTOM_DATA, new HashMap());
 		mockManageCustomerEndpoint.expectedMessageCount(1);
 		mockManageCustomerEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
 		mockManageCustomerEndpoint.expectedPropertyReceived("patient-name", name);
@@ -188,6 +202,8 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_CREATE_CUSTOMER, true);
 		exchange.setProperty(PROP_EVENT, event);
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
+		mockGetCustomDataEndpoint.expectedMessageCount(1);
+		mockGetCustomDataEndpoint.expectedPropertyReceived(EX_PROP_CUSTOM_DATA, new HashMap());
 		mockProcessAddressEndpoint.expectedMessageCount(0);
 		mockManageCustomerEndpoint.expectedMessageCount(1);
 		mockManageCustomerEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
@@ -201,6 +217,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		
 		mockProcessAddressEndpoint.assertIsSatisfied();
 		mockManageCustomerEndpoint.assertIsSatisfied();
+		mockGetCustomDataEndpoint.assertIsSatisfied();
 		assertEquals(patientId, exchange.getProperty(EX_PROP_ODOO_PATIENT_ID));
 		assertFalse(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
 		assertMessageLogged(Level.DEBUG, "Patient has no address");
@@ -223,6 +240,8 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		patientResource.put("person", personResource);
 		exchange.setProperty(EX_PROP_PATIENT, patientResource);
 		exchange.setProperty(PROP_EVENT, event);
+		mockGetCustomDataEndpoint.expectedMessageCount(1);
+		mockGetCustomDataEndpoint.expectedPropertyReceived(EX_PROP_CUSTOM_DATA, new HashMap());
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] { patientId }));
 		
 		final int countryId = 4;
@@ -248,6 +267,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		
 		mockProcessAddressEndpoint.assertIsSatisfied();
 		mockManageCustomerEndpoint.assertIsSatisfied();
+		mockGetCustomDataEndpoint.assertIsSatisfied();
 		assertEquals(patientId, exchange.getProperty(EX_PROP_ODOO_PATIENT_ID));
 		assertFalse(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
 	}
@@ -370,7 +390,6 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_PATIENT, new HashMap());
 		exchange.setProperty(EX_PROP_CREATE_CUSTOMER, true);
 		exchange.setProperty(PROP_EVENT, event);
-		mockGetCustomerEndpoint.expectedMessageCount(1);
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
 		mockProcessAddressEndpoint.expectedMessageCount(0);
 		mockManageCustomerEndpoint.expectedMessageCount(0);
