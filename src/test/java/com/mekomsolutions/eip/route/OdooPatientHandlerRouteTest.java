@@ -296,6 +296,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_PATIENT, patientResource);
 		exchange.setProperty(PROP_EVENT, event);
 		mockProcessAddressEndpoint.expectedMessageCount(0);
+		mockGetCustomDataEndpoint.expectedMessageCount(0);
 		
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] { patientId }));
 		
@@ -316,6 +317,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		mockManageCustomerEndpoint.assertIsSatisfied();
 		mockGetQuotesEndpoint.assertIsSatisfied();
 		mockCancelQuotesEndpoint.assertIsSatisfied();
+		mockGetCustomDataEndpoint.assertIsSatisfied();
 		assertTrue(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
 	}
 	

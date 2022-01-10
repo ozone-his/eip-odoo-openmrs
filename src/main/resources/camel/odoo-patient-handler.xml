@@ -103,13 +103,13 @@
                                     <log message="Patient has no address" loggingLevel="DEBUG" />
                                 </otherwise>
                             </choice>
+
+                            <setProperty name="customPatientData">
+                                <spel>#{new java.util.HashMap()}</spel>
+                            </setProperty>
+
+                            <to uri="direct:odoo-get-custom-customer-data" />
                         </when>
-
-                        <setProperty name="customPatientData">
-                            <spel>#{new java.util.HashMap()}</spel>
-                        </setProperty>
-
-                        <to uri="direct:odoo-get-custom-customer-data" />
 
                         <choice>
                             <when>
