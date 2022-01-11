@@ -98,6 +98,9 @@
 				#{getProperty('createParams').add(getProperty('requestData'))}
 			</spel>
         </script>
+
+        <log loggingLevel="DEBUG" message="Submit to odoo patient data -> ${exchangeProperty.requestData}" />
+
 		<setBody>
 			<spel>
 				#{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), 'execute_kw', getProperty('createParams'))}

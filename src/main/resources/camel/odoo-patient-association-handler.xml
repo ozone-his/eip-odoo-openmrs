@@ -28,8 +28,7 @@
             <simple>${body[0].get('uuid')}</simple>
         </setProperty>
 
-        <log message="Retrieved person uuid: ${exchangeProperty.resourceId}" />
-        <log message="Fetching patient associated to the ${exchangeProperty.patientAssociationName} from OpenMRS..." loggingLevel="DEBUG" />
+        <log message="Retrieved person uuid: ${exchangeProperty.resourceId}, fetching patient associated to the ${exchangeProperty.patientAssociationName} from OpenMRS..." />
 
         <setProperty name="isSubResource">
             <simple>false</simple>

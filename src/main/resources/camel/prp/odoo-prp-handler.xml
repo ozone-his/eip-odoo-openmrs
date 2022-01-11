@@ -1,0 +1,20 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+    <route id="odoo-prp-handler" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:odoo-prp-handler" />
+
+		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+
+        <choice>
+            <when>
+                <simple>${exchangeProperty.event.tableName} == 'person'</simple>
+                <to uri="direct:odoo-person-handler" />
+            </when>
+            <when>
+                <simple>${exchangeProperty.event.tableName} == 'obs'</simple>
+                <to uri="direct:odoo-obs-handler" />
+            </when>
+        </choice>
+
+		<log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+</routes>
