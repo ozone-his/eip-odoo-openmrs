@@ -6,7 +6,7 @@
 
         <choice>
             <when>
-                <simple>${exchangeProperty.patient.get('gender')} == 'M' || ${exchangeProperty.patient.get('gender')} == 'm'</simple>
+                <simple>${exchangeProperty.patient.get('person').get('gender')} == 'M' || ${exchangeProperty.patient.get('person').get('gender')} == 'm'</simple>
                 <script>
                     <spel>
                         #{getProperty('customPatientData').put('gender', 'm')}
@@ -14,7 +14,7 @@
                 </script>
             </when>
             <when>
-                <simple>${exchangeProperty.patient.get('gender')} == 'F' || ${exchangeProperty.patient.get('gender')} == 'f'</simple>
+                <simple>${exchangeProperty.patient.get('person').get('gender')} == 'F' || ${exchangeProperty.patient.get('person').get('gender')} == 'f'</simple>
                 <script>
                     <spel>
                         #{getProperty('customPatientData').put('gender', 'f')}
