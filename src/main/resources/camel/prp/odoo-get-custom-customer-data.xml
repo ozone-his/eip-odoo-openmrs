@@ -1,0 +1,34 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+    <route id="odoo-get-custom-customer-data" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:odoo-get-custom-customer-data" />
+
+		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+
+        <choice>
+            <when>
+                <simple>${exchangeProperty.patient.get('gender')} == 'M' || ${exchangeProperty.patient.get('gender')} == 'm'</simple>
+                <script>
+                    <spel>
+                        #{getProperty('customPatientData').put('gender', 'm')}
+                    </spel>
+                </script>
+            </when>
+            <when>
+                <simple>${exchangeProperty.patient.get('gender')} == 'F' || ${exchangeProperty.patient.get('gender')} == 'f'</simple>
+                <script>
+                    <spel>
+                        #{getProperty('customPatientData').put('gender', 'f')}
+                    </spel>
+                </script>
+            </when>
+        </choice>
+
+        <script>
+            <spel>
+                #{getProperty('customPatientData').put('patient', true)}
+            </spel>
+        </script>
+
+		<log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+</routes>
