@@ -19,8 +19,10 @@ public class OdooTestConstants {
 	public static final String EX_PROP_SUB_RESOURCE_ID = "subResourceId";
 	
 	public static final String EX_PROP_ODOO_OP = "odoo-operation";
-
+	
 	public static final String EX_PROP_ODOO_PATIENT_ID = "patient-odoo-id";
+	
+	public static final String EX_PROP_PATIENT = "patient";
 	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
@@ -39,6 +41,12 @@ public class OdooTestConstants {
 	public static final String URI_MOCK_FETCH_RESOURCE = "mock:odoo-fetch-resource";
 	
 	public static final String URI_OBS_HANDLER = "direct:odoo-obs-handler";
+	
+	public static final String URI_PRP_HANDLER = "direct:odoo-prp-handler";
+	
+	public static final String URI_PERSON_HANDLER = "direct:odoo-person-handler";
+	
+	public static final String URI_CUSTOM_DATA = "direct:odoo-get-custom-customer-data";
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	

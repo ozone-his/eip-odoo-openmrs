@@ -33,7 +33,7 @@ import ch.qos.logback.classic.Level;
 
 @TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/*.xml,classpath*:camel/obs/*.xml")
 @TestPropertySource(properties = "eip.watchedTables=obs")
-@TestPropertySource(properties = "odoo.handler.route=odoo-obs-handler")
+@TestPropertySource(properties = "odoo.handler.route=odoo-prp-handler")
 @TestPropertySource(properties = "odoo.custom.table.resource.mappings=obs:obs")
 @TestPropertySource(properties = "odoo.obs.concept.question.answer.mappings=" + OdooObsHandlerRouteTest.CONCEPT_UUID_1 + ":"
         + OdooObsHandlerRouteTest.CONCEPT_UUID_A + "," + OdooObsHandlerRouteTest.CONCEPT_UUID_2 + ":"
