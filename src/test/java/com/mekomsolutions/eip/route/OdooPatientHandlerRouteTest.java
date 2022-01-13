@@ -37,7 +37,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	
 	public static final String EX_PROP_PATIENT = "patient";
 	
-	public static final String EX_PROP_CREATE_CUSTOMER = "createCustomer";
+	public static final String EX_PROP_CREATE_CUSTOMER = "createCustomerIfNotExist";
 	
 	public static final String EX_PROP_CUSTOM_DATA = "customPatientData";
 	

@@ -62,7 +62,7 @@ public class OdooObsHandlerRouteTest extends BaseOdooRouteTest {
 	
 	public static final String EX_PROP_OBS_QN_ANS_MAP = "obsQnAnsMap";
 	
-	public static final String EX_PROP_CREATE_IF_NOT_EXISTS = "createCustomer";
+	public static final String EX_PROP_CREATE_IF_NOT_EXISTS = "createCustomerIfNotExist";
 	
 	public static final String EX_PROP_PATIENT = PATIENT;
 	

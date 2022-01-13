@@ -105,7 +105,7 @@
 
                                         <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.patient}" />
 
-                                        <setProperty name="createCustomer">
+                                        <setProperty name="createCustomerIfNotExist">
                                             <simple>true</simple>
                                         </setProperty>
 

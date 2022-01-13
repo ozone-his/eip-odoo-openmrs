@@ -55,7 +55,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 	
 	public static final String EX_PROP_UNITS_ID = "unitsId";
 	
-	public static final String EX_PROP_CREATE_CUSTOMER = "createCustomer";
+	public static final String EX_PROP_CREATE_CUSTOMER = "createCustomerIfNotExist";
 	
 	@EndpointInject("mock:odoo-patient-handler")
 	private MockEndpoint mockPatientHandlerEndpoint;
