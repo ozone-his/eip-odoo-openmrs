@@ -91,7 +91,7 @@
         <script>
             <spel>
 				#{getProperty('createParams').add('{{odoo.database}}')}
-				#{getProperty('createParams').add(getProperty('odoo-user-id'))}
+				#{getProperty('createParams').add(T(org.openmrs.eip.AppContext).get(getProperty('odooUserIdKey')))}
 				#{getProperty('createParams').add('{{odoo.password}}')}
 				#{getProperty('createParams').add('res.partner')}
 				#{getProperty('createParams').add(getProperty('odoo-operation'))}

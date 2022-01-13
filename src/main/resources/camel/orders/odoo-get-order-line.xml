@@ -34,7 +34,7 @@
 		<script>
 			<spel>
 				#{getProperty('get-order-lines-params').add('{{odoo.database}}')}
-				#{getProperty('get-order-lines-params').add(getProperty('odoo-user-id'))}
+				#{getProperty('get-order-lines-params').add(T(org.openmrs.eip.AppContext).get(getProperty('odooUserIdKey')))}
 				#{getProperty('get-order-lines-params').add('{{odoo.password}}')}
 				#{getProperty('get-order-lines-params').add('sale.order.line')}
 				#{getProperty('get-order-lines-params').add('search_read')}

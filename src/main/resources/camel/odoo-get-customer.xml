@@ -23,7 +23,7 @@
 		<script>
 			<spel>
 				#{getProperty('getQuotationParams').add('{{odoo.database}}')}
-				#{getProperty('getQuotationParams').add(getProperty('odoo-user-id'))}
+				#{getProperty('getQuotationParams').add(T(org.openmrs.eip.AppContext).get(getProperty('odooUserIdKey')))}
 				#{getProperty('getQuotationParams').add('{{odoo.password}}')}
 				#{getProperty('getQuotationParams').add('res.partner')}
 				#{getProperty('getQuotationParams').add('search')}

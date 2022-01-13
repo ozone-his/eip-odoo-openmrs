@@ -78,7 +78,7 @@
 		<script>
 			<spel>
 				#{getProperty('call-params').add('{{odoo.database}}')}
-				#{getProperty('call-params').add(getProperty('odoo-user-id'))}
+				#{getProperty('call-params').add(T(org.openmrs.eip.AppContext).get(getProperty('odooUserIdKey')))}
 				#{getProperty('call-params').add('{{odoo.password}}')}
 				#{getProperty('call-params').add('sale.order.line')}
 				#{getProperty('call-params').add(getProperty('odoo-operation'))}

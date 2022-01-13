@@ -100,12 +100,23 @@
                     </setProperty>
 
                     <log message="Fetched resource -> ${exchangeProperty.entity-instance}" loggingLevel="DEBUG" />
-                    
-                    <to uri="direct:odoo-authentication" />
 
-                    <setProperty name="odoo-user-id">
-                        <simple>${body}</simple>
+                    <setProperty name="odooUserIdKey">
+                        <simple>${routeId}-odooUserId</simple>
                     </setProperty>
+
+                    <when>
+                        <spel>#{T(org.openmrs.eip.AppContext).get(getProperty('odooUserIdKey')) == null}</spel>
+
+                        <to uri="direct:odoo-authentication" />
+
+                        <script>
+                            <spel>
+                                #{T(org.openmrs.eip.AppContext).add(getProperty('odooUserIdKey'), body)}
+                            </spel>
+                        </script>
+
+                    </when>
 
                     <choice>
                         <when>

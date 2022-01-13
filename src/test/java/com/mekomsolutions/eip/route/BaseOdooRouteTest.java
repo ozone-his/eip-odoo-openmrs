@@ -3,6 +3,8 @@ package com.mekomsolutions.eip.route;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_URI_ERROR_HANDLER;
 
 import org.apache.camel.Exchange;
+import org.junit.Before;
+import org.openmrs.eip.AppContext;
 import org.openmrs.eip.Constants;
 import org.openmrs.eip.EIPException;
 import org.openmrs.eip.TestConstants;
@@ -24,6 +26,11 @@ public abstract class BaseOdooRouteTest extends BaseWatcherRouteTest {
 	
 	protected String getErrorMessage(Exchange e) {
 		return e.getProperty("error", EIPException.class).getMessage();
+	}
+	
+	@Before
+	public void setupBaseOdooRouteTest() {
+		AppContext.remove(OdooTestConstants.ODOO_USER_ID_KEY);
 	}
 	
 }

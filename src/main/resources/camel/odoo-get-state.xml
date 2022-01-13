@@ -23,7 +23,7 @@
         <script>
             <spel>
                 #{getProperty('getStateParams').add('{{odoo.database}}')}
-                #{getProperty('getStateParams').add(getProperty('odoo-user-id'))}
+                #{getProperty('getStateParams').add(T(org.openmrs.eip.AppContext).get(getProperty('odooUserIdKey')))}
                 #{getProperty('getStateParams').add('{{odoo.password}}')}
                 #{getProperty('getStateParams').add('res.country.state')}
                 #{getProperty('getStateParams').add('search')}

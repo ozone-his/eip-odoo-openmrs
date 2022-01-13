@@ -22,7 +22,7 @@
 			<spel>#{new Object[]{'partner_id', '=', getProperty('patient-odoo-id')}}</spel>
 		</setProperty>
 		<setProperty name="creator-id-criterion">
-			<spel>#{new Object[]{'create_uid', '=', T(java.lang.Integer).valueOf(getProperty('odoo-user-id'))}}</spel>
+			<spel>#{new Object[]{'create_uid', '=', T(java.lang.Integer).valueOf(T(org.openmrs.eip.AppContext).get(getProperty('odooUserIdKey')))}}</spel>
 		</setProperty>
 		<setProperty name="state-criterion">
 			<spel>#{new Object[]{'state', '=', 'draft'}}</spel>
@@ -39,7 +39,7 @@
 		<script>
 			<spel>
 				#{getProperty('get-quotation-params').add('{{odoo.database}}')}
-				#{getProperty('get-quotation-params').add(getProperty('odoo-user-id'))}
+				#{getProperty('get-quotation-params').add(T(org.openmrs.eip.AppContext).get(getProperty('odooUserIdKey')))}
 				#{getProperty('get-quotation-params').add('{{odoo.password}}')}
 				#{getProperty('get-quotation-params').add('sale.order')}
 				#{getProperty('get-quotation-params').add('search_read')}
