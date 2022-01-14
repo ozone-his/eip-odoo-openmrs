@@ -108,7 +108,7 @@
                                 <spel>#{new java.util.HashMap()}</spel>
                             </setProperty>
 
-                            <to uri="direct:odoo-get-custom-customer-data" />
+                            <to uri="direct:odoo-callback-get-custom-customer-data" />
                         </when>
 
                         <choice>

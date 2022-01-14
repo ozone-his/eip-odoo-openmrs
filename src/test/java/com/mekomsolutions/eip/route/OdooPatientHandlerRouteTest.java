@@ -60,7 +60,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	@EndpointInject("mock:odoo-process-person-address")
 	private MockEndpoint mockProcessAddressEndpoint;
 	
-	@EndpointInject("mock:odoo-get-custom-customer-data")
+	@EndpointInject("mock:odoo-callback-get-custom-customer-data")
 	private MockEndpoint mockGetCustomDataEndpoint;
 	
 	@Before
@@ -78,7 +78,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 			@Override
 			public void configure() {
 				interceptSendToEndpoint("direct:odoo-get-customer").skipSendToOriginalEndpoint().to(mockGetCustomerEndpoint);
-				interceptSendToEndpoint("direct:odoo-get-custom-customer-data").skipSendToOriginalEndpoint()
+				interceptSendToEndpoint("direct:odoo-callback-get-custom-customer-data").skipSendToOriginalEndpoint()
 				        .to(mockGetCustomDataEndpoint);
 				interceptSendToEndpoint("direct:odoo-manage-customer").skipSendToOriginalEndpoint()
 				        .to(mockManageCustomerEndpoint);

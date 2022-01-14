@@ -1,6 +1,6 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
-    <route id="odoo-get-custom-customer-data" errorHandlerRef="watcherErrorHandler">
-        <from uri="direct:odoo-get-custom-customer-data" />
+    <route id="odoo-callback-get-custom-customer-data" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:odoo-callback-get-custom-customer-data" />
 
 		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 

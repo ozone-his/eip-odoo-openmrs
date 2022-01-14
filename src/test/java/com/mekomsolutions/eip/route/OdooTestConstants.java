@@ -46,7 +46,7 @@ public class OdooTestConstants {
 	
 	public static final String URI_PERSON_HANDLER = "direct:odoo-person-handler";
 	
-	public static final String URI_CUSTOM_DATA = "direct:odoo-get-custom-customer-data";
+	public static final String URI_CUSTOM_DATA = "direct:odoo-callback-get-custom-customer-data";
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	
