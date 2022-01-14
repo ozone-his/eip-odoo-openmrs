@@ -21,8 +21,8 @@ public class OdooTestConstants {
 	public static final String EX_PROP_ODOO_PATIENT_ID = "patient-odoo-id";
 	
 	public static final String EX_PROP_PATIENT = "patient";
-
-    public static final String EX_PROP_ODOO_USER_ID_KEY = "odooUserIdKey";
+	
+	public static final String EX_PROP_ODOO_USER_ID_KEY = "odooUserIdKey";
 	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
@@ -71,5 +71,9 @@ public class OdooTestConstants {
 	public static final String ODOO_OP_UNLINK = "unlink";
 	
 	public static final String ODOO_USER_ID_KEY = "odoo-event-listener-odooUserId";
+	
+	public static final String RPC_CLIENT_KEY = "odoo-event-listener-xmlRpcClient";
+	
+	public static final String RPC_CONFIG_KEY = "odoo-event-listener-xmlRpcConfig";
 	
 }

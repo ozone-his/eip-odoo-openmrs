@@ -15,6 +15,8 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.NAME_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_USER_ID_KEY;
 import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_ID_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.RPC_CLIENT_KEY;
+import static com.mekomsolutions.eip.route.OdooTestConstants.RPC_CONFIG_KEY;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ODOO_AUTH;
@@ -34,6 +36,9 @@ import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcClientConfig;
+import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.eip.AppContext;
@@ -322,6 +327,46 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 		assertEquals(ODOO_USER_ID_KEY, exchange.getProperty(EX_PROP_ODOO_USER_ID_KEY));
 		assertEquals(odooUserid, AppContext.get(ODOO_USER_ID_KEY));
 		assertNotNull(exchange.getProperty(EX_PROP_TABLE_RESOURCE_MAP));
+	}
+	
+	@Test
+	public void shouldCreateAndCacheTheXmlRpcClientAndConfig() throws Exception {
+		assertNull(AppContext.get(RPC_CLIENT_KEY));
+		assertNull(AppContext.get(RPC_CONFIG_KEY));
+		final String obsUuid = "obs_uuid";
+		Event event = createEvent("obs", "1", obsUuid, "c");
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		Map obsResource = new HashMap();
+		obsResource.put("uuid", obsUuid);
+		final String obsJson = mapper.writeValueAsString(obsResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(obsJson));
+		
+		producerTemplate.send(LISTENER_URI, exchange);
+		
+		assertNotNull(AppContext.get(RPC_CLIENT_KEY));
+		assertNotNull(AppContext.get(RPC_CONFIG_KEY));
+	}
+	
+	@Test
+	public void shouldNotCreateNewXmlRpcClientAndConfigIfTheCacheAlreadyContainsOne() throws Exception {
+		XmlRpcClient client = new XmlRpcClient();
+		XmlRpcClientConfig config = new XmlRpcClientConfigImpl();
+		AppContext.add(RPC_CLIENT_KEY, client);
+		AppContext.add(RPC_CONFIG_KEY, config);
+		final String obsUuid = "obs_uuid";
+		Event event = createEvent("obs", "1", obsUuid, "c");
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(PROP_EVENT, event);
+		Map obsResource = new HashMap();
+		obsResource.put("uuid", obsUuid);
+		final String obsJson = mapper.writeValueAsString(obsResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(obsJson));
+		
+		producerTemplate.send(LISTENER_URI, exchange);
+		
+		assertEquals(client, AppContext.get(RPC_CLIENT_KEY));
+		assertEquals(config, AppContext.get(RPC_CONFIG_KEY));
 	}
 	
 }

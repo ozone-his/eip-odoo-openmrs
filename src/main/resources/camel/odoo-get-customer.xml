@@ -5,15 +5,6 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
-		<setProperty name="xmlRpcClientConfig">
-			<spel>#{new org.apache.xmlrpc.client.XmlRpcClientConfigImpl()}</spel>
-		</setProperty>
-		<script>
-			<spel>
-				#{getProperty('xmlRpcClientConfig').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
-			</spel>
-		</script>
-
 		<setProperty name="searchQuery">
 			<spel>#{new Object[]{new Object[]{new Object[]{'ref', '=', getProperty('patient').uuid}}}}</spel>
 		</setProperty>
@@ -32,7 +23,7 @@
 		</script>
 		<setBody>
 			<spel>
-				#{new org.apache.xmlrpc.client.XmlRpcClient().execute(getProperty('xmlRpcClientConfig'), 'execute_kw', getProperty('getQuotationParams'))}
+				#{T(org.openmrs.eip.AppContext).get(getProperty('xmlRpcClientKey')).execute(T(org.openmrs.eip.AppContext).get(getProperty('xmlRpcConfigKey')), 'execute_kw', getProperty('getQuotationParams'))}
 			</spel>
 		</setBody>
 

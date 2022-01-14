@@ -8,9 +8,6 @@
         <setProperty name="xmlrpc-client-config">
             <spel>#{new org.apache.xmlrpc.client.XmlRpcClientConfigImpl()}</spel>
         </setProperty>
-        <setProperty name="xmlrpc-client">
-            <spel>#{new org.apache.xmlrpc.client.XmlRpcClient()}</spel>
-        </setProperty>
         <script>
             <spel>
                 #{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
@@ -103,7 +100,7 @@
 
 		<setBody>
 			<spel>
-				#{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), 'execute_kw', getProperty('createParams'))}
+				#{T(org.openmrs.eip.AppContext).get(getProperty('xmlRpcClientKey')).execute(getProperty('xmlrpc-client-config'), 'execute_kw', getProperty('createParams'))}
 			</spel>
 		</setBody>
 

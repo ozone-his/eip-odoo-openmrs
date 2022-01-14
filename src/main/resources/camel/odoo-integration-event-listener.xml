@@ -101,6 +101,12 @@
 
                     <log message="Fetched resource -> ${exchangeProperty.entity-instance}" loggingLevel="DEBUG" />
 
+                    <setProperty name="xmlRpcClientKey">
+                        <simple>${routeId}-xmlRpcClient</simple>
+                    </setProperty>
+                    <setProperty name="xmlRpcConfigKey">
+                        <simple>${routeId}-xmlRpcConfig</simple>
+                    </setProperty>
                     <setProperty name="odooUserIdKey">
                         <simple>${routeId}-odooUserId</simple>
                     </setProperty>
@@ -113,6 +119,17 @@
                         <script>
                             <spel>
                                 #{T(org.openmrs.eip.AppContext).add(getProperty('odooUserIdKey'), body)}
+                            </spel>
+                        </script>
+                    </when>
+
+                    <when>
+                        <spel>#{T(org.openmrs.eip.AppContext).get(getProperty('xmlRpcClientKey')) == null}</spel>
+                        <script>
+                            <spel>
+                                #{T(org.openmrs.eip.AppContext).add(getProperty('xmlRpcClientKey'), new org.apache.xmlrpc.client.XmlRpcClient())}
+                                #{T(org.openmrs.eip.AppContext).add(getProperty('xmlRpcConfigKey'), new org.apache.xmlrpc.client.XmlRpcClientConfigImpl())}
+                                #{T(org.openmrs.eip.AppContext).get(getProperty('xmlRpcConfigKey')).setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
                             </spel>
                         </script>
 

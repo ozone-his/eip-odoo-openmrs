@@ -5,17 +5,6 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
-		<setProperty name="xmlrpc-client-config">
-			<spel>#{new org.apache.xmlrpc.client.XmlRpcClientConfigImpl()}</spel>
-		</setProperty>
-		<setProperty name="xmlrpc-client">
-			<spel>#{new org.apache.xmlrpc.client.XmlRpcClient()}</spel>
-		</setProperty>
-		<script>
-			<spel>
-				#{getProperty('xmlrpc-client-config').setServerURL(new java.net.URL('{{odoo.baseUrl}}/xmlrpc/2/object'))}
-			</spel>
-		</script>
 		<setProperty name="quotation-criterion">
 			<spel>#{new Object[]{'order_id', '=', getProperty('quotation-id')}}</spel>
 		</setProperty>
@@ -44,7 +33,7 @@
 		</script>
 		<setBody>
 			<spel>
-				#{getProperty('xmlrpc-client').execute(getProperty('xmlrpc-client-config'), 'execute_kw', getProperty('get-order-lines-params'))}
+				#{T(org.openmrs.eip.AppContext).get(getProperty('xmlRpcClientKey')).execute(T(org.openmrs.eip.AppContext).get(getProperty('xmlRpcConfigKey')), 'execute_kw', getProperty('get-order-lines-params'))}
 			</spel>
 		</setBody>
 
