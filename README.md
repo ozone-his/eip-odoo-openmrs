@@ -69,8 +69,8 @@ The routes for orders based integration involves tracking database inserts, upda
 When a database insert or update event is received from any of the above 3 tables, the camel routes do the following,
 1. For a new or revision order that is not voided, a customer record gets created in odoo for the associated patient if 
    none exists, a quotation is started for the patient if none exists, the item(order line) is added to the quotation 
-   for the ordered item if none exists. In case of a revision of a drug order, the quantity for the line is updated if 
-   the order line exists for the ordered item.
+   for the ordered item if none exists. In case of a revision of a drug order and, the quantity has changed, the quantity 
+   for the item gets updated on the existing quotation.
 2. If the order is voided or is a Discontinuation order, and the associated patient doesn't exist in odoo, the event is 
    ignored.
 3. If the order is voided or is a Discontinuation order, and the associated patient has an active quotation in odoo 
