@@ -36,10 +36,22 @@
                     <spel>
                         #{getProperty('patientData').put('name', getProperty('patient-name'))}
                         #{getProperty('patientData').put('ref', getProperty('patient').uuid)}
-                        #{getProperty('patientData').put('{{odoo.emr.id.field}}', getProperty('patientIdentifier'))}
                         #{getProperty('patientData').putAll(getProperty('customPatientData'))}
                     </spel>
                 </script>
+
+                <setProperty name="emrIdField">
+                    <simple>{{odoo.emr.id.field}}</simple>
+                </setProperty>
+
+                <when>
+                    <simple>${exchangeProperty.emrIdField} != null &amp;&amp; ${exchangeProperty.emrIdField.trim()} != ''</simple>
+                    <script>
+                        <spel>
+                            #{getProperty('patientData').put(getProperty('emrIdField'), getProperty('patientIdentifier'))}
+                        </spel>
+                    </script>
+                </when>
 
                 <choice>
                     <when>
