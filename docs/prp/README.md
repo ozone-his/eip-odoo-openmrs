@@ -1,7 +1,5 @@
 # PRP Installation Guide
-This installation guide below assumes you already have an instance of an OpenMRS EIP based application, if you don't 
-have an existing OpenMRS EIP based application, you will need to first create one as
-[documented here](https://github.com/openmrs/openmrs-eip/tree/master/docs/custom)
+This installation guide below assumes you already have an instance of an OpenMRS EIP based application.
 
 1. Copy all [standard routes](../../src/main/resources/camel) to the routes folder of your EIP application
 2. Copy all [obs routes](../../src/main/resources/camel/obs) to the routes folder of your EIP application
