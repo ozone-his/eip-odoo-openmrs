@@ -11,7 +11,7 @@
             </when>
             <when>
                 <simple>${exchangeProperty.event.tableName} == 'obs'</simple>
-                <to uri="direct:odoo-obs-to-patient" />
+                <to uri="direct:odoo-obs-to-customer" />
             </when>
         </choice>
 

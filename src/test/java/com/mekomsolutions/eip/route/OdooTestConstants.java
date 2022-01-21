@@ -40,7 +40,7 @@ public class OdooTestConstants {
 	
 	public static final String URI_MOCK_FETCH_RESOURCE = "mock:odoo-fetch-resource";
 	
-	public static final String URI_OBS_HANDLER = "direct:odoo-obs-to-patient";
+	public static final String URI_OBS_HANDLER = "direct:odoo-obs-to-customer";
 	
 	public static final String URI_PRP_HANDLER = "direct:odoo-prp-handler";
 	
