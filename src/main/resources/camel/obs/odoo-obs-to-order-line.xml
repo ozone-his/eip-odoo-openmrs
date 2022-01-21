@@ -4,7 +4,45 @@
 
 		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
+        <setProperty name="isInsertOrUpdate">
+            <spel>#{getProperty('event').operation == 'c' || getProperty('event').operation == 'u'}</spel>
+        </setProperty>
 
+        <choice>
+            <when>
+                <simple>${exchangeProperty.entity-instance.get('voided')} != true &amp;&amp; ${exchangeProperty.isInsertOrUpdate} == true</simple>
+                <setProperty name="physioConceptUuid">
+                    <simple>{{odoo.physio.session.concept.uuid}}</simple>
+                </setProperty>
+                <setProperty name="obsQuestionUuid">
+                    <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')}</simple>
+                </setProperty>
+
+                <choice>
+                    <when>
+                        <simple>${exchangeProperty.obsQuestionUuid} == ${exchangeProperty.physioConceptUuid}</simple>
+
+                        <log loggingLevel="DEBUG" message="Processing physiotherapy session obs" />
+
+                        
+                    </when>
+                    <otherwise>
+                        <log loggingLevel="DEBUG" message="Skipping non physiotherapy obs" />
+                    </otherwise>
+                </choice>
+            </when>
+            <otherwise>
+                <choice>
+                    <when>
+                        <simple>${exchangeProperty.isInsertOrUpdate} != true</simple>
+                        <log loggingLevel="DEBUG" message="Skipping deleted obs" />
+                    </when>
+                    <otherwise>
+                        <log loggingLevel="DEBUG" message="Skipping voided obs" />
+                    </otherwise>
+                </choice>
+            </otherwise>
+        </choice>
 
 		<log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
     </route>
