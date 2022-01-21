@@ -12,6 +12,7 @@
             <when>
                 <simple>${exchangeProperty.event.tableName} == 'obs'</simple>
                 <to uri="direct:odoo-obs-to-customer" />
+                <to uri="direct:odoo-obs-to-order-line" />
             </when>
         </choice>
 
