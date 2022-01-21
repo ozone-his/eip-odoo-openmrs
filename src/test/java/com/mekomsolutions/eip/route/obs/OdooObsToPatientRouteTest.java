@@ -35,12 +35,12 @@ import ch.qos.logback.classic.Level;
 @TestPropertySource(properties = "eip.watchedTables=obs")
 @TestPropertySource(properties = "odoo.handler.route=odoo-prp-handler")
 @TestPropertySource(properties = "odoo.custom.table.resource.mappings=obs:obs")
-@TestPropertySource(properties = "odoo.obs.concept.question.answer.mappings=" + OdooObsHandlerRouteTest.CONCEPT_UUID_1 + ":"
-        + OdooObsHandlerRouteTest.CONCEPT_UUID_A + "," + OdooObsHandlerRouteTest.CONCEPT_UUID_2 + ":"
-        + OdooObsHandlerRouteTest.CONCEPT_UUID_B + "^" + OdooObsHandlerRouteTest.CONCEPT_UUID_C)
-public class OdooObsHandlerRouteTest extends BaseOdooRouteTest {
+@TestPropertySource(properties = "odoo.obs.concept.question.answer.mappings=" + OdooObsToPatientRouteTest.CONCEPT_UUID_1 + ":"
+        + OdooObsToPatientRouteTest.CONCEPT_UUID_A + "," + OdooObsToPatientRouteTest.CONCEPT_UUID_2 + ":"
+        + OdooObsToPatientRouteTest.CONCEPT_UUID_B + "^" + OdooObsToPatientRouteTest.CONCEPT_UUID_C)
+public class OdooObsToPatientRouteTest extends BaseOdooRouteTest {
 	
-	protected static final String ROUTE_ID = "odoo-obs-handler";
+	protected static final String ROUTE_ID = "odoo-obs-to-patient";
 	
 	protected static final String TABLE = "obs";
 	

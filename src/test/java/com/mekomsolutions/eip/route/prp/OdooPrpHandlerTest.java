@@ -19,7 +19,7 @@ public class OdooPrpHandlerTest extends BasePrpRouteTest {
 	@EndpointInject("mock:odoo-person-handler")
 	private MockEndpoint mockPersonHandlerEndpoint;
 	
-	@EndpointInject("mock:odoo-obs-handler")
+	@EndpointInject("mock:odoo-obs-to-patient")
 	private MockEndpoint mockObsHandlerEndpoint;
 	
 	@Before
@@ -32,7 +32,7 @@ public class OdooPrpHandlerTest extends BasePrpRouteTest {
 			public void configure() {
 				interceptSendToEndpoint("direct:odoo-person-handler").skipSendToOriginalEndpoint()
 				        .to(mockPersonHandlerEndpoint);
-				interceptSendToEndpoint("direct:odoo-obs-handler").skipSendToOriginalEndpoint().to(mockObsHandlerEndpoint);
+				interceptSendToEndpoint("direct:odoo-obs-to-patient").skipSendToOriginalEndpoint().to(mockObsHandlerEndpoint);
 			}
 			
 		});

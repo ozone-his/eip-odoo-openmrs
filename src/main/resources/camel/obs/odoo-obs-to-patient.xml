@@ -1,6 +1,6 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
-    <route id="odoo-obs-handler" errorHandlerRef="watcherErrorHandler">
-        <from uri="direct:odoo-obs-handler" />
+    <route id="odoo-obs-to-patient" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:odoo-obs-to-patient" />
 
 		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
