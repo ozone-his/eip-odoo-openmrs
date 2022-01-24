@@ -4,13 +4,9 @@
 
 		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
-        <setProperty name="isInsertOrUpdate">
-            <spel>#{getProperty('event').operation == 'c' || getProperty('event').operation == 'u'}</spel>
-        </setProperty>
-        <log message="isInsertOrUpdate -> ${exchangeProperty.isInsertOrUpdate}" />
         <choice>
             <when>
-                <simple>${exchangeProperty.entity-instance.get('voided')} != true &amp;&amp; ${exchangeProperty.isInsertOrUpdate} == true</simple>
+                <simple>${exchangeProperty.event.operation} != 'd'</simple>
                 <setProperty name="obsQuestionsKey">
                     <simple>${routeId}-obsQuestions</simple>
                 </setProperty>
@@ -60,8 +56,19 @@
 
                                 <log message="Processing physiotherapy session obs" />
 
-
+                                <choice>
+                                    <when>
+                                        <simple>${exchangeProperty.entity-instance.get('voided')} == true</simple>
+                                        <to uri="direct:odoo-process-voided-obs-to-order-line" />
+                                    </when>
+                                    <otherwise>
+                                        <to uri="direct:odoo-process-obs-to-order-line" />
+                                    </otherwise>
+                                </choice>
                             </when>
+                            <otherwise>
+                                <log loggingLevel="DEBUG" message="Skipping non-physio obs" />
+                            </otherwise>
                         </choice>
                     </when>
                     <otherwise>
@@ -70,15 +77,10 @@
                 </choice>
             </when>
             <otherwise>
-                <choice>
-                    <when>
-                        <simple>${exchangeProperty.isInsertOrUpdate} != true</simple>
-                        <log loggingLevel="DEBUG" message="Skipping deleted obs" />
-                    </when>
-                    <otherwise>
-                        <log loggingLevel="DEBUG" message="Skipping voided obs" />
-                    </otherwise>
-                </choice>
+                <when>
+                    <simple>${exchangeProperty.isInsertOrUpdate} != true</simple>
+                    <log loggingLevel="DEBUG" message="Skipping deleted obs" />
+                </when>
             </otherwise>
         </choice>
 
