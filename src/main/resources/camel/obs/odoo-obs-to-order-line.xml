@@ -7,27 +7,65 @@
         <setProperty name="isInsertOrUpdate">
             <spel>#{getProperty('event').operation == 'c' || getProperty('event').operation == 'u'}</spel>
         </setProperty>
-
+        <log message="isInsertOrUpdate -> ${exchangeProperty.isInsertOrUpdate}" />
         <choice>
             <when>
                 <simple>${exchangeProperty.entity-instance.get('voided')} != true &amp;&amp; ${exchangeProperty.isInsertOrUpdate} == true</simple>
-                <setProperty name="physioConceptUuid">
-                    <simple>{{odoo.physio.session.concept.uuid}}</simple>
+                <setProperty name="obsQuestionsKey">
+                    <simple>${routeId}-obsQuestions</simple>
                 </setProperty>
+
+                <setProperty name="obsQuestions">
+                    <method beanType="org.openmrs.eip.AppContext" method="get(${exchangeProperty.obsQuestionsKey})" />
+                </setProperty>
+
+                <when>
+                    <simple>${exchangeProperty.obsQuestions} == null</simple>
+
+                    <log message="Initializing obs orderable questions set" />
+
+                    <setProperty name="obsQuestions">
+                        <spel>#{new java.util.HashSet()}</spel>
+                    </setProperty>
+
+                    <split parallelProcessing="false">
+                        <simple>{{odoo.orderables.concept.uuids}}</simple>
+                        <script>
+                            <simple>${exchangeProperty.obsQuestions.add(${body.trim()})}</simple>
+                        </script>
+
+                        <script>
+                            <spel>
+                                #{T(org.openmrs.eip.AppContext).add(getProperty('obsQuestionsKey'), getProperty('obsQuestions'))}
+                            </spel>
+                        </script>
+                    </split>
+
+                    <log loggingLevel="DEBUG" message="Obs orderable questions -> ${exchangeProperty.obsQuestions}"/>
+                </when>
+
                 <setProperty name="obsQuestionUuid">
                     <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')}</simple>
                 </setProperty>
 
                 <choice>
                     <when>
-                        <simple>${exchangeProperty.obsQuestionUuid} == ${exchangeProperty.physioConceptUuid}</simple>
+                        <spel>#{getProperty('obsQuestions').contains(getProperty('obsQuestionUuid'))}</spel>
 
-                        <log loggingLevel="DEBUG" message="Processing physiotherapy session obs" />
+                        <log message="Processing with Obs with configured obs question concept" />
 
-                        
+                        <choice>
+                            <when>
+                                <simple>${exchangeProperty.obsQuestionUuid} == '{{odoo.physio.session.concept.uuid}}'</simple>
+
+                                <log message="Processing physiotherapy session obs" />
+
+
+                            </when>
+                        </choice>
                     </when>
                     <otherwise>
-                        <log loggingLevel="DEBUG" message="Skipping non physiotherapy obs" />
+                        <log loggingLevel="DEBUG" message="Skipping Obs because the question concept doesn't match any configured question" />
                     </otherwise>
                 </choice>
             </when>

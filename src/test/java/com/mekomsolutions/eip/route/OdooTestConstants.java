@@ -42,6 +42,8 @@ public class OdooTestConstants {
 	
 	public static final String URI_OBS_HANDLER = "direct:odoo-obs-to-customer";
 	
+	public static final String URI_OBS_TO_ORDER_LINE = "direct:odoo-obs-to-order-line";
+	
 	public static final String URI_PRP_HANDLER = "direct:odoo-prp-handler";
 	
 	public static final String URI_PERSON_HANDLER = "direct:odoo-person-handler";

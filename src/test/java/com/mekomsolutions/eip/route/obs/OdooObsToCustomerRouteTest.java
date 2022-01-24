@@ -31,7 +31,7 @@ import com.mekomsolutions.eip.route.BaseOdooRouteTest;
 
 import ch.qos.logback.classic.Level;
 
-@TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/*.xml,classpath*:camel/obs/*.xml")
+@TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/*.xml,classpath*:camel/obs/odoo-obs-to-customer.xml")
 @TestPropertySource(properties = "eip.watchedTables=obs")
 @TestPropertySource(properties = "odoo.handler.route=odoo-prp-handler")
 @TestPropertySource(properties = "odoo.custom.table.resource.mappings=obs:obs")
