@@ -1,7 +1,7 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
 	<route id="odoo-process-obs-to-order-line" errorHandlerRef="watcherErrorHandler">
-		<from uri="odoo-process-obs-to-order-line" />
+		<from uri="direct:odoo-process-obs-to-order-line" />
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 

@@ -18,14 +18,14 @@
                 <when>
                     <simple>${exchangeProperty.obsQuestions} == null</simple>
 
-                    <log message="Initializing obs orderable questions set" />
+                    <log message="Initializing set of physio session count obs questions" />
 
                     <setProperty name="obsQuestions">
                         <spel>#{new java.util.HashSet()}</spel>
                     </setProperty>
 
                     <split parallelProcessing="false">
-                        <simple>{{odoo.orderables.concept.uuids}}</simple>
+                        <simple>{{odoo.physio.session.concept.uuids}}</simple>
                         <script>
                             <simple>${exchangeProperty.obsQuestions.add(${body.trim()})}</simple>
                         </script>
@@ -48,31 +48,20 @@
                     <when>
                         <spel>#{getProperty('obsQuestions').contains(getProperty('obsQuestionUuid'))}</spel>
 
-                        <log message="Processing with Obs with configured obs question concept" />
+                        <log message="Processing physio session count obs" />
 
                         <choice>
                             <when>
-                                <simple>${exchangeProperty.obsQuestionUuid} == '{{odoo.physio.session.concept.uuid}}'</simple>
-
-                                <log message="Processing physiotherapy session obs" />
-
-                                <choice>
-                                    <when>
-                                        <simple>${exchangeProperty.entity-instance.get('voided')} == true</simple>
-                                        <to uri="direct:odoo-process-voided-obs-to-order-line" />
-                                    </when>
-                                    <otherwise>
-                                        <to uri="direct:odoo-process-obs-to-order-line" />
-                                    </otherwise>
-                                </choice>
+                                <simple>${exchangeProperty.entity-instance.get('voided')} == true</simple>
+                                <to uri="direct:odoo-process-voided-obs-to-order-line" />
                             </when>
                             <otherwise>
-                                <log loggingLevel="DEBUG" message="Skipping non-physio obs" />
+                                <to uri="direct:odoo-process-obs-to-order-line" />
                             </otherwise>
                         </choice>
                     </when>
                     <otherwise>
-                        <log loggingLevel="DEBUG" message="Skipping Obs because the question concept doesn't match any configured question" />
+                        <log loggingLevel="DEBUG" message="Skipping non-physio session count obs" />
                     </otherwise>
                 </choice>
             </when>

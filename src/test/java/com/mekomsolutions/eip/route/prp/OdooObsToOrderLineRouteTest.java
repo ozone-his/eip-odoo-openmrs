@@ -1,4 +1,4 @@
-package com.mekomsolutions.eip.route.obs;
+package com.mekomsolutions.eip.route.prp;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_ORDER_LINE;
@@ -19,19 +19,12 @@ import org.openmrs.eip.AppContext;
 import org.openmrs.eip.mysql.watcher.Event;
 import org.springframework.test.context.TestPropertySource;
 
-import com.mekomsolutions.eip.route.BaseOdooRouteTest;
-
 import ch.qos.logback.classic.Level;
 
 @TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/*.xml,classpath*:camel/obs/odoo-obs-to-order-line.xml")
-@TestPropertySource(properties = "eip.watchedTables=obs")
-@TestPropertySource(properties = "odoo.handler.route=odoo-prp-handler")
-@TestPropertySource(properties = "odoo.obs.concept.question.answer.mappings=")
-@TestPropertySource(properties = "odoo.obs.concept.question.answer.mappings=")
-@TestPropertySource(properties = "odoo.custom.table.resource.mappings=obs:obs")
-@TestPropertySource(properties = "odoo.physio.session.concept.uuid=")
-@TestPropertySource(properties = "odoo.orderables.concept.uuids=${odoo.physio.session.concept.uuid}")
-public class OdooObsToOrderLineRouteTest extends BaseOdooRouteTest {
+@TestPropertySource(properties = "odoo.physio.session.concept.uuids=" + OdooObsToOrderLineRouteTest.CONCEPT_UUID_1 + ","
+        + OdooObsToOrderLineRouteTest.CONCEPT_UUID_2)
+public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 	
 	protected static final String ROUTE_ID = "odoo-obs-to-order-line";
 	
@@ -53,22 +46,7 @@ public class OdooObsToOrderLineRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldProcessSkipAnEventForAnObsWithNonMonitoredQuestionConcept() {
-		Exchange exchange = new DefaultExchange(camelContext);
-		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
-		exchange.setProperty(PROP_EVENT, event);
-		Map obsResource = new HashMap();
-		obsResource.put("uuid", OBS_UUID);
-		obsResource.put("concept", singletonMap("uuid", "some-question-concept-uuid"));
-		exchange.setProperty(EX_PROP_ENTITY, obsResource);
-		
-		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
-		
-		assertMessageLogged(Level.DEBUG, "Skipping Obs because the question concept doesn't match any configured question");
-	}
-	
-	@Test
-	public void shouldUseTheObsQuestionsListFromTheEipContextCache() {
+	public void shouldCreateAndCacheTheObsQuestionsSetToTheEipContextCache() {
 		Exchange exchange = new DefaultExchange(camelContext);
 		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
 		exchange.setProperty(PROP_EVENT, event);
@@ -84,6 +62,40 @@ public class OdooObsToOrderLineRouteTest extends BaseOdooRouteTest {
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		
 		Assert.assertEquals(cachedObsQns, exchange.getProperty(EX_PROP_OBS_QNS, Set.class));
+	}
+	
+	@Test
+	public void shouldUseTheObsQuestionsSetFromTheEipContextCache() {
+		Exchange exchange = new DefaultExchange(camelContext);
+		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
+		exchange.setProperty(PROP_EVENT, event);
+		Map obsResource = new HashMap();
+		obsResource.put("uuid", OBS_UUID);
+		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
+		obsResource.put("value", 1);
+		exchange.setProperty(EX_PROP_ENTITY, obsResource);
+		final String qnConceptUuid = "test-qn-concept";
+		Set cachedObsQns = singleton(qnConceptUuid);
+		AppContext.add(OBS_QNS_KEY, cachedObsQns);
+		
+		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
+		
+		Assert.assertEquals(cachedObsQns, exchange.getProperty(EX_PROP_OBS_QNS, Set.class));
+	}
+	
+	@Test
+	public void shouldProcessSkipAnEventForAnObsWithNonMonitoredQuestionConcept() {
+		Exchange exchange = new DefaultExchange(camelContext);
+		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
+		exchange.setProperty(PROP_EVENT, event);
+		Map obsResource = new HashMap();
+		obsResource.put("uuid", OBS_UUID);
+		obsResource.put("concept", singletonMap("uuid", "some-question-concept-uuid"));
+		exchange.setProperty(EX_PROP_ENTITY, obsResource);
+		
+		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
+		
+		assertMessageLogged(Level.DEBUG, "Skipping Obs because the question concept doesn't match any configured question");
 	}
 	
 }
