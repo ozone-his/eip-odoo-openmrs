@@ -1,0 +1,13 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+	<route id="non-voided-obs-to-order-line-processor" errorHandlerRef="watcherErrorHandler">
+		<from uri="direct:non-voided-obs-to-order-line-processor" />
+
+		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
+
+		
+
+		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
+	</route>
+
+</routes>

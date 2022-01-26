@@ -1,16 +1,23 @@
 package com.mekomsolutions.eip.route.prp;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_NON_VOIDED_OBS_PROCESSOR;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_ORDER_LINE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_VOIDED_OBS_PROCESSOR;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
+import org.apache.camel.builder.AdviceWithRouteBuilder;
+import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,7 +28,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import ch.qos.logback.classic.Level;
 
-@TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/*.xml,classpath*:camel/obs/odoo-obs-to-order-line.xml")
+@TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/*.xml,classpath*:camel/prp/odoo-obs-to-order-line.xml")
 @TestPropertySource(properties = "odoo.physio.session.concept.uuids=" + OdooObsToOrderLineRouteTest.CONCEPT_UUID_1 + ","
         + OdooObsToOrderLineRouteTest.CONCEPT_UUID_2)
 public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
@@ -38,11 +45,32 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 	
 	public static final String EX_PROP_OBS_QNS = "obsQuestions";
 	
-	public static final String OBS_QNS_KEY = ROUTE_ID + "-obsQuestions";
+	public static final String OBS_QNS_KEY = ROUTE_ID + "-" + EX_PROP_OBS_QNS;
+	
+	public static final String SET_CACHE_INT_MSG = "Initializing set of physio session count obs questions";
+	
+	@EndpointInject("mock:voided-obs-to-order-line-processor")
+	private MockEndpoint mockVoidedObsProcEndpoint;
+	
+	@EndpointInject("mock:non-voided-obs-to-order-line-processor")
+	private MockEndpoint mockNonVoidedObsProcEndpoint;
 	
 	@Before
 	public void setup() throws Exception {
 		AppContext.remove(OBS_QNS_KEY);
+		mockVoidedObsProcEndpoint.reset();
+		mockNonVoidedObsProcEndpoint.reset();
+		
+		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
+			
+			@Override
+			public void configure() {
+				interceptSendToEndpoint(URI_VOIDED_OBS_PROCESSOR).skipSendToOriginalEndpoint().to(mockVoidedObsProcEndpoint);
+				interceptSendToEndpoint(URI_NON_VOIDED_OBS_PROCESSOR).skipSendToOriginalEndpoint()
+				        .to(mockNonVoidedObsProcEndpoint);
+			}
+			
+		});
 	}
 	
 	@Test
@@ -52,16 +80,16 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		exchange.setProperty(PROP_EVENT, event);
 		Map obsResource = new HashMap();
 		obsResource.put("uuid", OBS_UUID);
-		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
-		obsResource.put("value", 1);
+		obsResource.put("concept", singletonMap("uuid", "some-uuid"));
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
-		final String qnConceptUuid = "test-qn-concept";
-		Set cachedObsQns = singleton(qnConceptUuid);
-		AppContext.add(OBS_QNS_KEY, cachedObsQns);
+		Assert.assertNull(AppContext.get(OBS_QNS_KEY));
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		
-		Assert.assertEquals(cachedObsQns, exchange.getProperty(EX_PROP_OBS_QNS, Set.class));
+		assertMessageLogged(Level.INFO, SET_CACHE_INT_MSG);
+		Set questions = (Set) AppContext.get(OBS_QNS_KEY);
+		assertTrue(questions.contains(CONCEPT_UUID_1));
+		assertTrue(questions.contains(CONCEPT_UUID_2));
 	}
 	
 	@Test
@@ -80,7 +108,7 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		
-		Assert.assertEquals(cachedObsQns, exchange.getProperty(EX_PROP_OBS_QNS, Set.class));
+		assertEquals(cachedObsQns, exchange.getProperty(EX_PROP_OBS_QNS, Set.class));
 	}
 	
 	@Test
@@ -95,7 +123,46 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		
-		assertMessageLogged(Level.DEBUG, "Skipping Obs because the question concept doesn't match any configured question");
+		assertMessageLogged(Level.DEBUG, "Skipping non-physio session count obs");
+	}
+	
+	@Test
+	public void shouldCallTheCorrectProcessorForANonVoidedObs() throws Exception {
+		Exchange exchange = new DefaultExchange(camelContext);
+		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
+		exchange.setProperty(PROP_EVENT, event);
+		Map obsResource = new HashMap();
+		obsResource.put("uuid", OBS_UUID);
+		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
+		obsResource.put("value", 1);
+		exchange.setProperty(EX_PROP_ENTITY, obsResource);
+		mockNonVoidedObsProcEndpoint.expectedMessageCount(1);
+		mockVoidedObsProcEndpoint.expectedMessageCount(0);
+		
+		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
+		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
+		mockVoidedObsProcEndpoint.assertIsSatisfied();
+		
+	}
+	
+	@Test
+	public void shouldCallTheCorrectProcessorForAVoidedObs() throws Exception {
+		Exchange exchange = new DefaultExchange(camelContext);
+		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
+		exchange.setProperty(PROP_EVENT, event);
+		Map obsResource = new HashMap();
+		obsResource.put("uuid", OBS_UUID);
+		obsResource.put("voided", true);
+		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
+		obsResource.put("value", 1);
+		exchange.setProperty(EX_PROP_ENTITY, obsResource);
+		mockNonVoidedObsProcEndpoint.expectedMessageCount(0);
+		mockVoidedObsProcEndpoint.expectedMessageCount(1);
+		
+		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
+		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
+		mockVoidedObsProcEndpoint.assertIsSatisfied();
+		
 	}
 	
 }
