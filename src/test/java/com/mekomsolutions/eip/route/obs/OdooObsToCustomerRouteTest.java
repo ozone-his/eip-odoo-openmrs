@@ -10,6 +10,7 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertNull;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
+import static org.springframework.test.context.support.TestPropertySourceUtils.addInlinedPropertiesToEnvironment;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +26,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.eip.AppContext;
 import org.openmrs.eip.mysql.watcher.Event;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.test.context.TestPropertySource;
 
 import com.mekomsolutions.eip.route.BaseOdooRouteTest;
@@ -35,38 +38,42 @@ import ch.qos.logback.classic.Level;
 @TestPropertySource(properties = "eip.watchedTables=obs")
 @TestPropertySource(properties = "odoo.handler.route=odoo-prp-handler")
 @TestPropertySource(properties = "odoo.custom.table.resource.mappings=obs:obs")
-@TestPropertySource(properties = "odoo.obs.concept.question.answer.mappings=" + OdooObsToCustomerRouteTest.CONCEPT_UUID_1 + ":"
-        + OdooObsToCustomerRouteTest.CONCEPT_UUID_A + "," + OdooObsToCustomerRouteTest.CONCEPT_UUID_2 + ":"
+@TestPropertySource(properties = "odoo.obs.concept.question.answer.mappings=" + OdooObsToCustomerRouteTest.CONCEPT_UUID_1
+        + ":" + OdooObsToCustomerRouteTest.CONCEPT_UUID_A + "," + OdooObsToCustomerRouteTest.CONCEPT_UUID_2 + ":"
         + OdooObsToCustomerRouteTest.CONCEPT_UUID_B + "^" + OdooObsToCustomerRouteTest.CONCEPT_UUID_C)
 public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 	
 	protected static final String ROUTE_ID = "odoo-obs-to-customer";
 	
+	protected static final String URI_TEST_RULE = "mock:test-rule";
+	
 	protected static final String TABLE = "obs";
 	
 	protected static final String PATIENT = "patient";
 	
-	public static final String OBS_UUID = "obs-uuid-1";
+	private static final String OBS_UUID = "obs-uuid-1";
 	
-	public static final String PATIENT_UUID = "patient-uuid";
+	private static final String PATIENT_UUID = "patient-uuid";
 	
-	public static final String CONCEPT_UUID_1 = "concept-uuid-1";
+	protected static final String CONCEPT_UUID_1 = "concept-uuid-1";
 	
-	public static final String CONCEPT_UUID_2 = "concept-uuid-2";
+	protected static final String CONCEPT_UUID_2 = "concept-uuid-2";
 	
-	public static final String CONCEPT_UUID_A = "concept-uuid-1";
+	protected static final String CONCEPT_UUID_A = "concept-uuid-a";
 	
-	public static final String CONCEPT_UUID_B = "concept-uuid-b";
+	protected static final String CONCEPT_UUID_B = "concept-uuid-b";
 	
-	public static final String CONCEPT_UUID_C = "concept-uuid-c";
+	protected static final String CONCEPT_UUID_C = "concept-uuid-c";
 	
-	public static final String EX_PROP_OBS_QN_ANS_MAP = "obsQnAnsMap";
+	private static final String EX_PROP_OBS_QN_ANS_MAP = "obsQnAnsMap";
 	
 	public static final String EX_PROP_CREATE_IF_NOT_EXISTS = "createCustomerIfNotExist";
 	
-	public static final String EX_PROP_PATIENT = PATIENT;
+	private static final String EX_PROP_PATIENT = PATIENT;
 	
-	public static final String OBS_QN_ANS_MAP_KEY = ROUTE_ID + "-obsQnAnsMap";
+	private static final String OBS_QN_ANS_MAP_KEY = ROUTE_ID + "-obsQnAnsMap";
+	
+	private static final String PROP_DECISION_RULE = "odoo.obs.to.customer.decision.rule.endpoint";
 	
 	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
 	private MockEndpoint mockFetchResourceEndpoint;
@@ -74,10 +81,17 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 	@EndpointInject("mock:odoo-patient-handler")
 	private MockEndpoint mockPatientHandlerEndpoint;
 	
+	@EndpointInject(URI_TEST_RULE)
+	private MockEndpoint mockTestRuleEndpoint;
+	
+	@Autowired
+	private ConfigurableEnvironment env;
+	
 	@Before
 	public void setup() throws Exception {
 		mockPatientHandlerEndpoint.reset();
 		mockFetchResourceEndpoint.reset();
+		mockTestRuleEndpoint.reset();
 		AppContext.remove(OBS_QN_ANS_MAP_KEY);
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
@@ -165,7 +179,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldProcessSkipAnObsDeleteEvent() throws Exception {
+	public void shouldSkipAnObsDeleteEvent() throws Exception {
 		Exchange exchange = new DefaultExchange(camelContext);
 		Event event = createEvent(TABLE, "1", OBS_UUID, "d");
 		exchange.setProperty(PROP_EVENT, event);
@@ -181,7 +195,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldProcessSkipAnEventForAVoidedObs() throws Exception {
+	public void shouldSkipAnEventForAVoidedObs() throws Exception {
 		Exchange exchange = new DefaultExchange(camelContext);
 		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
 		exchange.setProperty(PROP_EVENT, event);
@@ -223,7 +237,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldProcessSkipAnEventForAnObsWithNonMonitoredQuestionConcept() throws Exception {
+	public void shouldSkipAnEventForAnObsWithNonMonitoredQuestionConcept() throws Exception {
 		Exchange exchange = new DefaultExchange(camelContext);
 		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
 		exchange.setProperty(PROP_EVENT, event);
@@ -283,6 +297,61 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		mockFetchResourceEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
 		assertMessageLogged(Level.INFO, "No associated patient found with uuid: " + PATIENT_UUID);
+	}
+	
+	@Test
+	public void shouldSkipAnObsThatFailsTheDecisionRule() throws Exception {
+		addInlinedPropertiesToEnvironment(env, PROP_DECISION_RULE + "=" + URI_TEST_RULE);
+		Exchange exchange = new DefaultExchange(camelContext);
+		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
+		exchange.setProperty(PROP_EVENT, event);
+		Map obsResource = new HashMap();
+		obsResource.put("uuid", OBS_UUID);
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		obsResource.put("person", patientResource);
+		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
+		obsResource.put("value", singletonMap("uuid", CONCEPT_UUID_A));
+		exchange.setProperty(EX_PROP_ENTITY, obsResource);
+		mockFetchResourceEndpoint.expectedMessageCount(0);
+		mockPatientHandlerEndpoint.expectedMessageCount(0);
+		mockTestRuleEndpoint.expectedMessageCount(1);
+		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(false));
+		
+		producerTemplate.send(URI_OBS_HANDLER, exchange);
+		
+		mockFetchResourceEndpoint.assertIsSatisfied();
+		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockTestRuleEndpoint.assertIsSatisfied();
+	}
+	
+	@Test
+	public void shouldProcessAnObsThatPassesTheDecisionRule() throws Exception {
+		addInlinedPropertiesToEnvironment(env, PROP_DECISION_RULE + "=" + URI_TEST_RULE);
+		Exchange exchange = new DefaultExchange(camelContext);
+		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
+		exchange.setProperty(PROP_EVENT, event);
+		Map obsResource = new HashMap();
+		obsResource.put("uuid", OBS_UUID);
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		obsResource.put("person", patientResource);
+		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
+		obsResource.put("value", singletonMap("uuid", CONCEPT_UUID_A));
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
+		exchange.setProperty(EX_PROP_ENTITY, obsResource);
+		mockFetchResourceEndpoint.expectedMessageCount(1);
+		mockPatientHandlerEndpoint.expectedMessageCount(1);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
+		mockTestRuleEndpoint.expectedMessageCount(1);
+		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
+		
+		producerTemplate.send(URI_OBS_HANDLER, exchange);
+		
+		mockFetchResourceEndpoint.assertIsSatisfied();
+		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockTestRuleEndpoint.assertIsSatisfied();
 	}
 	
 }
