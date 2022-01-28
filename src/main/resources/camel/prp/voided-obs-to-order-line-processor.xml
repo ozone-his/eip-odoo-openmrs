@@ -3,7 +3,7 @@
 	<route id="voided-obs-to-order-line-processor" errorHandlerRef="watcherErrorHandler">
 		<from uri="direct:voided-obs-to-order-line-processor" />
 
-		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
+		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
 		<setProperty name="odoo-operation">
 			<simple>unlink</simple>
@@ -27,7 +27,7 @@
 			<to uri="direct:odoo-manage-quotation" />
 		</when>
 
-		<log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
+		<log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
 	</route>
 
 </routes>

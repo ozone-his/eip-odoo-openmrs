@@ -37,7 +37,7 @@
                         </script>
                     </split>
 
-                    <log loggingLevel="DEBUG" message="Obs orderable questions -> ${exchangeProperty.obsQuestions}"/>
+                    <log loggingLevel="DEBUG" message="Physio session count obs questions -> ${exchangeProperty.obsQuestions}"/>
                 </when>
 
                 <setProperty name="obsQuestionUuid">
