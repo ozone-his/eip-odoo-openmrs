@@ -42,14 +42,14 @@ import ch.qos.logback.classic.Level;
         + ":" + OdooObsToCustomerRouteTest.CONCEPT_UUID_A + "," + OdooObsToCustomerRouteTest.CONCEPT_UUID_2 + ":"
         + OdooObsToCustomerRouteTest.CONCEPT_UUID_B + "^" + OdooObsToCustomerRouteTest.CONCEPT_UUID_C)
 public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
-	
-	protected static final String ROUTE_ID = "odoo-obs-to-customer";
-	
-	protected static final String URI_TEST_RULE = "mock:test-rule";
-	
-	protected static final String TABLE = "obs";
-	
-	protected static final String PATIENT = "patient";
+
+    private static final String ROUTE_ID = "odoo-obs-to-customer";
+
+    private static final String URI_TEST_RULE = "mock:test-rule";
+
+    private static final String TABLE = "obs";
+
+    private static final String PATIENT = "patient";
 	
 	private static final String OBS_UUID = "obs-uuid-1";
 	

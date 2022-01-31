@@ -1,0 +1,75 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+    <route id="encounter-contains-validation-obs-rule">
+        <from uri="direct:encounter-contains-validation-obs-rule" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+        
+        <log message="Fetching the Obs encounter from OpenMRS..." />
+
+        <setProperty name="isSubResource">
+            <simple>false</simple>
+        </setProperty>
+        <setProperty name="resourceName">
+            <simple>encounter</simple>
+        </setProperty>
+        <setProperty name="resourceId">
+            <simple>${exchangeProperty.entity-instance.get('encounter').get('uuid')}</simple>
+        </setProperty>
+
+        <to uri="direct:odoo-fetch-resource" />
+
+        <choice>
+            <when>
+                <simple>${body} != null</simple>
+                <setProperty name="encounter">
+                    <jsonpath>$</jsonpath>
+                </setProperty>
+
+                <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.encounter}" />
+                <log message="Checking if the obs encounter contains the validation obs" />
+
+                <setProperty name="encObs">
+                    <simple>${exchangeProperty.encounter.get('obs')}</simple>
+                </setProperty>
+                <setBody>
+                    <simple>${exchangeProperty.encObs}</simple>
+                </setBody>
+
+                <loop doWhile="true">
+                    <simple>${exchangeProperty.foundValidationObs} == null</simple>
+                    <setProperty name="obsConcept">
+                        <spel>#{getProperty('encObs').get(getProperty('CamelLoopIndex')).get('concept').get('uuid')}</spel>
+                    </setProperty>
+
+                    <when>
+                        <simple>${exchangeProperty.obsConcept} == '{{validation.concept.uuid}}'</simple>
+                        <setProperty name="foundValidationObs">
+                            <constant>true</constant>
+                        </setProperty>
+
+                        <log message="Found validation obs in the obs encounter -> ${exchangeProperty.obsConcept}" />
+                    </when>
+                    
+                    <when>
+                        <spel>#{getProperty('foundValidationObs') == null &amp;&amp; getProperty('CamelLoopIndex') == getProperty('encObs').size() - 1}</spel>
+                        <setProperty name="foundValidationObs">
+                            <constant>false</constant>
+                        </setProperty>
+                    </when>
+                </loop>
+            </when>
+            <otherwise>
+                <log message="No associated encounter found with uuid: ${exchangeProperty.resourceId}" />
+                <setProperty name="foundValidationObs">
+                    <constant>false</constant>
+                </setProperty>
+            </otherwise>
+        </choice>
+
+        <setBody>
+            <simple>${exchangeProperty.foundValidationObs}</simple>
+        </setBody>
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+</routes>
