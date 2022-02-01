@@ -28,7 +28,6 @@ import org.springframework.test.context.TestPropertySource;
 
 import ch.qos.logback.classic.Level;
 
-@TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/*.xml,classpath*:camel/prp/odoo-obs-to-order-line.xml")
 @TestPropertySource(properties = "odoo.physio.session.concept.uuids=" + OdooObsToOrderLineRouteTest.CONCEPT_UUID_1 + ","
         + OdooObsToOrderLineRouteTest.CONCEPT_UUID_2)
 public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
@@ -55,11 +54,15 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 	@EndpointInject("mock:non-voided-obs-to-order-line-processor")
 	private MockEndpoint mockNonVoidedObsProcEndpoint;
 	
+	@EndpointInject("mock:encounter-contains-validation-obs-rule")
+	private MockEndpoint mockTestRuleEndpoint;
+	
 	@Before
 	public void setup() throws Exception {
 		AppContext.remove(OBS_QNS_KEY);
 		mockVoidedObsProcEndpoint.reset();
 		mockNonVoidedObsProcEndpoint.reset();
+		mockTestRuleEndpoint.reset();
 		
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
@@ -68,6 +71,8 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 				interceptSendToEndpoint(URI_VOIDED_OBS_PROCESSOR).skipSendToOriginalEndpoint().to(mockVoidedObsProcEndpoint);
 				interceptSendToEndpoint(URI_NON_VOIDED_OBS_PROCESSOR).skipSendToOriginalEndpoint()
 				        .to(mockNonVoidedObsProcEndpoint);
+				interceptSendToEndpoint("direct:encounter-contains-validation-obs-rule").skipSendToOriginalEndpoint()
+				        .to(mockTestRuleEndpoint);
 			}
 			
 		});
@@ -112,7 +117,7 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 	}
 	
 	@Test
-	public void shouldProcessSkipAnEventForAnObsWithNonMonitoredQuestionConcept() {
+	public void shouldSkipAnEventForAnObsWithNonMonitoredQuestionConcept() {
 		Exchange exchange = new DefaultExchange(camelContext);
 		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
 		exchange.setProperty(PROP_EVENT, event);
@@ -138,10 +143,13 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
 		mockNonVoidedObsProcEndpoint.expectedMessageCount(1);
 		mockVoidedObsProcEndpoint.expectedMessageCount(0);
+		mockTestRuleEndpoint.expectedMessageCount(1);
+		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
 		mockVoidedObsProcEndpoint.assertIsSatisfied();
+		mockTestRuleEndpoint.assertIsSatisfied();
 		
 	}
 	
@@ -158,11 +166,57 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
 		mockNonVoidedObsProcEndpoint.expectedMessageCount(0);
 		mockVoidedObsProcEndpoint.expectedMessageCount(1);
+		mockTestRuleEndpoint.expectedMessageCount(1);
+		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
 		mockVoidedObsProcEndpoint.assertIsSatisfied();
+		mockTestRuleEndpoint.assertIsSatisfied();
 		
+	}
+	
+	@Test
+	public void shouldSkipAnObsThatFailsTheDecisionRule() throws Exception {
+		Exchange exchange = new DefaultExchange(camelContext);
+		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
+		exchange.setProperty(PROP_EVENT, event);
+		Map obsResource = new HashMap();
+		obsResource.put("uuid", OBS_UUID);
+		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
+		obsResource.put("value", 1);
+		exchange.setProperty(EX_PROP_ENTITY, obsResource);
+		mockNonVoidedObsProcEndpoint.expectedMessageCount(0);
+		mockVoidedObsProcEndpoint.expectedMessageCount(0);
+		mockTestRuleEndpoint.expectedMessageCount(1);
+		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(false));
+		
+		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
+		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
+		mockVoidedObsProcEndpoint.assertIsSatisfied();
+		mockTestRuleEndpoint.assertIsSatisfied();
+		assertMessageLogged(Level.INFO, "Skipping obs event because it failed the decision rule");
+	}
+	
+	@Test
+	public void shouldProcessAnObsThatPassesTheDecisionRule() throws Exception {
+		Exchange exchange = new DefaultExchange(camelContext);
+		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
+		exchange.setProperty(PROP_EVENT, event);
+		Map obsResource = new HashMap();
+		obsResource.put("uuid", OBS_UUID);
+		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
+		obsResource.put("value", 1);
+		exchange.setProperty(EX_PROP_ENTITY, obsResource);
+		mockNonVoidedObsProcEndpoint.expectedMessageCount(1);
+		mockVoidedObsProcEndpoint.expectedMessageCount(0);
+		mockTestRuleEndpoint.expectedMessageCount(1);
+		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
+		
+		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
+		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
+		mockVoidedObsProcEndpoint.assertIsSatisfied();
+		mockTestRuleEndpoint.assertIsSatisfied();
 	}
 	
 }

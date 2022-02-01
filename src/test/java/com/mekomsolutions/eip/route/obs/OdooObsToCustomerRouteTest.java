@@ -26,15 +26,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.eip.AppContext;
 import org.openmrs.eip.mysql.watcher.Event;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.test.context.TestPropertySource;
 
 import com.mekomsolutions.eip.route.BaseOdooRouteTest;
 
 import ch.qos.logback.classic.Level;
 
-@TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/*.xml,classpath*:camel/obs/odoo-obs-to-customer.xml")
+@TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/obs/odoo-obs-to-customer.xml")
 @TestPropertySource(properties = "eip.watchedTables=obs")
 @TestPropertySource(properties = "odoo.handler.route=odoo-prp-handler")
 @TestPropertySource(properties = "odoo.custom.table.resource.mappings=obs:obs")
@@ -42,14 +40,14 @@ import ch.qos.logback.classic.Level;
         + ":" + OdooObsToCustomerRouteTest.CONCEPT_UUID_A + "," + OdooObsToCustomerRouteTest.CONCEPT_UUID_2 + ":"
         + OdooObsToCustomerRouteTest.CONCEPT_UUID_B + "^" + OdooObsToCustomerRouteTest.CONCEPT_UUID_C)
 public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
-
-    private static final String ROUTE_ID = "odoo-obs-to-customer";
-
-    private static final String URI_TEST_RULE = "mock:test-rule";
-
-    private static final String TABLE = "obs";
-
-    private static final String PATIENT = "patient";
+	
+	private static final String ROUTE_ID = "odoo-obs-to-customer";
+	
+	private static final String URI_TEST_RULE = "mock:test-rule";
+	
+	private static final String TABLE = "obs";
+	
+	private static final String PATIENT = "patient";
 	
 	private static final String OBS_UUID = "obs-uuid-1";
 	
@@ -83,9 +81,6 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 	
 	@EndpointInject(URI_TEST_RULE)
 	private MockEndpoint mockTestRuleEndpoint;
-	
-	@Autowired
-	private ConfigurableEnvironment env;
 	
 	@Before
 	public void setup() throws Exception {
@@ -256,7 +251,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldProcessSkipAnEventForAnObsWithNonMonitoredAnswerConcept() throws Exception {
+	public void shouldSkipAnEventForAnObsWithNonMonitoredAnswerConcept() throws Exception {
 		Exchange exchange = new DefaultExchange(camelContext);
 		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
 		exchange.setProperty(PROP_EVENT, event);
@@ -323,6 +318,8 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		mockFetchResourceEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
 		mockTestRuleEndpoint.assertIsSatisfied();
+		assertMessageLogged(Level.INFO,
+		    "Skipping obs event because it failed the decision rules defined in -> " + URI_TEST_RULE);
 	}
 	
 	@Test

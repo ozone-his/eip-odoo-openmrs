@@ -50,13 +50,27 @@
 
                         <log message="Processing physio session count obs" />
 
+                        <toD uri="direct:encounter-contains-validation-obs-rule" />
+
+                        <setProperty name="decisionRulePassed">
+                            <simple>${body}</simple>
+                        </setProperty>
+
                         <choice>
                             <when>
-                                <simple>${exchangeProperty.entity-instance.get('voided')} == true</simple>
-                                <to uri="direct:voided-obs-to-order-line-processor" />
+                                <simple>${exchangeProperty.decisionRulePassed} == true</simple>
+                                <choice>
+                                    <when>
+                                        <simple>${exchangeProperty.entity-instance.get('voided')} == true</simple>
+                                        <to uri="direct:voided-obs-to-order-line-processor" />
+                                    </when>
+                                    <otherwise>
+                                        <to uri="direct:non-voided-obs-to-order-line-processor" />
+                                    </otherwise>
+                                </choice>
                             </when>
                             <otherwise>
-                                <to uri="direct:non-voided-obs-to-order-line-processor" />
+                                <log message="Skipping obs event because it failed the decision rule" />
                             </otherwise>
                         </choice>
                     </when>
