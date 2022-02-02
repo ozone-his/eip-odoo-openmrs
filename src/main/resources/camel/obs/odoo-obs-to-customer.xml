@@ -83,7 +83,7 @@
                                 <log message="Obs has configured question and answer concepts" />
 
                                 <setProperty name="decisionRuleEndpoint">
-                                    <simple>${properties:odoo.obs.to.customer.decision.rule.endpoint:null}</simple>
+                                    <simple>${properties:obs.to.customer.decision.rule.endpoint:null}</simple>
                                 </setProperty>
 
                                 <choice>

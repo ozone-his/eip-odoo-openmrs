@@ -71,7 +71,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 	
 	private static final String OBS_QN_ANS_MAP_KEY = ROUTE_ID + "-obsQnAnsMap";
 	
-	private static final String PROP_DECISION_RULE = "odoo.obs.to.customer.decision.rule.endpoint";
+	private static final String PROP_DECISION_RULE = "obs.to.customer.decision.rule.endpoint";
 	
 	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
 	private MockEndpoint mockFetchResourceEndpoint;
