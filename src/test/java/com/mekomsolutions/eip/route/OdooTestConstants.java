@@ -21,6 +21,8 @@ public class OdooTestConstants {
 	public static final String EX_PROP_ODOO_PATIENT_ID = "patient-odoo-id";
 	
 	public static final String EX_PROP_PATIENT = "patient";
+
+    public static final String EX_PROP_CREATE_IF_NOT_EXISTS = "createCustomerIfNotExist";
 	
 	public static final String EX_PROP_ODOO_USER_ID_KEY = "odooUserIdKey";
 	
@@ -41,6 +43,8 @@ public class OdooTestConstants {
 	public static final String URI_MOCK_FETCH_RESOURCE = "mock:odoo-fetch-resource";
 	
 	public static final String URI_OBS_HANDLER = "direct:odoo-obs-to-customer";
+	
+	public static final String URI_PATIENT_UUID_TO_CUSTOMER = "direct:patient-uuid-to-odoo-customer";
 	
 	public static final String URI_OBS_TO_ORDER_LINE = "direct:odoo-obs-to-order-line";
 	
