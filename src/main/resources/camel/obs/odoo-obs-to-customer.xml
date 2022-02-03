@@ -104,39 +104,11 @@
                                 <choice>
                                     <when>
                                         <simple>${exchangeProperty.decisionRuleEndpoint} == 'null' || ${exchangeProperty.decisionRulePassed} == true</simple>
-                                        <log message="Fetching patient associated to the Obs from OpenMRS..." />
-
-                                        <setProperty name="isSubResource">
-                                            <simple>false</simple>
-                                        </setProperty>
-                                        <setProperty name="resourceName">
-                                            <simple>patient</simple>
-                                        </setProperty>
-                                        <setProperty name="resourceId">
+                                        <setBody>
                                             <simple>${exchangeProperty.entity-instance.get('person').get('uuid')}</simple>
-                                        </setProperty>
+                                        </setBody>
 
-                                        <to uri="direct:odoo-fetch-resource" />
-
-                                        <choice>
-                                            <when>
-                                                <simple>${body} != null</simple>
-                                                <setProperty name="patient">
-                                                    <jsonpath>$</jsonpath>
-                                                </setProperty>
-
-                                                <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.patient}" />
-
-                                                <setProperty name="createCustomerIfNotExist">
-                                                    <simple>true</simple>
-                                                </setProperty>
-
-                                                <to uri="direct:odoo-patient-handler" />
-                                            </when>
-                                            <otherwise>
-                                                <log message="No associated patient found with uuid: ${exchangeProperty.resourceId}" />
-                                            </otherwise>
-                                        </choice>
+                                        <to uri="direct:patient-uuid-to-odoo-customer" />
                                     </when>
                                     <otherwise>
                                         <log message="Skipping obs event because it failed the decision rules defined in -> ${exchangeProperty.decisionRuleEndpoint}" />

@@ -1,10 +1,6 @@
 package com.mekomsolutions.eip.route.obs;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
-import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOURCE;
-import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
-import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_HANDLER;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
@@ -65,37 +61,29 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 	
 	private static final String EX_PROP_OBS_QN_ANS_MAP = "obsQnAnsMap";
 	
-	public static final String EX_PROP_CREATE_IF_NOT_EXISTS = "createCustomerIfNotExist";
-	
 	private static final String EX_PROP_PATIENT = PATIENT;
 	
 	private static final String OBS_QN_ANS_MAP_KEY = ROUTE_ID + "-obsQnAnsMap";
 	
 	private static final String PROP_DECISION_RULE = "obs.to.customer.decision.rule.endpoint";
 	
-	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
-	private MockEndpoint mockFetchResourceEndpoint;
-	
-	@EndpointInject("mock:odoo-patient-handler")
-	private MockEndpoint mockPatientHandlerEndpoint;
+	@EndpointInject("mock:patient-uuid-to-odoo-customer")
+	private MockEndpoint mockPatientUuidToCustomerEndpoint;
 	
 	@EndpointInject(URI_TEST_RULE)
 	private MockEndpoint mockTestRuleEndpoint;
 	
 	@Before
 	public void setup() throws Exception {
-		mockPatientHandlerEndpoint.reset();
-		mockFetchResourceEndpoint.reset();
+		mockPatientUuidToCustomerEndpoint.reset();
 		mockTestRuleEndpoint.reset();
 		AppContext.remove(OBS_QN_ANS_MAP_KEY);
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
 			@Override
 			public void configure() {
-				interceptSendToEndpoint("direct:odoo-fetch-resource").skipSendToOriginalEndpoint()
-				        .to(mockFetchResourceEndpoint);
-				interceptSendToEndpoint("direct:odoo-patient-handler").skipSendToOriginalEndpoint()
-				        .to(mockPatientHandlerEndpoint);
+				interceptSendToEndpoint("direct:patient-uuid-to-odoo-customer").skipSendToOriginalEndpoint()
+				        .to(mockPatientUuidToCustomerEndpoint);
 			}
 			
 		});
@@ -108,26 +96,17 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(PROP_EVENT, event);
 		Map obsResource = new HashMap();
 		obsResource.put("uuid", OBS_UUID);
-		Map patientResource = new HashMap();
-		patientResource.put("uuid", PATIENT_UUID);
-		obsResource.put("person", patientResource);
+		obsResource.put("person", singletonMap("uuid", PATIENT_UUID));
 		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
 		obsResource.put("value", singletonMap("uuid", CONCEPT_UUID_A));
-		final String patientJson = mapper.writeValueAsString(patientResource);
-		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
-		mockFetchResourceEndpoint.expectedMessageCount(1);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, PATIENT);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
-		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_IF_NOT_EXISTS, true);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
+		mockPatientUuidToCustomerEndpoint.expectedMessageCount(1);
+		mockPatientUuidToCustomerEndpoint.expectedBodiesReceived(PATIENT_UUID);
 		
 		producerTemplate.send(URI_OBS_HANDLER, exchange);
 		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.expectedBodyReceived();
 		Map<String, Set<Object>> obsQnAnsMap = exchange.getProperty(EX_PROP_OBS_QN_ANS_MAP, Map.class);
 		Assert.assertNotNull(obsQnAnsMap);
 		Assert.assertEquals(1, obsQnAnsMap.get(CONCEPT_UUID_1).size());
@@ -144,26 +123,17 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(PROP_EVENT, event);
 		Map obsResource = new HashMap();
 		obsResource.put("uuid", OBS_UUID);
-		Map patientResource = new HashMap();
-		patientResource.put("uuid", PATIENT_UUID);
-		obsResource.put("person", patientResource);
+		obsResource.put("person", singletonMap("uuid", PATIENT_UUID));
 		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
 		obsResource.put("value", singletonMap("uuid", CONCEPT_UUID_A));
-		final String patientJson = mapper.writeValueAsString(patientResource);
-		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
-		mockFetchResourceEndpoint.expectedMessageCount(1);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, PATIENT);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
-		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_IF_NOT_EXISTS, true);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
+		mockPatientUuidToCustomerEndpoint.expectedMessageCount(1);
+		mockPatientUuidToCustomerEndpoint.expectedBodiesReceived(PATIENT_UUID);
 		
 		producerTemplate.send(URI_OBS_HANDLER, exchange);
 		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.expectedBodyReceived();
 		Map<String, Set<Object>> obsQnAnsMap = exchange.getProperty(EX_PROP_OBS_QN_ANS_MAP, Map.class);
 		Assert.assertNotNull(obsQnAnsMap);
 		Assert.assertEquals(1, obsQnAnsMap.get(CONCEPT_UUID_1).size());
@@ -178,13 +148,11 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		Exchange exchange = new DefaultExchange(camelContext);
 		Event event = createEvent(TABLE, "1", OBS_UUID, "d");
 		exchange.setProperty(PROP_EVENT, event);
-		mockFetchResourceEndpoint.expectedMessageCount(0);
-		mockPatientHandlerEndpoint.expectedMessageCount(0);
+		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		
 		producerTemplate.send(URI_OBS_HANDLER, exchange);
 		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		assertNull(exchange.getProperty(EX_PROP_OBS_QN_ANS_MAP));
 		assertMessageLogged(Level.DEBUG, "Skipping deleted obs");
 	}
@@ -195,13 +163,11 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
 		exchange.setProperty(PROP_EVENT, event);
 		exchange.setProperty(EX_PROP_ENTITY, singletonMap("voided", true));
-		mockFetchResourceEndpoint.expectedMessageCount(0);
-		mockPatientHandlerEndpoint.expectedMessageCount(0);
+		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		
 		producerTemplate.send(URI_OBS_HANDLER, exchange);
 		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		assertNull(exchange.getProperty(EX_PROP_OBS_QN_ANS_MAP));
 		assertMessageLogged(Level.DEBUG, "Skipping voided obs");
 	}
@@ -221,13 +187,11 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		final String answerConceptUuid = "test-ans-concept";
 		Map cachedObsQnAnsMap = singletonMap(questionConceptUuid, singleton(answerConceptUuid));
 		AppContext.add(OBS_QN_ANS_MAP_KEY, cachedObsQnAnsMap);
-		mockFetchResourceEndpoint.expectedMessageCount(0);
-		mockPatientHandlerEndpoint.expectedMessageCount(0);
+		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		
 		producerTemplate.send(URI_OBS_HANDLER, exchange);
 		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		Assert.assertEquals(cachedObsQnAnsMap, exchange.getProperty(EX_PROP_OBS_QN_ANS_MAP, Map.class));
 	}
 	
@@ -240,13 +204,11 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		obsResource.put("uuid", OBS_UUID);
 		obsResource.put("concept", singletonMap("uuid", "some-question-concept-uuid"));
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
-		mockFetchResourceEndpoint.expectedMessageCount(0);
-		mockPatientHandlerEndpoint.expectedMessageCount(0);
+		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		
 		producerTemplate.send(URI_OBS_HANDLER, exchange);
 		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		assertMessageLogged(Level.DEBUG, "Skipping Obs because the question concept doesn't match any configured question");
 	}
 	
@@ -260,38 +222,12 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
 		obsResource.put("value", singletonMap("uuid", "some-answer-concept-uuid"));
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
-		mockFetchResourceEndpoint.expectedMessageCount(0);
-		mockPatientHandlerEndpoint.expectedMessageCount(0);
+		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		
 		producerTemplate.send(URI_OBS_HANDLER, exchange);
 		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		assertMessageLogged(Level.DEBUG, "Skipping Obs because the answer concept doesn't match any configured answer");
-	}
-	
-	@Test
-	public void shouldSkipAnEventForAnObsWithAPatientThatIsNotFound() throws Exception {
-		Exchange exchange = new DefaultExchange(camelContext);
-		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
-		exchange.setProperty(PROP_EVENT, event);
-		Map obsResource = new HashMap();
-		obsResource.put("uuid", OBS_UUID);
-		obsResource.put("person", singletonMap("uuid", PATIENT_UUID));
-		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
-		obsResource.put("value", singletonMap("uuid", CONCEPT_UUID_A));
-		exchange.setProperty(EX_PROP_ENTITY, obsResource);
-		mockFetchResourceEndpoint.expectedMessageCount(1);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, PATIENT);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
-		mockPatientHandlerEndpoint.expectedMessageCount(0);
-		
-		producerTemplate.send(URI_OBS_HANDLER, exchange);
-		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		mockPatientHandlerEndpoint.assertIsSatisfied();
-		assertMessageLogged(Level.INFO, "No associated patient found with uuid: " + PATIENT_UUID);
 	}
 	
 	@Test
@@ -308,15 +244,13 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
 		obsResource.put("value", singletonMap("uuid", CONCEPT_UUID_A));
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
-		mockFetchResourceEndpoint.expectedMessageCount(0);
-		mockPatientHandlerEndpoint.expectedMessageCount(0);
+		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		mockTestRuleEndpoint.expectedMessageCount(1);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(false));
 		
 		producerTemplate.send(URI_OBS_HANDLER, exchange);
 		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		mockTestRuleEndpoint.assertIsSatisfied();
 		assertMessageLogged(Level.INFO,
 		    "Skipping obs event because it failed the decision rules defined in -> " + URI_TEST_RULE);
@@ -330,24 +264,19 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(PROP_EVENT, event);
 		Map obsResource = new HashMap();
 		obsResource.put("uuid", OBS_UUID);
-		Map patientResource = new HashMap();
-		patientResource.put("uuid", PATIENT_UUID);
-		obsResource.put("person", patientResource);
+		obsResource.put("person", singletonMap("uuid", PATIENT_UUID));
 		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
 		obsResource.put("value", singletonMap("uuid", CONCEPT_UUID_A));
-		final String patientJson = mapper.writeValueAsString(patientResource);
-		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
-		mockFetchResourceEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedMessageCount(1);
-		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
+		mockPatientUuidToCustomerEndpoint.expectedMessageCount(1);
+		mockPatientUuidToCustomerEndpoint.expectedBodiesReceived(PATIENT_UUID);
 		mockTestRuleEndpoint.expectedMessageCount(1);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		producerTemplate.send(URI_OBS_HANDLER, exchange);
 		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		mockPatientHandlerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
+		mockPatientUuidToCustomerEndpoint.expectedBodyReceived();
 		mockTestRuleEndpoint.assertIsSatisfied();
 	}
 	
