@@ -89,6 +89,9 @@
                                 <choice>
                                     <when>
                                         <simple>${exchangeProperty.decisionRuleEndpoint} != 'null'</simple>
+                                        <setBody>
+                                            <simple>${exchangeProperty.entity-instance}</simple>
+                                        </setBody>
 
                                         <toD uri="${exchangeProperty.decisionRuleEndpoint}" />
 

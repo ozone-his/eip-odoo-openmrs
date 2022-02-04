@@ -6,71 +6,82 @@
         
         <log message="Fetching the Obs encounter from OpenMRS..." />
 
-        <setProperty name="isSubResource">
-            <simple>false</simple>
-        </setProperty>
-        <setProperty name="resourceName">
-            <simple>encounter</simple>
-        </setProperty>
-        <setProperty name="resourceId">
-            <simple>${exchangeProperty.entity-instance.get('encounter').get('uuid')}</simple>
-        </setProperty>
-        <setProperty name="resourceRepresentation">
-            <simple>full</simple>
-        </setProperty>
-
-        <to uri="direct:odoo-fetch-resource" />
-
         <choice>
             <when>
-                <simple>${body} != null</simple>
-                <setProperty name="encounter">
-                    <jsonpath>$</jsonpath>
+                <simple>${body.get('encounter')} != null</simple>
+                <setProperty name="isSubResource">
+                    <simple>false</simple>
+                </setProperty>
+                <setProperty name="resourceName">
+                    <simple>encounter</simple>
+                </setProperty>
+                <setProperty name="resourceId">
+                    <simple>${body.get('encounter').get('uuid')}</simple>
+                </setProperty>
+                <setProperty name="resourceRepresentation">
+                    <simple>full</simple>
                 </setProperty>
 
-                <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.encounter}" />
-                <log message="Checking if the obs encounter contains the validation obs" />
+                <to uri="direct:odoo-fetch-resource" />
 
-                <setProperty name="encObs">
-                    <simple>${exchangeProperty.encounter.get('obs')}</simple>
-                </setProperty>
-                <setBody>
-                    <simple>${exchangeProperty.encObs}</simple>
-                </setBody>
-
-                <loop doWhile="true">
-                    <simple>${exchangeProperty.foundValidationObs} == null</simple>
-                    <setProperty name="obsConceptUuid">
-                        <spel>#{getProperty('encObs').get(getProperty('CamelLoopIndex')).get('concept').get('uuid')}</spel>
-                    </setProperty>
-
+                <choice>
                     <when>
-                        <simple>${exchangeProperty.obsConceptUuid} == '{{validation.concept.uuid}}'</simple>
-                        <setProperty name="foundValidationObs">
-                            <simple>true</simple>
+                        <simple>${body} != null</simple>
+                        <setProperty name="encounter">
+                            <jsonpath>$</jsonpath>
                         </setProperty>
 
-                        <log message="Obs encounter is validated" />
-                    </when>
+                        <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.encounter}" />
+                        <log message="Checking if the obs encounter contains the validation obs" />
 
-                    <when>
-                        <spel>#{getProperty('foundValidationObs') == null &amp;&amp; getProperty('CamelLoopIndex') == getProperty('encObs').size() - 1}</spel>
-                        <setProperty name="foundValidationObs">
+                        <setProperty name="encObs">
+                            <simple>${exchangeProperty.encounter.get('obs')}</simple>
+                        </setProperty>
+                        <setBody>
+                            <simple>${exchangeProperty.encObs}</simple>
+                        </setBody>
+
+                        <loop doWhile="true">
+                            <simple>${exchangeProperty.isValidated} == null</simple>
+                            <setProperty name="obsConceptUuid">
+                                <spel>#{getProperty('encObs').get(getProperty('CamelLoopIndex')).get('concept').get('uuid')}</spel>
+                            </setProperty>
+
+                            <when>
+                                <simple>${exchangeProperty.obsConceptUuid} == '{{validation.concept.uuid}}'</simple>
+                                <setProperty name="isValidated">
+                                    <simple>true</simple>
+                                </setProperty>
+
+                                <log message="Obs encounter is validated" />
+                            </when>
+
+                            <when>
+                                <spel>#{getProperty('isValidated') == null &amp;&amp; getProperty('CamelLoopIndex') == getProperty('encObs').size() - 1}</spel>
+                                <setProperty name="isValidated">
+                                    <simple>false</simple>
+                                </setProperty>
+                            </when>
+                        </loop>
+                    </when>
+                    <otherwise>
+                        <log message="No associated encounter found with uuid: ${exchangeProperty.resourceId}" />
+                        <setProperty name="isValidated">
                             <simple>false</simple>
                         </setProperty>
-                    </when>
-                </loop>
+                    </otherwise>
+                </choice>
             </when>
             <otherwise>
-                <log message="No associated encounter found with uuid: ${exchangeProperty.resourceId}" />
-                <setProperty name="foundValidationObs">
+                <log message="Obs has no encounter" />
+                <setProperty name="isValidated">
                     <simple>false</simple>
                 </setProperty>
             </otherwise>
         </choice>
 
         <setBody>
-            <simple>${exchangeProperty.foundValidationObs}</simple>
+            <simple>${exchangeProperty.isValidated}</simple>
         </setBody>
 
         <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />

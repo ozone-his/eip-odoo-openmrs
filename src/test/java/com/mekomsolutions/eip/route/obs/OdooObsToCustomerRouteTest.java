@@ -43,8 +43,6 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 	
 	private static final String TABLE = "obs";
 	
-	private static final String PATIENT = "patient";
-	
 	private static final String OBS_UUID = "obs-uuid-1";
 	
 	private static final String PATIENT_UUID = "patient-uuid";
@@ -244,12 +242,14 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
 		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		mockTestRuleEndpoint.expectedMessageCount(1);
+		mockTestRuleEndpoint.expectedBodiesReceived(obsResource);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(false));
 		
 		producerTemplate.send(URI_OBS_HANDLER, exchange);
 		
 		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		mockTestRuleEndpoint.assertIsSatisfied();
+		mockTestRuleEndpoint.expectedBodyReceived();
 		assertMessageLogged(Level.INFO,
 		    "Skipping obs event because it failed the decision rules defined in -> " + URI_TEST_RULE);
 	}
@@ -269,6 +269,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		mockPatientUuidToCustomerEndpoint.expectedMessageCount(1);
 		mockPatientUuidToCustomerEndpoint.expectedBodiesReceived(PATIENT_UUID);
 		mockTestRuleEndpoint.expectedMessageCount(1);
+		mockTestRuleEndpoint.expectedBodiesReceived(obsResource);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		producerTemplate.send(URI_OBS_HANDLER, exchange);
@@ -276,6 +277,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		mockPatientUuidToCustomerEndpoint.expectedBodyReceived();
 		mockTestRuleEndpoint.assertIsSatisfied();
+		mockTestRuleEndpoint.expectedBodyReceived();
 	}
 	
 }
