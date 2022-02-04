@@ -61,8 +61,6 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 	
 	private static final String EX_PROP_OBS_QN_ANS_MAP = "obsQnAnsMap";
 	
-	private static final String EX_PROP_PATIENT = PATIENT;
-	
 	private static final String OBS_QN_ANS_MAP_KEY = ROUTE_ID + "-obsQnAnsMap";
 	
 	private static final String PROP_DECISION_RULE = "obs.to.customer.decision.rule.endpoint";

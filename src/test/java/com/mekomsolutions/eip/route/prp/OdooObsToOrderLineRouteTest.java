@@ -54,7 +54,7 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 	@EndpointInject("mock:non-voided-obs-to-order-line-processor")
 	private MockEndpoint mockNonVoidedObsProcEndpoint;
 	
-	@EndpointInject("mock:encounter-contains-validation-obs-rule")
+	@EndpointInject("mock:is-encounter-validated-rule")
 	private MockEndpoint mockTestRuleEndpoint;
 	
 	@Before
@@ -71,7 +71,7 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 				interceptSendToEndpoint(URI_VOIDED_OBS_PROCESSOR).skipSendToOriginalEndpoint().to(mockVoidedObsProcEndpoint);
 				interceptSendToEndpoint(URI_NON_VOIDED_OBS_PROCESSOR).skipSendToOriginalEndpoint()
 				        .to(mockNonVoidedObsProcEndpoint);
-				interceptSendToEndpoint("direct:encounter-contains-validation-obs-rule").skipSendToOriginalEndpoint()
+				interceptSendToEndpoint("direct:is-encounter-validated-rule").skipSendToOriginalEndpoint()
 				        .to(mockTestRuleEndpoint);
 			}
 			

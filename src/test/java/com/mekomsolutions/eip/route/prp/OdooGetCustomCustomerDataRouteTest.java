@@ -12,7 +12,7 @@ import org.apache.camel.support.DefaultExchange;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class OdooGetCustomCustomerDataTest extends BasePrpRouteTest {
+public class OdooGetCustomCustomerDataRouteTest extends BasePrpRouteTest {
 	
 	protected static final String ROUTE_ID = "odoo-callback-get-custom-customer-data";
 	

@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openmrs.eip.mysql.watcher.Event;
 
-public class OdooPrpHandlerTest extends BasePrpRouteTest {
+public class OdooPrpHandlerRouteTest extends BasePrpRouteTest {
 	
 	protected static final String ROUTE_ID = "odoo-prp-handler";
 	
