@@ -4,6 +4,7 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RES_REP;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
@@ -71,6 +72,7 @@ public class EncounterContainsValidationObsRuleTest extends BasePrpRouteTest {
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "encounter");
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, encounterUuid);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RES_REP, "full");
 		final String encJson = mapper.writeValueAsString(encResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(encJson));
 		
@@ -94,6 +96,7 @@ public class EncounterContainsValidationObsRuleTest extends BasePrpRouteTest {
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "encounter");
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, encounterUuid);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RES_REP, "full");
 		final String encJson = mapper.writeValueAsString(encResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(encJson));
 		
@@ -117,6 +120,7 @@ public class EncounterContainsValidationObsRuleTest extends BasePrpRouteTest {
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "encounter");
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, encounterUuid);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RES_REP, "full");
 		final String encJson = mapper.writeValueAsString(encResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(encJson));
 		

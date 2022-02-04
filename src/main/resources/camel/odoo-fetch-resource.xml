@@ -5,6 +5,13 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
+        <when>
+            <simple>${exchangeProperty.resourceRepresentation} != null</simple>
+            <setProperty name="resRep">
+                <simple>&amp;v=${exchangeProperty.resourceRepresentation}</simple>
+            </setProperty>
+        </when>
+
         <choice>
             <when>
                 <simple>${exchangeProperty.isSubResource} == true</simple>
@@ -23,7 +30,7 @@
 			<simple>${null}</simple>
 		</setBody>
 
-		<toD uri="${exchangeProperty.resourceUrl}?throwExceptionOnFailure=false&amp;httpMethod=GET&amp;authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}" />
+		<toD uri="${exchangeProperty.resourceUrl}?throwExceptionOnFailure=false&amp;httpMethod=GET&amp;authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}${exchangeProperty.resRep}" />
 
         <choice>
             <when>

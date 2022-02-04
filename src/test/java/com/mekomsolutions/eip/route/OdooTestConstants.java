@@ -15,6 +15,8 @@ public class OdooTestConstants {
 	public static final String EX_PROP_SUB_RESOURCE_NAME = "subResourceName";
 	
 	public static final String EX_PROP_SUB_RESOURCE_ID = "subResourceId";
+
+    public static final String EX_PROP_RES_REP = "resourceRepresentation";
 	
 	public static final String EX_PROP_ODOO_OP = "odoo-operation";
 	

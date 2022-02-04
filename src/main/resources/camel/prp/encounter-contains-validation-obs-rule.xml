@@ -15,6 +15,9 @@
         <setProperty name="resourceId">
             <simple>${exchangeProperty.entity-instance.get('encounter').get('uuid')}</simple>
         </setProperty>
+        <setProperty name="resourceRepresentation">
+            <simple>full</simple>
+        </setProperty>
 
         <to uri="direct:odoo-fetch-resource" />
 
@@ -37,19 +40,19 @@
 
                 <loop doWhile="true">
                     <simple>${exchangeProperty.foundValidationObs} == null</simple>
-                    <setProperty name="obsConcept">
+                    <setProperty name="obsConceptUuid">
                         <spel>#{getProperty('encObs').get(getProperty('CamelLoopIndex')).get('concept').get('uuid')}</spel>
                     </setProperty>
 
                     <when>
-                        <simple>${exchangeProperty.obsConcept} == '{{validation.concept.uuid}}'</simple>
+                        <simple>${exchangeProperty.obsConceptUuid} == '{{validation.concept.uuid}}'</simple>
                         <setProperty name="foundValidationObs">
                             <simple>true</simple>
                         </setProperty>
 
-                        <log message="Found validation obs in the obs encounter -> ${exchangeProperty.obsConcept}" />
+                        <log message="Obs encounter is validated" />
                     </when>
-                    
+
                     <when>
                         <spel>#{getProperty('foundValidationObs') == null &amp;&amp; getProperty('CamelLoopIndex') == getProperty('encObs').size() - 1}</spel>
                         <setProperty name="foundValidationObs">
