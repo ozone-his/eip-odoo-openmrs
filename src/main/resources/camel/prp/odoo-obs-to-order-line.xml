@@ -29,13 +29,13 @@
                         <script>
                             <simple>${exchangeProperty.obsQuestions.add(${body.trim()})}</simple>
                         </script>
-
-                        <script>
-                            <spel>
-                                #{T(org.openmrs.eip.AppContext).add(getProperty('obsQuestionsKey'), getProperty('obsQuestions'))}
-                            </spel>
-                        </script>
                     </split>
+
+                    <script>
+                        <spel>
+                            #{T(org.openmrs.eip.AppContext).add(getProperty('obsQuestionsKey'), getProperty('obsQuestions'))}
+                        </spel>
+                    </script>
 
                     <log loggingLevel="DEBUG" message="Physio session count obs questions -> ${exchangeProperty.obsQuestions}"/>
                 </when>

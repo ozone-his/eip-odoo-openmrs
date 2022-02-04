@@ -55,13 +55,13 @@
                                 #{getProperty('obsQnAnsMap').put(getProperty('obsQn'), getProperty('obsAnswerSet'))}
                             </spel>
                         </script>
-
-                        <script>
-                            <spel>
-                                #{T(org.openmrs.eip.AppContext).add(getProperty('obsQnAnsMapKey'), getProperty('obsQnAnsMap'))}
-                            </spel>
-                        </script>
                     </split>
+                    
+                    <script>
+                        <spel>
+                            #{T(org.openmrs.eip.AppContext).add(getProperty('obsQnAnsMapKey'), getProperty('obsQnAnsMap'))}
+                        </spel>
+                    </script>
 
                     <log loggingLevel="DEBUG" message="Obs Question Answer Map -> ${exchangeProperty.obsQnAnsMap}"/>
                 </when>
