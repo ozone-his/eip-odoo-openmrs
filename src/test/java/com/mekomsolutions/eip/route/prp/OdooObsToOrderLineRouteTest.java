@@ -189,12 +189,14 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		mockNonVoidedObsProcEndpoint.expectedMessageCount(0);
 		mockVoidedObsProcEndpoint.expectedMessageCount(0);
 		mockTestRuleEndpoint.expectedMessageCount(1);
+        mockTestRuleEndpoint.expectedBodiesReceived(obsResource);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(false));
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
 		mockVoidedObsProcEndpoint.assertIsSatisfied();
 		mockTestRuleEndpoint.assertIsSatisfied();
+        mockTestRuleEndpoint.expectedBodyReceived();
 		assertMessageLogged(Level.INFO, "Skipping obs event because it failed the decision rule");
 	}
 	
@@ -211,12 +213,14 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		mockNonVoidedObsProcEndpoint.expectedMessageCount(1);
 		mockVoidedObsProcEndpoint.expectedMessageCount(0);
 		mockTestRuleEndpoint.expectedMessageCount(1);
+        mockTestRuleEndpoint.expectedBodiesReceived(obsResource);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
 		mockVoidedObsProcEndpoint.assertIsSatisfied();
 		mockTestRuleEndpoint.assertIsSatisfied();
+        mockTestRuleEndpoint.expectedBodyReceived();
 	}
 	
 }

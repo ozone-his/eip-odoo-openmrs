@@ -50,6 +50,10 @@
 
                         <log message="Processing physio session count obs" />
 
+                        <setBody>
+                            <simple>${exchangeProperty.entity-instance}</simple>
+                        </setBody>
+
                         <to uri="direct:is-obs-encounter-validated-rule" />
 
                         <setProperty name="decisionRulePassed">
