@@ -1,6 +1,6 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
-    <route id="is-encounter-validated-rule">
-        <from uri="direct:is-encounter-validated-rule" />
+    <route id="is-obs-encounter-validated-rule">
+        <from uri="direct:is-obs-encounter-validated-rule" />
 
         <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
         

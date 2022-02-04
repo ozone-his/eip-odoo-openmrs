@@ -50,7 +50,7 @@
 
                         <log message="Processing physio session count obs" />
 
-                        <to uri="direct:is-encounter-validated-rule" />
+                        <to uri="direct:is-obs-encounter-validated-rule" />
 
                         <setProperty name="decisionRulePassed">
                             <simple>${body}</simple>

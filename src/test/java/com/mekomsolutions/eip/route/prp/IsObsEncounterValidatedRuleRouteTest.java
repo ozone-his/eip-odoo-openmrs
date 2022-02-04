@@ -23,10 +23,10 @@ import org.springframework.test.context.TestPropertySource;
 
 import ch.qos.logback.classic.Level;
 
-@TestPropertySource(properties = "validation.concept.uuid=" + IsEncounterValidatedRuleRouteTest.VALIDATION_CONCEPT_UUID)
-public class IsEncounterValidatedRuleRouteTest extends BasePrpRouteTest {
+@TestPropertySource(properties = "validation.concept.uuid=" + IsObsEncounterValidatedRuleRouteTest.VALIDATION_CONCEPT_UUID)
+public class IsObsEncounterValidatedRuleRouteTest extends BasePrpRouteTest {
 	
-	private static final String ROUTE_ID = "is-encounter-validated-rule";
+	private static final String ROUTE_ID = "is-obs-encounter-validated-rule";
 	
 	private static final String URI = "direct:" + ROUTE_ID;
 	
