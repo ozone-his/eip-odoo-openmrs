@@ -11,9 +11,6 @@
         <fileSet>
             <directory>src/main/resources/camel</directory>
             <outputDirectory>routes</outputDirectory>
-            <includes>
-                <include>odoo-*.xml</include>
-            </includes>
         </fileSet>
     </fileSets>
     <files>
