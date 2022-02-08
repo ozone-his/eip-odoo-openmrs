@@ -1,6 +1,6 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
-    <route id="order-line-processor" errorHandlerRef="watcherErrorHandler">
-        <from uri="direct:order-line-processor" />
+    <route id="concept-to-order-line-processor" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:concept-to-order-line-processor" />
 
 		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
@@ -36,7 +36,7 @@
         <choice>
             <when>
                 <simple>${body.length} > 1</simple>
-                <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} existing draft quotation(s) for the same patient created by this system in odoo" />
+                <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} existing draft quotation(s) for the same patient in odoo" />
             </when>
             <when>
                 <simple>${body.length} == 0</simple>

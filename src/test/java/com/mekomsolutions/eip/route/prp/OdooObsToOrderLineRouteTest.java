@@ -1,8 +1,11 @@
 package com.mekomsolutions.eip.route.prp;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ENC_VALIDATED_RULE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_NON_VOIDED_OBS_PROCESSOR;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_ORDER_LINE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_CONCEPT_LINE_PROCESSOR;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_UUID_TO_CUSTOMER;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_VOIDED_OBS_PROCESSOR;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
@@ -57,12 +60,20 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 	@EndpointInject("mock:is-obs-encounter-validated-rule")
 	private MockEndpoint mockTestRuleEndpoint;
 	
+	@EndpointInject("mock:patient-uuid-to-odoo-customer")
+	private MockEndpoint mockUuidToCustomerEndpoint;
+	
+	@EndpointInject("mock:concept-to-order-line-processor")
+	private MockEndpoint mockOrderLineProcessorEndpoint;
+	
 	@Before
 	public void setup() throws Exception {
 		AppContext.remove(OBS_QNS_KEY);
 		mockVoidedObsProcEndpoint.reset();
 		mockNonVoidedObsProcEndpoint.reset();
 		mockTestRuleEndpoint.reset();
+		mockUuidToCustomerEndpoint.reset();
+		mockOrderLineProcessorEndpoint.reset();
 		
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
@@ -71,8 +82,10 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 				interceptSendToEndpoint(URI_VOIDED_OBS_PROCESSOR).skipSendToOriginalEndpoint().to(mockVoidedObsProcEndpoint);
 				interceptSendToEndpoint(URI_NON_VOIDED_OBS_PROCESSOR).skipSendToOriginalEndpoint()
 				        .to(mockNonVoidedObsProcEndpoint);
-				interceptSendToEndpoint("direct:is-obs-encounter-validated-rule").skipSendToOriginalEndpoint()
-				        .to(mockTestRuleEndpoint);
+				interceptSendToEndpoint(URI_UUID_TO_CUSTOMER).skipSendToOriginalEndpoint().to(mockUuidToCustomerEndpoint);
+				interceptSendToEndpoint(URI_CONCEPT_LINE_PROCESSOR).skipSendToOriginalEndpoint()
+				        .to(mockOrderLineProcessorEndpoint);
+				interceptSendToEndpoint(URI_ENC_VALIDATED_RULE).skipSendToOriginalEndpoint().to(mockTestRuleEndpoint);
 			}
 			
 		});
@@ -138,6 +151,8 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		exchange.setProperty(PROP_EVENT, event);
 		Map obsResource = new HashMap();
 		obsResource.put("uuid", OBS_UUID);
+		final String personUuid = "person-uuid";
+		obsResource.put("person", singletonMap("uuid", personUuid));
 		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
 		obsResource.put("value", 1);
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
@@ -145,12 +160,15 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		mockVoidedObsProcEndpoint.expectedMessageCount(0);
 		mockTestRuleEndpoint.expectedMessageCount(1);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
+		mockUuidToCustomerEndpoint.expectedMessageCount(1);
+		mockUuidToCustomerEndpoint.expectedBodiesReceived(personUuid);
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
 		mockVoidedObsProcEndpoint.assertIsSatisfied();
 		mockTestRuleEndpoint.assertIsSatisfied();
-		
+		mockUuidToCustomerEndpoint.assertIsSatisfied();
+		mockUuidToCustomerEndpoint.expectedBodyReceived();
 	}
 	
 	@Test
@@ -161,6 +179,8 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		Map obsResource = new HashMap();
 		obsResource.put("uuid", OBS_UUID);
 		obsResource.put("voided", true);
+		final String personUuid = "person-uuid";
+		obsResource.put("person", singletonMap("uuid", personUuid));
 		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
 		obsResource.put("value", 1);
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
@@ -168,12 +188,15 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		mockVoidedObsProcEndpoint.expectedMessageCount(1);
 		mockTestRuleEndpoint.expectedMessageCount(1);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
+		mockUuidToCustomerEndpoint.expectedMessageCount(1);
+		mockUuidToCustomerEndpoint.expectedBodiesReceived(personUuid);
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
 		mockVoidedObsProcEndpoint.assertIsSatisfied();
 		mockTestRuleEndpoint.assertIsSatisfied();
-		
+		mockUuidToCustomerEndpoint.assertIsSatisfied();
+		mockUuidToCustomerEndpoint.expectedBodyReceived();
 	}
 	
 	@Test
@@ -189,14 +212,14 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		mockNonVoidedObsProcEndpoint.expectedMessageCount(0);
 		mockVoidedObsProcEndpoint.expectedMessageCount(0);
 		mockTestRuleEndpoint.expectedMessageCount(1);
-        mockTestRuleEndpoint.expectedBodiesReceived(obsResource);
+		mockTestRuleEndpoint.expectedBodiesReceived(obsResource);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(false));
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
 		mockVoidedObsProcEndpoint.assertIsSatisfied();
 		mockTestRuleEndpoint.assertIsSatisfied();
-        mockTestRuleEndpoint.expectedBodyReceived();
+		mockTestRuleEndpoint.expectedBodyReceived();
 		assertMessageLogged(Level.INFO, "Skipping obs event because it failed the decision rule");
 	}
 	
@@ -207,20 +230,26 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		exchange.setProperty(PROP_EVENT, event);
 		Map obsResource = new HashMap();
 		obsResource.put("uuid", OBS_UUID);
+		final String personUuid = "person-uuid";
+		obsResource.put("person", singletonMap("uuid", personUuid));
 		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
 		obsResource.put("value", 1);
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
 		mockNonVoidedObsProcEndpoint.expectedMessageCount(1);
 		mockVoidedObsProcEndpoint.expectedMessageCount(0);
 		mockTestRuleEndpoint.expectedMessageCount(1);
-        mockTestRuleEndpoint.expectedBodiesReceived(obsResource);
+		mockTestRuleEndpoint.expectedBodiesReceived(obsResource);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
+		mockUuidToCustomerEndpoint.expectedMessageCount(1);
+		mockUuidToCustomerEndpoint.expectedBodiesReceived(personUuid);
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
 		mockVoidedObsProcEndpoint.assertIsSatisfied();
 		mockTestRuleEndpoint.assertIsSatisfied();
-        mockTestRuleEndpoint.expectedBodyReceived();
+		mockTestRuleEndpoint.expectedBodyReceived();
+		mockUuidToCustomerEndpoint.assertIsSatisfied();
+		mockUuidToCustomerEndpoint.expectedBodyReceived();
 	}
 	
 }

@@ -15,18 +15,26 @@ public class OdooTestConstants {
 	public static final String EX_PROP_SUB_RESOURCE_NAME = "subResourceName";
 	
 	public static final String EX_PROP_SUB_RESOURCE_ID = "subResourceId";
-
-    public static final String EX_PROP_RES_REP = "resourceRepresentation";
+	
+	public static final String EX_PROP_RES_REP = "resourceRepresentation";
 	
 	public static final String EX_PROP_ODOO_OP = "odoo-operation";
 	
 	public static final String EX_PROP_ODOO_PATIENT_ID = "patient-odoo-id";
 	
 	public static final String EX_PROP_PATIENT = "patient";
-
-    public static final String EX_PROP_CREATE_IF_NOT_EXISTS = "createCustomerIfNotExist";
+	
+	public static final String EX_PROP_CREATE_IF_NOT_EXISTS = "createCustomerIfNotExist";
+	
+	public static final String EX_PROP_MODEL_NAME = "modelName";
+	
+	public static final String EX_PROP_EXTERNAL_ID = "externalId";
+	
+	public static final String EX_PROP_PRODUCT_ID = "odooProductId";
 	
 	public static final String EX_PROP_ODOO_USER_ID_KEY = "odooUserIdKey";
+
+    public static final String EX_PROP_LINE_COUNT = "orderLineCount";
 	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
@@ -37,6 +45,12 @@ public class OdooTestConstants {
 	public static final String URI_PATIENT_ASSOCIATION_HANDLER = "direct:odoo-patient-association-handler";
 	
 	public static final String URI_GET_EXT_ID = "direct:odoo-get-external-id-map";
+	
+	public static final String URI_GET_QUOTES = "direct:odoo-get-draft-quotations";
+	
+	public static final String URI_GET_LINE = "direct:odoo-get-order-line";
+	
+	public static final String URI_MANAGE_QUOTE = "direct:odoo-manage-quotation";
 	
 	public static final String URI_PROCESS_ORDER = "direct:odoo-process-order";
 	
@@ -53,6 +67,12 @@ public class OdooTestConstants {
 	public static final String URI_VOIDED_OBS_PROCESSOR = "direct:voided-obs-to-order-line-processor";
 	
 	public static final String URI_NON_VOIDED_OBS_PROCESSOR = "direct:non-voided-obs-to-order-line-processor";
+	
+	public static final String URI_UUID_TO_CUSTOMER = "direct:patient-uuid-to-odoo-customer";
+	
+	public static final String URI_ENC_VALIDATED_RULE = "direct:is-obs-encounter-validated-rule";
+	
+	public static final String URI_CONCEPT_LINE_PROCESSOR = "direct:concept-to-order-line-processor";
 	
 	public static final String URI_PRP_HANDLER = "direct:odoo-prp-handler";
 	
@@ -81,6 +101,8 @@ public class OdooTestConstants {
 	public static final String ODOO_OP_WRITE = "write";
 	
 	public static final String ODOO_OP_UNLINK = "unlink";
+	
+	public static final String ODOO_RES_PRODUCT = "product.product";
 	
 	public static final String ODOO_USER_ID_KEY = "odoo-event-listener-odooUserId";
 	

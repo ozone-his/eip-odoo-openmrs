@@ -69,7 +69,7 @@
 
                                 <to uri="direct:patient-uuid-to-odoo-customer" />
 
-                                <to uri="direct:order-line-processor" />
+                                <to uri="direct:concept-to-order-line-processor" />
 
                                 <choice>
                                     <when>
