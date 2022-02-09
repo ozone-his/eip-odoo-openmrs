@@ -20,6 +20,7 @@
 				<choice>
 					<when>
 						<simple>${exchangeProperty.is-drug-order} == true</simple>
+                        <!-- TODO Replace logic below with call to concept-to-order-line-processor route -->
                         <when>
                             <simple>${exchangeProperty.order-quantity} != ${exchangeProperty.order-line.get('product_uom_qty')}</simple>
                             <log message="Orderable quantity changed from ${exchangeProperty.order-line.get('product_uom_qty')} to ${exchangeProperty.order-quantity}" />

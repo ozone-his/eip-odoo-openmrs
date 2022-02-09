@@ -1,0 +1,33 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <route id="get-units-id-by-name-from-odoo" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:get-units-id-by-name-from-odoo" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+
+        <setProperty name="unitsSearchQuery">
+            <spel>#{new Object[]{new Object[]{new Object[]{'name', '=', getProperty('unitsName')}}}}</spel>
+        </setProperty>
+        <setProperty name="getUnitsParams">
+            <spel>#{new java.util.ArrayList(6)}</spel>
+        </setProperty>
+        <script>
+            <spel>
+                #{getProperty('getUnitsParams').add('{{odoo.database}}')}
+                #{getProperty('getUnitsParams').add(T(org.openmrs.eip.AppContext).get(getProperty('odooUserIdKey')))}
+                #{getProperty('getUnitsParams').add('{{odoo.password}}')}
+                #{getProperty('getUnitsParams').add('uom.uom')}
+                #{getProperty('getUnitsParams').add('search')}
+                #{getProperty('getUnitsParams').add(getProperty('unitsSearchQuery'))}
+            </spel>
+        </script>
+        <setBody>
+            <spel>
+                #{T(org.openmrs.eip.AppContext).get(getProperty('xmlRpcClientKey')).execute(T(org.openmrs.eip.AppContext).get(getProperty('xmlRpcConfigKey')), 'execute_kw', getProperty('getUnitsParams'))}
+            </spel>
+        </setBody>
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}"  />
+    </route>
+
+</routes>

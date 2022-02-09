@@ -42,6 +42,7 @@
                 <log message="No action to take for a voided or discontinuation order because the patient has no customer record in odoo" />
             </when>
             <otherwise>
+                <!-- TODO Replace logic below with call to concept-to-order-line-processor route -->
                 <to uri="direct:odoo-get-draft-quotations" />
 
                 <log message="Found ${body.length} existing draft quotation(s) for the patient in Odoo" loggingLevel="DEBUG" />
