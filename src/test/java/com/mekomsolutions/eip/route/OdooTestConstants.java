@@ -33,8 +33,18 @@ public class OdooTestConstants {
 	public static final String EX_PROP_PRODUCT_ID = "odooProductId";
 	
 	public static final String EX_PROP_ODOO_USER_ID_KEY = "odooUserIdKey";
-
-    public static final String EX_PROP_LINE_COUNT = "orderLineCount";
+	
+	public static final String EX_PROP_QUOTE_ID = "quotationId";
+	
+	public static final String EX_PROP_LINE_COUNT = "orderLineCount";
+	
+	public static final String EX_PROP_CREATE_QUOTE_IF_NOT_EXIST = "createQuoteIfNotExist";
+	
+	public static final String EX_PROP_LINE_CONCEPT = "orderLineConcept";
+	
+	public static final String EX_PROP_ORDER_LINE = "orderLine";
+	
+	public static final String EX_PROP_ORDER_LINE_COUNT = "orderLineCount";
 	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	

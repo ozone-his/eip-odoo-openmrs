@@ -8,7 +8,7 @@
             <simple>product.product</simple>
         </setProperty>
         <setProperty name="externalId">
-            <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')}</simple>
+            <simple>${exchangeProperty.orderLineConcept.get('uuid')}</simple>
         </setProperty>
 
         <to uri="direct:odoo-get-external-id-map" />
@@ -41,7 +41,7 @@
             <when>
                 <simple>${body.length} == 0</simple>
                 <when>
-                    <simple>${exchangeProperty.entity-instance.get('voided')} != true</simple>
+                    <simple>${exchangeProperty.createQuoteIfNotExist} == true</simple>
                     <setProperty name="odoo-operation">
                         <simple>create</simple>
                     </setProperty>
@@ -50,7 +50,7 @@
 
                     <to uri="direct:odoo-manage-quotation" />
 
-                    <setProperty name="quotation-id">
+                    <setProperty name="quotationId">
                         <simple>${body}</simple>
                     </setProperty>
                     <setProperty name="orderLineCount">
@@ -60,7 +60,7 @@
             </when>
             <otherwise>
                 <log loggingLevel="DEBUG" message="Existing draft quotation id: ${body[0].get('id')}" />
-                <setProperty name="quotation-id">
+                <setProperty name="quotationId">
                     <spel>#{T(java.lang.Integer).valueOf(body[0].get('id'))}</spel>
                 </setProperty>
                 <setProperty name="orderLineCount">

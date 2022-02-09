@@ -1,10 +1,12 @@
 package com.mekomsolutions.eip.route.prp;
 
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_CREATE_QUOTE_IF_NOT_EXIST;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_LINE_CONCEPT;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_CONCEPT_LINE_PROCESSOR;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ENC_VALIDATED_RULE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_NON_VOIDED_OBS_PROCESSOR;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_ORDER_LINE;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_CONCEPT_LINE_PROCESSOR;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_UUID_TO_CUSTOMER;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_VOIDED_OBS_PROCESSOR;
 import static java.util.Collections.singleton;
@@ -153,7 +155,8 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		obsResource.put("uuid", OBS_UUID);
 		final String personUuid = "person-uuid";
 		obsResource.put("person", singletonMap("uuid", personUuid));
-		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
+		Map conceptResource = singletonMap("uuid", CONCEPT_UUID_1);
+		obsResource.put("concept", conceptResource);
 		obsResource.put("value", 1);
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
 		mockNonVoidedObsProcEndpoint.expectedMessageCount(1);
@@ -162,6 +165,9 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		mockUuidToCustomerEndpoint.expectedMessageCount(1);
 		mockUuidToCustomerEndpoint.expectedBodiesReceived(personUuid);
+		mockOrderLineProcessorEndpoint.expectedMessageCount(1);
+		mockOrderLineProcessorEndpoint.expectedPropertyReceived(EX_PROP_LINE_CONCEPT, conceptResource);
+		mockOrderLineProcessorEndpoint.expectedPropertyReceived(EX_PROP_CREATE_QUOTE_IF_NOT_EXIST, true);
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
@@ -169,6 +175,7 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		mockTestRuleEndpoint.assertIsSatisfied();
 		mockUuidToCustomerEndpoint.assertIsSatisfied();
 		mockUuidToCustomerEndpoint.expectedBodyReceived();
+		mockOrderLineProcessorEndpoint.assertIsSatisfied();
 	}
 	
 	@Test
@@ -181,7 +188,8 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		obsResource.put("voided", true);
 		final String personUuid = "person-uuid";
 		obsResource.put("person", singletonMap("uuid", personUuid));
-		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
+		Map conceptResource = singletonMap("uuid", CONCEPT_UUID_1);
+		obsResource.put("concept", conceptResource);
 		obsResource.put("value", 1);
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
 		mockNonVoidedObsProcEndpoint.expectedMessageCount(0);
@@ -190,6 +198,9 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		mockUuidToCustomerEndpoint.expectedMessageCount(1);
 		mockUuidToCustomerEndpoint.expectedBodiesReceived(personUuid);
+		mockOrderLineProcessorEndpoint.expectedMessageCount(1);
+		mockOrderLineProcessorEndpoint.expectedPropertyReceived(EX_PROP_LINE_CONCEPT, conceptResource);
+		mockOrderLineProcessorEndpoint.expectedPropertyReceived(EX_PROP_CREATE_QUOTE_IF_NOT_EXIST, false);
 		
 		producerTemplate.send(URI_OBS_TO_ORDER_LINE, exchange);
 		mockNonVoidedObsProcEndpoint.assertIsSatisfied();
@@ -197,6 +208,7 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 		mockTestRuleEndpoint.assertIsSatisfied();
 		mockUuidToCustomerEndpoint.assertIsSatisfied();
 		mockUuidToCustomerEndpoint.expectedBodyReceived();
+		mockOrderLineProcessorEndpoint.assertIsSatisfied();
 	}
 	
 	@Test

@@ -1,11 +1,15 @@
 package com.mekomsolutions.eip.route;
 
-import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_CREATE_QUOTE_IF_NOT_EXIST;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_EXTERNAL_ID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_LINE_CONCEPT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_LINE_COUNT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_MODEL_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ODOO_OP;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ORDER_LINE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ORDER_LINE_COUNT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_PRODUCT_ID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_QUOTE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_OP_CREATE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_RES_PRODUCT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_CONCEPT_LINE_PROCESSOR;
@@ -16,7 +20,9 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MANAGE_QUOTE;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.camel.EndpointInject;
@@ -78,7 +84,7 @@ public class ConceptToOrderLineProcessorRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldFailIfThereIsNoMatchingProductFoundInOdoo() {
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, singletonMap("concept", singletonMap("uuid", CONCEPT_UUID)));
+		exchange.setProperty(EX_PROP_LINE_CONCEPT, singletonMap("uuid", CONCEPT_UUID));
 		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] {}));
 		
 		producerTemplate.send(URI_CONCEPT_LINE_PROCESSOR, exchange);
@@ -89,7 +95,7 @@ public class ConceptToOrderLineProcessorRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldFailIfMultipleProductsAreFoundInOdooMappedToTheConcept() {
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, singletonMap("concept", singletonMap("uuid", CONCEPT_UUID)));
+		exchange.setProperty(EX_PROP_LINE_CONCEPT, singletonMap("uuid", CONCEPT_UUID));
 		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] { emptyMap(), emptyMap() }));
 		
 		producerTemplate.send(URI_CONCEPT_LINE_PROCESSOR, exchange);
@@ -100,7 +106,7 @@ public class ConceptToOrderLineProcessorRouteTest extends BaseOdooRouteTest {
 	@Test
 	public void shouldFailIfThereAreMultipleQuotesForThePatient() throws Exception {
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, singletonMap("concept", singletonMap("uuid", CONCEPT_UUID)));
+		exchange.setProperty(EX_PROP_LINE_CONCEPT, singletonMap("uuid", CONCEPT_UUID));
 		final Integer expectedProductId = 6;
 		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
 		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
@@ -115,9 +121,10 @@ public class ConceptToOrderLineProcessorRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldCreateANewQuoteIfNoneExists() throws Exception {
+	public void shouldCreateANewQuoteIfNoneExistsAndCreateQuoteIfNotExistIsSetToTrue() throws Exception {
 		final Exchange exchange = new DefaultExchange(camelContext);
-		exchange.setProperty(EX_PROP_ENTITY, singletonMap("concept", singletonMap("uuid", CONCEPT_UUID)));
+		exchange.setProperty(EX_PROP_LINE_CONCEPT, singletonMap("uuid", CONCEPT_UUID));
+		exchange.setProperty(EX_PROP_CREATE_QUOTE_IF_NOT_EXIST, true);
 		final Integer expectedProductId = 6;
 		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
 		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
@@ -126,20 +133,125 @@ public class ConceptToOrderLineProcessorRouteTest extends BaseOdooRouteTest {
 		mockGetDraftQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] {}));
 		mockManageQuoteEndpoint.expectedMessageCount(1);
 		mockManageQuoteEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
+		final Integer quoteId = 9;
+		mockManageQuoteEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quoteId));
 		
 		producerTemplate.send(URI_CONCEPT_LINE_PROCESSOR, exchange);
 		
 		mockGetDraftQuotesEndpoint.assertIsSatisfied();
 		mockManageQuoteEndpoint.assertIsSatisfied();
+		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
 		assertEquals(0, exchange.getProperty(EX_PROP_LINE_COUNT));
 	}
 	
 	@Test
-	public void shouldFetchTheExistingLineExistingQuoteForThePatient() throws Exception {
+	public void shouldNotCreateANewQuoteIfNoneExistsAndCreateQuoteIfNotExistIsNotSetToTrue() throws Exception {
+		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(EX_PROP_LINE_CONCEPT, singletonMap("uuid", CONCEPT_UUID));
+		final Integer expectedProductId = 6;
+		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
+		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
+		mockGetDraftQuotesEndpoint.expectedPropertyReceived(EX_PROP_PRODUCT_ID, expectedProductId);
+		mockGetDraftQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] {}));
+		mockManageQuoteEndpoint.expectedMessageCount(0);
+		
+		producerTemplate.send(URI_CONCEPT_LINE_PROCESSOR, exchange);
+		
+		mockGetDraftQuotesEndpoint.assertIsSatisfied();
+		mockManageQuoteEndpoint.assertIsSatisfied();
+	}
+	
+	@Test
+	public void shouldFetchTheExistingLineOnTheExistingQuoteForThePatient() throws Exception {
+		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(EX_PROP_LINE_CONCEPT, singletonMap("uuid", CONCEPT_UUID));
+		final Integer expectedProductId = 6;
+		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
+		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
+		mockGetDraftQuotesEndpoint.expectedPropertyReceived(EX_PROP_PRODUCT_ID, expectedProductId);
+		final Integer quoteId = 7;
+		Map quote = new HashMap();
+		quote.put("id", quoteId);
+		Integer[] orderLines = new Integer[] { 1, 2 };
+		quote.put("order_line", orderLines);
+		mockGetDraftQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] { quote }));
+		mockManageQuoteEndpoint.expectedMessageCount(0);
+		
+		mockGetOrderLineEndpoint.expectedMessageCount(1);
+		Map orderLine = singletonMap("id", 123);
+		mockGetOrderLineEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] { orderLine }));
+		
+		producerTemplate.send(URI_CONCEPT_LINE_PROCESSOR, exchange);
+		
+		mockGetDraftQuotesEndpoint.assertIsSatisfied();
+		mockManageQuoteEndpoint.assertIsSatisfied();
+		mockGetOrderLineEndpoint.assertIsSatisfied();
+		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
+		assertEquals(orderLine, exchange.getProperty(EX_PROP_ORDER_LINE));
+		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+	}
+	
+	@Test
+	public void shouldFetchTheExistingLineOnTheExistingQuoteForThePatientAndSetNoOrderLineOnTheExchangeIfNoneExists()
+	    throws Exception {
+		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(EX_PROP_LINE_CONCEPT, singletonMap("uuid", CONCEPT_UUID));
+		final Integer expectedProductId = 6;
+		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
+		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
+		mockGetDraftQuotesEndpoint.expectedPropertyReceived(EX_PROP_PRODUCT_ID, expectedProductId);
+		final Integer quoteId = 7;
+		Map quote = new HashMap();
+		quote.put("id", quoteId);
+		Integer[] orderLines = new Integer[] { 1, 2 };
+		quote.put("order_line", orderLines);
+		mockGetDraftQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] { quote }));
+		mockManageQuoteEndpoint.expectedMessageCount(0);
+		
+		mockGetOrderLineEndpoint.expectedMessageCount(1);
+		mockGetOrderLineEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] {}));
+		
+		producerTemplate.send(URI_CONCEPT_LINE_PROCESSOR, exchange);
+		
+		mockGetDraftQuotesEndpoint.assertIsSatisfied();
+		mockManageQuoteEndpoint.assertIsSatisfied();
+		mockGetOrderLineEndpoint.assertIsSatisfied();
+		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
+		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
 	}
 	
 	@Test
 	public void shouldFailIfThereAreMultipleLinesOnTheExistingQuoteForThePatient() throws Exception {
+		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(EX_PROP_LINE_CONCEPT, singletonMap("uuid", CONCEPT_UUID));
+		final Integer expectedProductId = 6;
+		Map[] expectedBody = new Map[] { singletonMap("res_id", expectedProductId) };
+		mockExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedBody));
+		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
+		mockGetDraftQuotesEndpoint.expectedPropertyReceived(EX_PROP_PRODUCT_ID, expectedProductId);
+		final Integer quoteId = 7;
+		Map quote = new HashMap();
+		quote.put("id", quoteId);
+		Integer[] orderLines = new Integer[] { 1, 2 };
+		quote.put("order_line", orderLines);
+		mockGetDraftQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] { quote }));
+		mockManageQuoteEndpoint.expectedMessageCount(0);
+		
+		mockGetOrderLineEndpoint.expectedMessageCount(1);
+		mockGetOrderLineEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] { emptyMap(), emptyMap() }));
+		
+		producerTemplate.send(URI_CONCEPT_LINE_PROCESSOR, exchange);
+		
+		mockGetDraftQuotesEndpoint.assertIsSatisfied();
+		mockManageQuoteEndpoint.assertIsSatisfied();
+		mockGetOrderLineEndpoint.assertIsSatisfied();
+		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
+		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+		assertEquals("Found 2 items for the same product added to the draft quotation in odoo", getErrorMessage(exchange));
 	}
 	
 }

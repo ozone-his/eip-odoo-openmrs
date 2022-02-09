@@ -69,6 +69,13 @@
 
                                 <to uri="direct:patient-uuid-to-odoo-customer" />
 
+                                <setProperty name="orderLineConcept">
+                                    <simple>${exchangeProperty.entity-instance.get('concept')}</simple>
+                                </setProperty>
+                                <setProperty name="createQuoteIfNotExist">
+                                    <spel>#{getProperty('entity-instance').get('voided') != true}</spel>
+                                </setProperty>
+
                                 <to uri="direct:concept-to-order-line-processor" />
 
                                 <choice>
