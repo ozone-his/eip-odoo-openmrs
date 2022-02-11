@@ -5,27 +5,30 @@
 
 		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
-		<setProperty name="odoo-operation">
-			<simple>unlink</simple>
-		</setProperty>
-
         <when>
             <simple>${exchangeProperty.order-line} != null</simple>
-		    <log message="Removing order line from the quotation in odoo" />
+
+            <setProperty name="odoo-operation">
+                <simple>unlink</simple>
+            </setProperty>
+
+		    <log message="Removing item from the quotation in odoo" />
 
 		    <to uri="direct:odoo-manage-order-line" />
         </when>
 
-		<when>
-			<simple>${exchangeProperty.order-line-count} &lt; 2</simple>
-			<log message="Cancelling the quotation because it has no more order lines left" />
+        <!-- TODO Cancel the quotation if it was created by user for this application and has no more items
+        <when>
+            <simple>${exchangeProperty.orderLineCount} &lt; 2</simple>
+            <log message="Cancelling the quotation because it has no more order lines left" />
 
-			<setProperty name="odoo-operation">
-				<simple>write</simple>
-			</setProperty>
+            <setProperty name="odoo-operation">
+                <simple>write</simple>
+            </setProperty>
 
-			<to uri="direct:odoo-manage-quotation" />
-		</when>
+            <to uri="direct:odoo-manage-quotation" />
+        </when>
+        -->
 
 		<log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
 	</route>
