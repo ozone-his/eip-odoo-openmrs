@@ -7,7 +7,6 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_LINE_COUNT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_MODEL_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ODOO_OP;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ORDER_LINE;
-import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ORDER_LINE_COUNT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_PRODUCT_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_QUOTE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_OP_CREATE;
@@ -190,7 +189,7 @@ public class ConceptToOrderLineProcessorRouteTest extends BaseOdooRouteTest {
 		mockGetOrderLineEndpoint.assertIsSatisfied();
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
 		assertEquals(orderLine, exchange.getProperty(EX_PROP_ORDER_LINE));
-		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_LINE_COUNT));
 	}
 	
 	@Test
@@ -220,7 +219,7 @@ public class ConceptToOrderLineProcessorRouteTest extends BaseOdooRouteTest {
 		mockManageQuoteEndpoint.assertIsSatisfied();
 		mockGetOrderLineEndpoint.assertIsSatisfied();
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
-		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_LINE_COUNT));
 		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
 	}
 	
@@ -250,7 +249,7 @@ public class ConceptToOrderLineProcessorRouteTest extends BaseOdooRouteTest {
 		mockManageQuoteEndpoint.assertIsSatisfied();
 		mockGetOrderLineEndpoint.assertIsSatisfied();
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
-		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+		assertEquals(orderLines.length, exchange.getProperty(EX_PROP_LINE_COUNT));
 		assertEquals("Found 2 items for the same product added to the draft quotation in odoo", getErrorMessage(exchange));
 	}
 	

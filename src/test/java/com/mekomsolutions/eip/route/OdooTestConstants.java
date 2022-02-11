@@ -34,7 +34,7 @@ public class OdooTestConstants {
 	
 	public static final String EX_PROP_ODOO_USER_ID_KEY = "odooUserIdKey";
 	
-	public static final String EX_PROP_QUOTE_ID = "quotationId";
+	public static final String EX_PROP_QUOTE_ID = "quotation-id";
 	
 	public static final String EX_PROP_LINE_COUNT = "orderLineCount";
 	
@@ -42,9 +42,11 @@ public class OdooTestConstants {
 	
 	public static final String EX_PROP_LINE_CONCEPT = "orderLineConcept";
 	
-	public static final String EX_PROP_ORDER_LINE = "orderLine";
-	
-	public static final String EX_PROP_ORDER_LINE_COUNT = "orderLineCount";
+	public static final String EX_PROP_ORDER_LINE = "order-line";
+
+	public static final String EX_PROP_UNITS_NAME = "unitsName";
+
+    public static final String EX_PROP_QTY = "order-quantity";
 	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
@@ -89,6 +91,8 @@ public class OdooTestConstants {
 	public static final String URI_PERSON_HANDLER = "direct:odoo-person-handler";
 	
 	public static final String URI_CUSTOM_DATA = "direct:odoo-callback-get-custom-customer-data";
+	
+	public static final String URI_MANAGE_ORDER_LINE = "direct:odoo-manage-order-line";
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	

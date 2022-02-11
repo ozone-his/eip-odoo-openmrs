@@ -50,7 +50,7 @@
 
                     <to uri="direct:odoo-manage-quotation" />
 
-                    <setProperty name="quotationId">
+                    <setProperty name="quotation-id">
                         <simple>${body}</simple>
                     </setProperty>
                     <setProperty name="orderLineCount">
@@ -60,7 +60,7 @@
             </when>
             <otherwise>
                 <log loggingLevel="DEBUG" message="Existing draft quotation id: ${body[0].get('id')}" />
-                <setProperty name="quotationId">
+                <setProperty name="quotation-id">
                     <spel>#{T(java.lang.Integer).valueOf(body[0].get('id'))}</spel>
                 </setProperty>
                 <setProperty name="orderLineCount">
@@ -82,7 +82,7 @@
                             <simple>${body.length} == 1</simple>
                             <log message="Found existing item in odoo on the draft quotation" />
 
-                            <setProperty name="orderLine">
+                            <setProperty name="order-line">
                                 <simple>${body[0]}</simple>
                             </setProperty>
                         </when>
@@ -90,7 +90,7 @@
                 </when>
 
                 <when>
-                    <simple>${exchangeProperty.orderLine} == null</simple>
+                    <simple>${exchangeProperty.order-line} == null</simple>
                     <log message="No item found on the existing draft quotation in odoo" />
                 </when>
             </otherwise>
