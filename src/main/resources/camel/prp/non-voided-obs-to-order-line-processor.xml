@@ -5,31 +5,6 @@
 
 		<log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
-        <setProperty name="unitsName">
-            <simple>{{odoo.physio.session.units.name}}</simple>
-        </setProperty>
-
-        <to uri="direct:get-units-id-by-name-from-odoo" />
-
-        <when>
-            <simple>${body.length} > 1</simple>
-            <throwException exceptionType="org.openmrs.eip.EIPException" message="Found ${body.length} units in odoo matching name: ${exchangeProperty.unitsName}" />
-        </when>
-
-        <choice>
-            <when>
-                <simple>${body.length} == 0</simple>
-                <throwException exceptionType="org.openmrs.eip.EIPException" message="No units found in odoo matching name: ${exchangeProperty.unitsName}" />
-            </when>
-            <otherwise>
-                <setProperty name="unitsId">
-                    <simple>${body[0]}</simple>
-                </setProperty>
-
-                <log loggingLevel="DEBUG" message="Odoo physio sessions units of measure id: ${exchangeProperty.unitsId}" />
-            </otherwise>
-        </choice>
-
         <setProperty name="order-quantity">
             <simple>${exchangeProperty.entity-instance.get('value')}</simple>
         </setProperty>
@@ -55,15 +30,6 @@
                     </setProperty>
                 </when>
 
-                <when>
-                    <simple>${exchangeProperty.unitsId} != ${exchangeProperty.order-line.get('product_uom')[0]}</simple>
-                    <log message="Item quantity units changed from ${exchangeProperty.order-line.get('product_uom')[0]} to ${exchangeProperty.unitsId}" />
-
-                    <setProperty name="foundChanges">
-                        <simple>true</simple>
-                    </setProperty>
-                </when>
-
                 <choice>
                     <when>
                         <simple>${exchangeProperty.foundChanges} == true</simple>
@@ -76,7 +42,7 @@
                         <to uri="direct:odoo-manage-order-line" />
                     </when>
                     <otherwise>
-                        <log message="Item quantity and units are the same as those on the existing item in odoo, nothing to update" />
+                        <log message="Item quantity is the same as that on the existing item in odoo, nothing to update" />
                     </otherwise>
                 </choice>
             </otherwise>
