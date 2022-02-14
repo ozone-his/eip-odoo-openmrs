@@ -26,7 +26,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import ch.qos.logback.classic.Level;
 
-@TestPropertySource(properties = {"openmrs.identifier.type.uuid=" + OdooPatientHandlerSyncsAnyCreatedPatientEventRouteTest.ID_TYPE_UUID, "should.sync.any.patient.asCustomer=true"})
+@TestPropertySource(properties = {"openmrs.identifier.type.uuid=" + OdooPatientHandlerSyncsAnyCreatedPatientEventRouteTest.ID_TYPE_UUID, "create.customer.if.not.exist=true"})
 public class OdooPatientHandlerSyncsAnyCreatedPatientEventRouteTest extends BaseOdooRouteTest {
 	
 	private static final String ROUTE_ID = "odoo-patient-handler";
