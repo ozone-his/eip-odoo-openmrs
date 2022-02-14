@@ -60,6 +60,15 @@
                     </script>
                 </when>
 
+                <when>
+                    <simple>${exchangeProperty.description} != null</simple>
+                    <script>
+                        <spel>
+                            #{getProperty('order-line-data').put('name', getProperty('description'))}
+                        </spel>
+                    </script>
+                </when>
+
 				<script>
 					<spel>
 						#{getProperty('request-data').add(getProperty('order-line-data'))}

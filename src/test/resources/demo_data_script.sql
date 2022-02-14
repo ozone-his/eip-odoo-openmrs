@@ -24,9 +24,9 @@ values((select person_id from person where uuid='person-uuid-1'), 4, 5, now(), '
 
 
 -- Start Patient record and Metadata
-insert into person(gender,creator,date_created,voided,uuid) values('M', 1, now(), 0, 'person-uuid-1');
+insert into person(gender,birthdate,creator,date_created,voided,uuid) values('M', now(), 1, now(), 0, 'person-uuid-1');
 INSERT INTO person_name (person_id,given_name,family_name,creator,date_created,voided,uuid)
-VALUES  ((select person_id from person where uuid='person-uuid-1'), 'John', 'Doe', 1, now(), 0, 'person_name_uuid-1');
+VALUES  ((select person_id from person where uuid='person-uuid-1'), 'Jimmy', 'Senyomo', 1, now(), 0, 'name-uuid-1');
 
 insert into patient(patient_id,creator,date_created,voided,allergy_status)
 values ((select person_id from person where uuid='person-uuid-1'), 1, now(), 0,'Unknown');
@@ -43,7 +43,7 @@ insert into concept(datatype_id,class_id,creator,date_created,retired,uuid)
 values (4, 11, 1, now(), 0, 'concept-uuid-1'); -- dose units
 
 insert into concept_name (concept_id,name,locale,creator,date_created,voided,uuid)
-values ((select concept_id from concept where uuid='concept-uuid-1'), 'Tabs', 'en', 1, now(), 0, 'concept-name-uuid-1');
+values ((select concept_id from concept where uuid='concept-uuid-1'), 'Mg', 'en', 1, now(), 0, 'concept-name-uuid-1');
 
 insert into concept(datatype_id,class_id,creator,date_created,retired,uuid)
 values (4, 11, 1, now(), 0, 'concept-uuid-2'); -- route
@@ -55,11 +55,20 @@ values ((select concept_id from concept where uuid='concept-uuid-2'), 'Mouth', '
 insert into concept(datatype_id,class_id,creator,date_created,retired,uuid)
 values (4, 11, 1, now(), 0, 'concept-uuid-3'); -- qty
 
+insert into concept_name (concept_id,name,locale,creator,date_created,voided,uuid)
+values ((select concept_id from concept where uuid='concept-uuid-3'), 'Tabs', 'en', 1, now(), 0, 'concept-name-uuid-3');
+
 insert into concept(datatype_id,class_id,creator,date_created,retired,uuid)
 values (4, 11, 1, now(), 0, 'concept-uuid-4'); -- frequency
 
+insert into concept_name (concept_id,name,locale,creator,date_created,voided,uuid)
+values ((select concept_id from concept where uuid='concept-uuid-4'), 'Twice Daily', 'en', 1, now(), 0, 'concept-name-uuid-4');
+
 insert into concept(datatype_id,class_id,creator,date_created,retired,uuid)
 values (4, 11, 1, now(), 0, 'concept-uuid-5'); -- drug
+
+insert into concept_name (concept_id,name,locale,creator,date_created,voided,uuid)
+values ((select concept_id from concept where uuid='concept-uuid-5'), 'Acetaminophen', 'en', 1, now(), 0, 'concept-name-uuid-5');
 
 insert into concept(datatype_id,class_id,is_set,creator,date_created,retired,uuid)
 values (4, 11, 1, 1, now(), 0, 'concept-uuid-6'); -- routes set

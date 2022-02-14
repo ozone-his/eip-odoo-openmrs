@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.mekomsolutions.eip.route.orders.BaseOrderOdooRouteTest;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -56,6 +55,8 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 	public static final String EX_PROP_UNITS_ID = "unitsId";
 	
 	public static final String EX_PROP_CREATE_CUSTOMER = "createCustomerIfNotExist";
+	
+	public static final String EX_PROP_DESC = "description";
 	
 	@EndpointInject("mock:odoo-patient-handler")
 	private MockEndpoint mockPatientHandlerEndpoint;
@@ -705,7 +706,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldProcessQuantityDetailsForANewDrugOrder() throws Exception {
+	public void shouldProcessQuantityDetailsAndDosingInstructionsForANewDrugOrder() throws Exception {
 		final Integer odooPatientId = 5;
 		Map patientResource = new HashMap();
 		patientResource.put("uuid", PATIENT_UUID);
@@ -738,10 +739,27 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		final Integer quoteId = 9;
 		mockManageQuoteEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quoteId));
 		
+		final Integer qty = 2;
+		final String tabs = "Tabs";
 		final String qtyUnitsUuid = "some-units-uuid";
-		final Map quantityUnits = singletonMap("uuid", qtyUnitsUuid);
-		orderResource.put("quantity", 2);
-		orderResource.put("quantityUnits", quantityUnits);
+		final Map quantityUnitsResource = new HashMap();
+		quantityUnitsResource.put("uuid", qtyUnitsUuid);
+		quantityUnitsResource.put("display", tabs);
+		final Double dose = 500.0;
+		final String mg = "mg";
+		final Map doseUnitsResource = singletonMap("display", mg);
+		final String daily = "Daily";
+		final Map frequencyResource = singletonMap("display", daily);
+		final Integer duration = 1;
+		final String week = "Week";
+		final Map durationUnitsResource = singletonMap("display", week);
+		orderResource.put("dose", dose);
+		orderResource.put("doseUnits", doseUnitsResource);
+		orderResource.put("frequency", frequencyResource);
+		orderResource.put("duration", duration);
+		orderResource.put("durationUnits", durationUnitsResource);
+		orderResource.put("quantity", qty);
+		orderResource.put("quantityUnits", quantityUnitsResource);
 		mockGetExtIdMapEndpoint.expectedMessageCount(1);
 		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_MODEL_NAME, "uom.uom");
 		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_EXT_ID, qtyUnitsUuid);
@@ -760,10 +778,13 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
 		assertEquals(unitsId, exchange.getProperty(EX_PROP_UNITS_ID));
+		final String description = dose.toString() + mg + ", " + daily + ", " + duration + " " + week + " (" + qty + " "
+		        + tabs + ")";
+		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
 	}
 	
 	@Test
-	public void shouldProcessQuantityDetailsForARevisionDrugOrder() throws Exception {
+	public void shouldProcessQuantityDetailsAndDosingInstructionsForARevisionDrugOrder() throws Exception {
 		final Integer odooPatientId = 5;
 		Map patientResource = new HashMap();
 		patientResource.put("uuid", PATIENT_UUID);
@@ -795,10 +816,27 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		final Integer quoteId = 9;
 		mockManageQuoteEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quoteId));
 		
+		final Integer qty = 2;
+		final String tabs = "Tabs";
 		final String qtyUnitsUuid = "some-units-uuid";
-		final Map quantityUnits = singletonMap("uuid", qtyUnitsUuid);
-		orderResource.put("quantity", 2);
-		orderResource.put("quantityUnits", quantityUnits);
+		final Map quantityUnitsResource = new HashMap();
+		quantityUnitsResource.put("uuid", qtyUnitsUuid);
+		quantityUnitsResource.put("display", tabs);
+		final Double dose = 500.0;
+		final String mg = "mg";
+		final Map doseUnitsResource = singletonMap("display", mg);
+		final String daily = "Daily";
+		final Map frequencyResource = singletonMap("display", daily);
+		final Integer duration = 1;
+		final String week = "Week";
+		final Map durationUnitsResource = singletonMap("display", week);
+		orderResource.put("dose", dose);
+		orderResource.put("doseUnits", doseUnitsResource);
+		orderResource.put("frequency", frequencyResource);
+		orderResource.put("duration", duration);
+		orderResource.put("durationUnits", durationUnitsResource);
+		orderResource.put("quantity", qty);
+		orderResource.put("quantityUnits", quantityUnitsResource);
 		mockGetExtIdMapEndpoint.expectedMessageCount(1);
 		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_MODEL_NAME, "uom.uom");
 		mockGetExtIdMapEndpoint.expectedPropertyReceived(EX_PROP_EXT_ID, qtyUnitsUuid);
@@ -817,6 +855,9 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
 		assertEquals(unitsId, exchange.getProperty(EX_PROP_UNITS_ID));
+		final String description = dose.toString() + mg + ", " + daily + ", " + duration + " " + week + " (" + qty + " "
+		        + tabs + ")";
+		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
 	}
 	
 	@Test
@@ -963,6 +1004,246 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
 		assertEquals("Found 2 units of measure in odoo mapped to uuid: " + qtyUnitsUuid, getErrorMessage(exchange));
+	}
+	
+	@Test
+	public void shouldSetDosingInstructionsWithNoDurationForDrugOrder() throws Exception {
+		final Integer odooPatientId = 5;
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "DISCONTINUE");
+		orderResource.put("patient", patientResource);
+		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
+		exchange.setProperty(EX_PROP_IS_NEW, true);
+		exchange.setProperty(EX_PROP_IS_DRUG_ORDER, true);
+		mockProcessNewOrderEndpoint.expectedMessageCount(1);
+		mockProcessRevOrderEndpoint.expectedMessageCount(0);
+		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
+		mockPatientHandlerEndpoint.expectedMessageCount(1);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
+		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
+		
+		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
+		mockGetDraftQuotesEndpoint.expectedPropertyReceived(EX_PROP_ODOO_PATIENT_ID, odooPatientId);
+		mockGetDraftQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] {}));
+		
+		mockManageQuoteEndpoint.expectedMessageCount(1);
+		mockManageQuoteEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
+		final Integer quoteId = 9;
+		mockManageQuoteEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quoteId));
+		
+		final Double dose = 500.0;
+		final String mg = "mg";
+		final Map doseUnitsResource = singletonMap("display", mg);
+		final String daily = "Daily";
+		final Map frequencyResource = singletonMap("display", daily);
+		orderResource.put("dose", dose);
+		orderResource.put("doseUnits", doseUnitsResource);
+		orderResource.put("frequency", frequencyResource);
+		mockGetExtIdMapEndpoint.expectedMessageCount(0);
+		
+		producerTemplate.send(URI_PROCESS_ORDER, exchange);
+		
+		mockManageQuoteEndpoint.assertIsSatisfied();
+		mockProcessNewOrderEndpoint.assertIsSatisfied();
+		mockProcessRevOrderEndpoint.assertIsSatisfied();
+		mockProcessDcOrVoidedOrderEndpoint.assertIsSatisfied();
+		mockGetExtIdMapEndpoint.assertIsSatisfied();
+		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
+		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
+		assertNull(exchange.getProperty(EX_PROP_UNITS_ID));
+		final String description = dose.toString() + mg + ", " + daily;
+		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
+	}
+	
+	@Test
+	public void shouldSetDosingInstructionsWithNoQuantityForADrugOrder() throws Exception {
+		final Integer odooPatientId = 5;
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "DISCONTINUE");
+		orderResource.put("patient", patientResource);
+		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
+		exchange.setProperty(EX_PROP_IS_NEW, true);
+		exchange.setProperty(EX_PROP_IS_DRUG_ORDER, true);
+		mockProcessNewOrderEndpoint.expectedMessageCount(1);
+		mockProcessRevOrderEndpoint.expectedMessageCount(0);
+		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
+		mockPatientHandlerEndpoint.expectedMessageCount(1);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
+		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
+		
+		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
+		mockGetDraftQuotesEndpoint.expectedPropertyReceived(EX_PROP_ODOO_PATIENT_ID, odooPatientId);
+		mockGetDraftQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] {}));
+		
+		mockManageQuoteEndpoint.expectedMessageCount(1);
+		mockManageQuoteEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
+		final Integer quoteId = 9;
+		mockManageQuoteEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quoteId));
+		
+		final Double dose = 500.0;
+		final String mg = "mg";
+		final Map doseUnitsResource = singletonMap("display", mg);
+		final String daily = "Daily";
+		final Map frequencyResource = singletonMap("display", daily);
+		final Integer duration = 1;
+		final String week = "Week";
+		final Map durationUnitsResource = singletonMap("display", week);
+		orderResource.put("dose", dose);
+		orderResource.put("doseUnits", doseUnitsResource);
+		orderResource.put("frequency", frequencyResource);
+		orderResource.put("duration", duration);
+		orderResource.put("durationUnits", durationUnitsResource);
+		
+		producerTemplate.send(URI_PROCESS_ORDER, exchange);
+		
+		mockManageQuoteEndpoint.assertIsSatisfied();
+		mockProcessNewOrderEndpoint.assertIsSatisfied();
+		mockProcessRevOrderEndpoint.assertIsSatisfied();
+		mockProcessDcOrVoidedOrderEndpoint.assertIsSatisfied();
+		mockGetExtIdMapEndpoint.assertIsSatisfied();
+		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
+		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
+		assertNull(exchange.getProperty(EX_PROP_UNITS_ID));
+		final String description = dose.toString() + mg + ", " + daily + ", " + duration + " " + week;
+		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
+	}
+	
+	@Test
+	public void shouldSetDosingInstructionsWithNoFrequencyForADrugOrder() throws Exception {
+		final Integer odooPatientId = 5;
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "DISCONTINUE");
+		orderResource.put("patient", patientResource);
+		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
+		exchange.setProperty(EX_PROP_IS_NEW, true);
+		exchange.setProperty(EX_PROP_IS_DRUG_ORDER, true);
+		mockProcessNewOrderEndpoint.expectedMessageCount(1);
+		mockProcessRevOrderEndpoint.expectedMessageCount(0);
+		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
+		mockPatientHandlerEndpoint.expectedMessageCount(1);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
+		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
+		
+		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
+		mockGetDraftQuotesEndpoint.expectedPropertyReceived(EX_PROP_ODOO_PATIENT_ID, odooPatientId);
+		mockGetDraftQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] {}));
+		
+		mockManageQuoteEndpoint.expectedMessageCount(1);
+		mockManageQuoteEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
+		final Integer quoteId = 9;
+		mockManageQuoteEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quoteId));
+		
+		final Double dose = 500.0;
+		final String mg = "mg";
+		final Map doseUnitsResource = singletonMap("display", mg);
+		final Integer duration = 1;
+		final String week = "Week";
+		final Map durationUnitsResource = singletonMap("display", week);
+		orderResource.put("dose", dose);
+		orderResource.put("doseUnits", doseUnitsResource);
+		orderResource.put("duration", duration);
+		orderResource.put("durationUnits", durationUnitsResource);
+		
+		producerTemplate.send(URI_PROCESS_ORDER, exchange);
+		
+		mockManageQuoteEndpoint.assertIsSatisfied();
+		mockProcessNewOrderEndpoint.assertIsSatisfied();
+		mockProcessRevOrderEndpoint.assertIsSatisfied();
+		mockProcessDcOrVoidedOrderEndpoint.assertIsSatisfied();
+		mockGetExtIdMapEndpoint.assertIsSatisfied();
+		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
+		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
+		assertNull(exchange.getProperty(EX_PROP_UNITS_ID));
+		final String description = dose.toString() + mg + ", " + duration + " " + week;
+		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
+	}
+	
+	@Test
+	public void shouldSetDosingInstructionsWithNoDoseForADrugOrder() throws Exception {
+		final Integer odooPatientId = 5;
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		Map orderResource = new HashMap();
+		orderResource.put("action", "DISCONTINUE");
+		orderResource.put("patient", patientResource);
+		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(EX_PROP_ENTITY, orderResource);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "patient");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, PATIENT_UUID);
+		final String patientJson = mapper.writeValueAsString(patientResource);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientJson));
+		exchange.setProperty(EX_PROP_IS_NEW, true);
+		exchange.setProperty(EX_PROP_IS_DRUG_ORDER, true);
+		mockProcessNewOrderEndpoint.expectedMessageCount(1);
+		mockProcessRevOrderEndpoint.expectedMessageCount(0);
+		mockProcessDcOrVoidedOrderEndpoint.expectedMessageCount(0);
+		mockPatientHandlerEndpoint.expectedMessageCount(1);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
+		mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_CREATE_CUSTOMER, true);
+		mockPatientHandlerEndpoint.whenAnyExchangeReceived(e -> e.setProperty(EX_PROP_ODOO_PATIENT_ID, odooPatientId));
+		
+		mockGetDraftQuotesEndpoint.expectedMessageCount(1);
+		mockGetDraftQuotesEndpoint.expectedPropertyReceived(EX_PROP_ODOO_PATIENT_ID, odooPatientId);
+		mockGetDraftQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] {}));
+		
+		mockManageQuoteEndpoint.expectedMessageCount(1);
+		mockManageQuoteEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
+		final Integer quoteId = 9;
+		mockManageQuoteEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quoteId));
+		
+		final String daily = "Daily";
+		final Map frequencyResource = singletonMap("display", daily);
+		final Integer duration = 1;
+		final String week = "Week";
+		final Map durationUnitsResource = singletonMap("display", week);
+		orderResource.put("frequency", frequencyResource);
+		orderResource.put("duration", duration);
+		orderResource.put("durationUnits", durationUnitsResource);
+		
+		producerTemplate.send(URI_PROCESS_ORDER, exchange);
+		
+		mockManageQuoteEndpoint.assertIsSatisfied();
+		mockProcessNewOrderEndpoint.assertIsSatisfied();
+		mockProcessRevOrderEndpoint.assertIsSatisfied();
+		mockProcessDcOrVoidedOrderEndpoint.assertIsSatisfied();
+		mockGetExtIdMapEndpoint.assertIsSatisfied();
+		assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
+		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
+		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
+		assertNull(exchange.getProperty(EX_PROP_UNITS_ID));
+		final String description = daily + ", " + duration + " " + week;
+		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
 	}
 	
 }
