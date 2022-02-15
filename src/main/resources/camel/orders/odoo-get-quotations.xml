@@ -5,15 +5,11 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
-		<!-- Get all existing quotations for the patient created by this system's user account -->
 		<setProperty name="partnerIdCriterion">
 			<spel>#{new Object[]{'partner_id', '=', getProperty('patient-odoo-id')}}</spel>
 		</setProperty>
-		<setProperty name="creatorIdCriterion">
-			<spel>#{new Object[]{'create_uid', '=', T(java.lang.Integer).valueOf(T(org.openmrs.eip.AppContext).get(getProperty('odooUserIdKey')))}}</spel>
-		</setProperty>
 		<setProperty name="searchQuery">
-			<spel>#{new Object[]{new Object[]{getProperty('partnerIdCriterion'), getProperty('creatorIdCriterion')}}}</spel>
+			<spel>#{new Object[]{new Object[]{getProperty('partnerIdCriterion')}}}</spel>
 		</setProperty>
 		<setProperty name="getQuotationParams">
 			<spel>#{new java.util.ArrayList(6)}</spel>

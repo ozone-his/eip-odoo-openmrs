@@ -5,18 +5,14 @@
 
 		<log message="Start: route with id ${routeId}" loggingLevel="DEBUG" />
 
-		<!-- Get existing draft quotations for the patient created by this system's user account -->
 		<setProperty name="partner-id-criterion">
 			<spel>#{new Object[]{'partner_id', '=', getProperty('patient-odoo-id')}}</spel>
-		</setProperty>
-		<setProperty name="creator-id-criterion">
-			<spel>#{new Object[]{'create_uid', '=', T(java.lang.Integer).valueOf(T(org.openmrs.eip.AppContext).get(getProperty('odooUserIdKey')))}}</spel>
 		</setProperty>
 		<setProperty name="state-criterion">
 			<spel>#{new Object[]{'state', '=', 'draft'}}</spel>
 		</setProperty>
 		<setProperty name="search-query">
-			<spel>#{new Object[]{new Object[]{getProperty('partner-id-criterion'), getProperty('creator-id-criterion'), getProperty('state-criterion')}}}</spel>
+			<spel>#{new Object[]{new Object[]{getProperty('partner-id-criterion'), getProperty('state-criterion')}}}</spel>
 		</setProperty>
 		<setProperty name="search-attributes">
 			<spel>#{T(java.util.Collections).singletonMap('fields', new Object[]{'id', 'order_line'})}</spel>
