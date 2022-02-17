@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.openmrs.eip.AppContext;
 import org.openmrs.eip.mysql.watcher.Event;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.support.TestPropertySourceUtils;
 
 import ch.qos.logback.classic.Level;
 
@@ -95,6 +96,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	@After
 	public void tearDown() throws Exception {
 		mockGetCustomerEndpoint.assertIsSatisfied();
+		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(env, "create.customer.if.not.exist=false");
 	}
 	
 	@Test
@@ -186,6 +188,45 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		mockManageCustomerEndpoint.assertIsSatisfied();
 		assertEquals(patientId, exchange.getProperty(EX_PROP_ODOO_PATIENT_ID));
 		assertFalse(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
+	}
+	
+	@Test
+	public void shouldAddPatientToOdooIfTheyDoNotExistAddCreateCustomerPropIsSetToFalseGivenshouldSyncAnyPatientAsCustomerIsTrue() throws Exception {
+		// setup
+		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(env, "create.customer.if.not.exist=true");
+		Event event = createEvent("orders", "1", "order-uuid", "c");
+		final Exchange exchange = new DefaultExchange(camelContext);
+		Map personResource = new HashMap();
+		final String name = "Test User";
+		personResource.put("display", name);
+		Map patientResource = new HashMap();
+		patientResource.put("uuid", PATIENT_UUID);
+		patientResource.put("person", personResource);
+		exchange.setProperty(EX_PROP_PATIENT, patientResource);
+		exchange.setProperty(EX_PROP_CREATE_CUSTOMER, false);
+		exchange.setProperty(PROP_EVENT, event);
+		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
+		mockGetCustomDataEndpoint.expectedMessageCount(1);
+		mockGetCustomDataEndpoint.expectedPropertyReceived(EX_PROP_CUSTOM_DATA, new HashMap());
+		mockProcessAddressEndpoint.expectedMessageCount(0);
+		mockManageCustomerEndpoint.expectedMessageCount(1);
+		mockManageCustomerEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
+		mockManageCustomerEndpoint.expectedPropertyReceived("patient-name", name);
+		mockManageCustomerEndpoint.expectedPropertyReceived("patient", patientResource);
+		mockManageCustomerEndpoint.expectedPropertyReceived("patientIdentifier", "12345");
+		final int patientId = 12;
+		mockManageCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(patientId));
+		
+		// replay
+		producerTemplate.send(URI_PATIENT_HANDLER, exchange);
+		
+		// verify
+		mockProcessAddressEndpoint.assertIsSatisfied();
+		mockManageCustomerEndpoint.assertIsSatisfied();
+		mockGetCustomDataEndpoint.assertIsSatisfied();
+		assertEquals(patientId, exchange.getProperty(EX_PROP_ODOO_PATIENT_ID));
+		assertFalse(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
+		assertMessageLogged(Level.DEBUG, "Patient has no address");
 	}
 	
 	@Test
