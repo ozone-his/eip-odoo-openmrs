@@ -30,7 +30,7 @@
                 <choice>
                     <when>
                         <!-- Only process events for patients with customer records in Odoo or if we MUST create one -->
-                        <simple>${exchangeProperty.patient-odoo-id} != null || ${exchangeProperty.createCustomerIfNotExist} == true || ${properties:create.customer.if.not.exist:null} == true</simple>
+                        <simple>${exchangeProperty.patient-odoo-id} != null || ${exchangeProperty.createCustomerIfNotExist} == true || ${properties:create.customer.if.not.exist:false} == true</simple>
                         <setProperty name="isPatientVoidedOrDeleted">
                             <!-- TODO support deleted patient -->
                             <spel>#{getProperty('patient').get('patientVoided') == true}</spel>
