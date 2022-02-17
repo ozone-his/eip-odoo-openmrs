@@ -110,6 +110,9 @@
                                         <setBody>
                                             <simple>${exchangeProperty.entity-instance.get('person').get('uuid')}</simple>
                                         </setBody>
+                                        <setProperty name="skipCustomerUpdate">
+                                            <simple>true</simple>
+                                        </setProperty>
 
                                         <to uri="direct:patient-uuid-to-odoo-customer" />
                                     </when>

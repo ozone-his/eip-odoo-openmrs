@@ -2,6 +2,7 @@ package com.mekomsolutions.eip.route;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ODOO_OP;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ODOO_PATIENT_ID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_SKIP_CUSTOMER_UPDATE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_OP_CREATE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_OP_WRITE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_UUID;
@@ -9,6 +10,7 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PATIENT_HANDLER
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
 
@@ -191,7 +193,8 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 	}
 	
 	@Test
-	public void shouldAddPatientToOdooIfTheyDoNotExistAddCreateCustomerPropIsSetToFalseGivenshouldSyncAnyPatientAsCustomerIsTrue() throws Exception {
+	public void shouldAddPatientToOdooIfTheyDoNotExistAddCreateCustomerPropIsSetToFalseGivenshouldSyncAnyPatientAsCustomerIsTrue()
+	    throws Exception {
 		// setup
 		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(env, "create.customer.if.not.exist=true");
 		Event event = createEvent("orders", "1", "order-uuid", "c");
@@ -275,7 +278,6 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		Map addressResource = new HashMap();
 		addressResource.put("address1s", "26 Oceanic drives");
 		personResource.put("preferredAddress", addressResource);
-		personResource.put("display", name);
 		Map patientResource = new HashMap();
 		patientResource.put("uuid", PATIENT_UUID);
 		patientResource.put("person", personResource);
@@ -283,6 +285,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(PROP_EVENT, event);
 		mockGetCustomDataEndpoint.expectedMessageCount(1);
 		mockGetCustomDataEndpoint.expectedPropertyReceived(EX_PROP_CUSTOM_DATA, new HashMap());
+		mockGetCustomerEndpoint.expectedMessageCount(1);
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] { patientId }));
 		
 		final int countryId = 4;
@@ -311,6 +314,29 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		mockGetCustomDataEndpoint.assertIsSatisfied();
 		assertEquals(patientId, exchange.getProperty(EX_PROP_ODOO_PATIENT_ID));
 		assertFalse(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
+	}
+	
+	@Test
+	public void shouldNotUpdateTheCustomerInOdooIfTheyAlreadyExistWhenSkipCustomerUpdateIsSetToTrue() throws Exception {
+		final int patientId = 16;
+		Event event = createEvent("orders", "1", "order-uuid", "c");
+		final Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(EX_PROP_PATIENT, new HashMap());
+		exchange.setProperty(PROP_EVENT, event);
+		exchange.setProperty(EX_PROP_SKIP_CUSTOMER_UPDATE, true);
+		mockGetCustomerEndpoint.expectedMessageCount(1);
+		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] { patientId }));
+		mockProcessAddressEndpoint.expectedMessageCount(0);
+		mockGetCustomDataEndpoint.expectedMessageCount(0);
+		mockManageCustomerEndpoint.expectedMessageCount(0);
+		
+		producerTemplate.send(URI_PATIENT_HANDLER, exchange);
+		
+		mockGetCustomDataEndpoint.assertIsSatisfied();
+		mockProcessAddressEndpoint.assertIsSatisfied();
+		mockManageCustomerEndpoint.assertIsSatisfied();
+		assertEquals(patientId, exchange.getProperty(EX_PROP_ODOO_PATIENT_ID));
+		assertNull(exchange.getProperty("isPatientVoidedOrDeleted"));
 	}
 	
 	@Test

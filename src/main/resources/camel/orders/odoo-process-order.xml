@@ -29,6 +29,9 @@
         <setProperty name="createCustomerIfNotExist">
             <spel>#{getProperty('is-new') == true || getProperty('entity-instance').get('action') == 'REVISE'}</spel>
         </setProperty>
+        <setProperty name="skipCustomerUpdate">
+            <simple>true</simple>
+        </setProperty>
 
         <to uri="direct:odoo-patient-handler" />
 

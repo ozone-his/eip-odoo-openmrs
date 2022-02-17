@@ -43,10 +43,10 @@ public class OdooTestConstants {
 	public static final String EX_PROP_LINE_CONCEPT = "orderLineConcept";
 	
 	public static final String EX_PROP_ORDER_LINE = "order-line";
-
-	public static final String EX_PROP_UNITS_NAME = "unitsName";
-
-    public static final String EX_PROP_QTY = "order-quantity";
+	
+	public static final String EX_PROP_SKIP_CUSTOMER_UPDATE = "skipCustomerUpdate";
+	
+	public static final String EX_PROP_QTY = "order-quantity";
 	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	

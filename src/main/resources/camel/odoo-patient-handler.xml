@@ -27,10 +27,13 @@
                 <log message="No action to take for voided patient since they have no customer record in odoo" />
             </when>
             <otherwise>
+                <setProperty name="updateExistingCustomer">
+                    <spel>#{getProperty('patient-odoo-id') != null &amp;&amp; getProperty('skipCustomerUpdate') != true}</spel>
+                </setProperty>
                 <choice>
                     <when>
-                        <!-- Only process events for patients with customer records in Odoo or if we MUST create one -->
-                        <simple>${exchangeProperty.patient-odoo-id} != null || ${exchangeProperty.createCustomerIfNotExist} == true || ${properties:create.customer.if.not.exist:false} == true</simple>
+                        <!-- Only process events for patients with customer records in Odoo and skip update is not set to true or if we MUST create one -->
+                        <simple>${exchangeProperty.updateExistingCustomer} == true || ${exchangeProperty.createCustomerIfNotExist} == true || ${properties:create.customer.if.not.exist:false} == true</simple>
                         <setProperty name="isPatientVoidedOrDeleted">
                             <!-- TODO support deleted patient -->
                             <spel>#{getProperty('patient').get('patientVoided') == true}</spel>
@@ -129,41 +132,46 @@
                             </when>
                             <otherwise>
                                 <log message="Patient exists in odoo with id: ${exchangeProperty.patient-odoo-id}" />
-
-                                <choice>
-                                    <when>
-                                        <simple>${exchangeProperty.isPatientVoidedOrDeleted} == true</simple>
-
-                                        <to uri="direct:odoo-get-quotations" />
-
+                                <when>
+                                    <simple>${exchangeProperty.skipCustomerUpdate} != true</simple>
+                                    <choice>
                                         <when>
-                                            <simple>${body.length} > 0</simple>
-                                            <setProperty name="quotationIds">
-                                                <simple>${body}</simple>
-                                            </setProperty>
+                                            <simple>${exchangeProperty.isPatientVoidedOrDeleted} == true</simple>
 
-                                            <log message="Cancelling ${body.length} existing quotation(s) in odoo for the patient -> ${exchangeProperty.quotationIds}" />
+                                            <to uri="direct:odoo-get-quotations" />
 
-                                            <to uri="direct:odoo-cancel-quotations" />
+                                            <when>
+                                                <simple>${body.length} > 0</simple>
+                                                <setProperty name="quotationIds">
+                                                    <simple>${body}</simple>
+                                                </setProperty>
+
+                                                <log message="Cancelling ${body.length} existing quotation(s) in odoo for the patient -> ${exchangeProperty.quotationIds}" />
+
+                                                <to uri="direct:odoo-cancel-quotations" />
+                                            </when>
+
+                                            <log message="Archiving existing customer in odoo" />
                                         </when>
+                                        <otherwise>
+                                            <log message="Updating existing customer in odoo" />
+                                        </otherwise>
+                                    </choice>
 
-                                        <log message="Archiving existing customer in odoo" />
-                                    </when>
-                                    <otherwise>
-                                        <log message="Updating existing customer in odoo" />
-                                    </otherwise>
-                                </choice>
+                                    <setProperty name="odoo-operation">
+                                        <simple>write</simple>
+                                    </setProperty>
 
-                                <setProperty name="odoo-operation">
-                                    <simple>write</simple>
-                                </setProperty>
-
-                                <to uri="direct:odoo-manage-customer" />
+                                    <to uri="direct:odoo-manage-customer" />
+                                </when>
                             </otherwise>
                         </choice>
                     </when>
                     <otherwise>
-                        <log message="Patient has no customer record in Odoo, there is nothing to be processed" loggingLevel="DEBUG" />
+                        <when>
+                            <simple>${exchangeProperty.patient-odoo-id} == null</simple>
+                            <log message="Patient has no customer record in Odoo, there is nothing to be processed" loggingLevel="DEBUG" />
+                        </when>
                     </otherwise>
                 </choice>
             </otherwise>
