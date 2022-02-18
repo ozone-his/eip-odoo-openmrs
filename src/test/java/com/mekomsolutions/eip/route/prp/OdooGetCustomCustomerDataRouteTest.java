@@ -14,7 +14,7 @@ import org.junit.Test;
 
 public class OdooGetCustomCustomerDataRouteTest extends BasePrpRouteTest {
 	
-	protected static final String ROUTE_ID = "odoo-callback-get-custom-customer-data";
+	protected static final String ROUTE_ID = "callback-get-custom-customer-data";
 	
 	private static final String EX_PROP_CUSTOM_DATA = "customPatientData";
 	
