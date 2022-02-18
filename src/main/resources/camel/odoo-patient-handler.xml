@@ -111,7 +111,19 @@
                                 <spel>#{new java.util.HashMap()}</spel>
                             </setProperty>
 
-                            <to uri="direct:callback-get-custom-customer-data" />
+                            <setProperty name="customDataCallback">
+                                <simple>${properties:custom.customer.data.callback.endpoint:null}</simple>
+                            </setProperty>
+
+                            <choice>
+                                <when>
+                                    <simple>${exchangeProperty.customDataCallback} != 'null'</simple>
+                                    <toD uri="${exchangeProperty.customDataCallback}" />
+                                </when>
+                                <otherwise>
+                                    <log loggingLevel="DEBUG" message="No custom data callback endpoint defined" />
+                                </otherwise>
+                            </choice>
                         </when>
 
                         <choice>
