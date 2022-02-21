@@ -32,7 +32,7 @@ public class TestConfig {
 	}
 	
 	@Bean("openmrsSpringLiquibase")
-	public SpringLiquibase getSpringLiquibaseForMgtDB(@Qualifier(Constants.OPENMRS_DATASOURCE_NAME) DataSource dataSource) {
+	public SpringLiquibase getSpringLiquibaseForOpenmrsDB(@Qualifier(Constants.OPENMRS_DATASOURCE_NAME) DataSource dataSource) {
 		SpringLiquibase liquibase = new SpringLiquibase();
 		liquibase.setDataSource(dataSource);
 		liquibase.setChangeLog("classpath:liquibase-openmrs.xml");
