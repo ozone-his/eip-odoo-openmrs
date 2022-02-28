@@ -15,7 +15,7 @@
 				<spel>#{T(java.util.Collections).singletonMap('partner_id', getProperty('patient-odoo-id'))}</spel>
 			</setProperty>
 		</when>
-        
+        <!--
 		<when>
 			<simple>${exchangeProperty.odoo-operation} == 'write'</simple>
             <script>
@@ -25,7 +25,7 @@
                 <spel>#{T(java.util.Collections).singletonMap('state', 'cancel')}</spel>
 			</setProperty>
 		</when>
-
+        -->
         <script>
             <spel>#{getProperty('requestData').add(getProperty('quotationData'))}</spel>
         </script>
