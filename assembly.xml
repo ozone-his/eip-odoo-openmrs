@@ -12,7 +12,7 @@
             <directory>src/main/resources/camel</directory>
             <outputDirectory>routes</outputDirectory>
             <includes>
-                <include>**/</include>
+                <include>**/*.xml</include>
             </includes>
         </fileSet>
     </fileSets>
