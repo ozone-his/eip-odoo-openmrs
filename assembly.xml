@@ -12,7 +12,7 @@
             <directory>src/main/resources/camel</directory>
             <outputDirectory>routes</outputDirectory>
             <includes>
-                <include>**/odoo-*.xml</include>
+                <include>**/</include>
             </includes>
         </fileSet>
     </fileSets>
