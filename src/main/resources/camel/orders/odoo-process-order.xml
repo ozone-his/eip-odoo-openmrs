@@ -122,50 +122,57 @@
                             <setProperty name="order-quantity">
                                 <simple>${exchangeProperty.entity-instance.get('quantity')}</simple>
                             </setProperty>
+                            <setProperty name="description">
+                                <simple>${exchangeProperty.entity-instance.get('drug').get('display')}</simple>
+                            </setProperty>
 
                             <when>
                                 <simple>${exchangeProperty.entity-instance.get('dose')} != null</simple>
+                                <setProperty name="includeComma">
+                                    <simple>true</simple>
+                                </setProperty>
                                 <setProperty name="description">
-                                    <simple>${exchangeProperty.entity-instance.get('dose')}${exchangeProperty.entity-instance.get('doseUnits').get('display')}</simple>
+                                    <simple>${exchangeProperty.description} ${exchangeProperty.entity-instance.get('dose')}${exchangeProperty.entity-instance.get('doseUnits').get('display')}</simple>
                                 </setProperty>
                             </when>
 
                             <when>
                                 <simple>${exchangeProperty.entity-instance.get('frequency')} != null</simple>
-                                <when>
-                                    <simple>${exchangeProperty.description} != null</simple>
-                                    <setProperty name="description">
-                                        <spel>#{getProperty('description')+', '}</spel>
-                                    </setProperty>
-                                </when>
+                                <choice>
+                                    <when>
+                                        <simple>${exchangeProperty.includeComma} == true</simple>
+                                        <setProperty name="description">
+                                            <spel>#{getProperty('description')+','}</spel>
+                                        </setProperty>
+                                    </when>
+                                    <otherwise>
+                                        <setProperty name="includeComma">
+                                            <simple>true</simple>
+                                        </setProperty>
+                                    </otherwise>
+                                </choice>
                                 <setProperty name="description">
-                                    <simple> ${exchangeProperty.description}${exchangeProperty.entity-instance.get('frequency').get('display')}</simple>
+                                    <simple>${exchangeProperty.description} ${exchangeProperty.entity-instance.get('frequency').get('display')}</simple>
                                 </setProperty>
                             </when>
 
                             <when>
                                 <simple>${exchangeProperty.entity-instance.get('duration')} != null</simple>
                                 <when>
-                                    <simple>${exchangeProperty.description} != null</simple>
+                                    <simple>${exchangeProperty.includeComma} == true</simple>
                                     <setProperty name="description">
-                                        <spel>#{getProperty('description')+', '}</spel>
+                                        <spel>#{getProperty('description')+','}</spel>
                                     </setProperty>
                                 </when>
                                 <setProperty name="description">
-                                    <simple> ${exchangeProperty.description}${exchangeProperty.entity-instance.get('duration')} ${exchangeProperty.entity-instance.get('durationUnits').get('display')}</simple>
+                                    <simple>${exchangeProperty.description} ${exchangeProperty.entity-instance.get('duration')} ${exchangeProperty.entity-instance.get('durationUnits').get('display')}</simple>
                                 </setProperty>
                             </when>
 
                             <when>
                                 <simple>${exchangeProperty.order-quantity} != null</simple>
-                                <when>
-                                    <simple>${exchangeProperty.description} != null</simple>
-                                    <setProperty name="description">
-                                        <spel>#{getProperty('description')+' '}</spel>
-                                    </setProperty>
-                                </when>
                                 <setProperty name="description">
-                                    <simple>${exchangeProperty.description}(${exchangeProperty.order-quantity} ${exchangeProperty.entity-instance.get('quantityUnits').get('display')})</simple>
+                                    <simple>${exchangeProperty.description} (${exchangeProperty.order-quantity} ${exchangeProperty.entity-instance.get('quantityUnits').get('display')})</simple>
                                 </setProperty>
                                 <setProperty name="modelName">
                                     <simple>uom.uom</simple>

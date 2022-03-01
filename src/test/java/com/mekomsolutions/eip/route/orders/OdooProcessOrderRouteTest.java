@@ -713,6 +713,8 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		Map orderResource = new HashMap();
 		orderResource.put("action", "DISCONTINUE");
 		orderResource.put("patient", patientResource);
+		final String drugName = "Aspirin";
+		orderResource.put("drug", singletonMap("display", drugName));
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(EX_PROP_ENTITY, orderResource);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
@@ -778,8 +780,8 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
 		assertEquals(unitsId, exchange.getProperty(EX_PROP_UNITS_ID));
-		final String description = dose.toString() + mg + ", " + daily + ", " + duration + " " + week + " (" + qty + " "
-		        + tabs + ")";
+		final String description = drugName + " " + dose.toString() + mg + ", " + daily + ", " + duration + " " + week + " ("
+		        + qty + " " + tabs + ")";
 		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
 	}
 	
@@ -791,6 +793,8 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		Map orderResource = new HashMap();
 		orderResource.put("action", "REVISE");
 		orderResource.put("patient", patientResource);
+		final String drugName = "Aspirin";
+		orderResource.put("drug", singletonMap("display", drugName));
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(EX_PROP_ENTITY, orderResource);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
@@ -855,8 +859,8 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
 		assertEquals(unitsId, exchange.getProperty(EX_PROP_UNITS_ID));
-		final String description = dose.toString() + mg + ", " + daily + ", " + duration + " " + week + " (" + qty + " "
-		        + tabs + ")";
+		final String description = drugName + " " + dose.toString() + mg + ", " + daily + ", " + duration + " " + week + " ("
+		        + qty + " " + tabs + ")";
 		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
 	}
 	
@@ -868,6 +872,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		Map orderResource = new HashMap();
 		orderResource.put("action", "NEW");
 		orderResource.put("patient", patientResource);
+		orderResource.put("drug", singletonMap("display", "Aspirin"));
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(EX_PROP_ENTITY, orderResource);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
@@ -915,6 +920,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		Map orderResource = new HashMap();
 		orderResource.put("action", "NEW");
 		orderResource.put("patient", patientResource);
+		orderResource.put("drug", singletonMap("display", "Aspirin"));
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(EX_PROP_ENTITY, orderResource);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
@@ -964,6 +970,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		Map orderResource = new HashMap();
 		orderResource.put("action", "NEW");
 		orderResource.put("patient", patientResource);
+		orderResource.put("drug", singletonMap("display", "Aspirin"));
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(EX_PROP_ENTITY, orderResource);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
@@ -1014,6 +1021,8 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		Map orderResource = new HashMap();
 		orderResource.put("action", "DISCONTINUE");
 		orderResource.put("patient", patientResource);
+		final String drugName = "Aspirin";
+		orderResource.put("drug", singletonMap("display", drugName));
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(EX_PROP_ENTITY, orderResource);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
@@ -1061,7 +1070,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
 		assertNull(exchange.getProperty(EX_PROP_UNITS_ID));
-		final String description = dose.toString() + mg + ", " + daily;
+		final String description = drugName + " " + dose.toString() + mg + ", " + daily;
 		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
 	}
 	
@@ -1073,6 +1082,8 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		Map orderResource = new HashMap();
 		orderResource.put("action", "DISCONTINUE");
 		orderResource.put("patient", patientResource);
+		final String drugName = "Aspirin";
+		orderResource.put("drug", singletonMap("display", drugName));
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(EX_PROP_ENTITY, orderResource);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
@@ -1124,7 +1135,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
 		assertNull(exchange.getProperty(EX_PROP_UNITS_ID));
-		final String description = dose.toString() + mg + ", " + daily + ", " + duration + " " + week;
+		final String description = drugName + " " + dose.toString() + mg + ", " + daily + ", " + duration + " " + week;
 		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
 	}
 	
@@ -1136,6 +1147,8 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		Map orderResource = new HashMap();
 		orderResource.put("action", "DISCONTINUE");
 		orderResource.put("patient", patientResource);
+		final String drugName = "Aspirin";
+		orderResource.put("drug", singletonMap("display", drugName));
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(EX_PROP_ENTITY, orderResource);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
@@ -1184,7 +1197,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
 		assertNull(exchange.getProperty(EX_PROP_UNITS_ID));
-		final String description = dose.toString() + mg + ", " + duration + " " + week;
+		final String description = drugName + " " + dose.toString() + mg + ", " + duration + " " + week;
 		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
 	}
 	
@@ -1195,6 +1208,8 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		patientResource.put("uuid", PATIENT_UUID);
 		Map orderResource = new HashMap();
 		orderResource.put("action", "DISCONTINUE");
+		final String drugName = "Aspirin";
+		orderResource.put("drug", singletonMap("display", drugName));
 		orderResource.put("patient", patientResource);
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.setProperty(EX_PROP_ENTITY, orderResource);
@@ -1242,7 +1257,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
 		assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
 		assertNull(exchange.getProperty(EX_PROP_UNITS_ID));
-		final String description = daily + ", " + duration + " " + week;
+		final String description = drugName + " " + daily + ", " + duration + " " + week;
 		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
 	}
 	
