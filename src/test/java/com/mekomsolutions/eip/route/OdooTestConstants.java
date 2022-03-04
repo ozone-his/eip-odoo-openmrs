@@ -86,6 +86,8 @@ public class OdooTestConstants {
 	
 	public static final String URI_CONCEPT_LINE_PROCESSOR = "direct:concept-to-order-line-processor";
 	
+	public static final String URI_GET_CONCEPT_BY_MAPPING = "direct:get-concept-by-mapping-from-openmrs";
+	
 	public static final String URI_PRP_HANDLER = "direct:odoo-prp-handler";
 	
 	public static final String URI_PERSON_HANDLER = "direct:odoo-person-handler";
