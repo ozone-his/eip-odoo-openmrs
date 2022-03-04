@@ -14,7 +14,7 @@
     <properties>
         <javaCompilerVersion>1.8</javaCompilerVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <openmrsEipVersion>3.0.0</openmrsEipVersion>
+        <openmrsEipVersion>3.1.0-SNAPSHOT</openmrsEipVersion>
         <sprintBootVersion>2.3.0.RELEASE</sprintBootVersion>
         <camelVersion>3.3.0</camelVersion>
         <testContainersVersion>1.15.2</testContainersVersion>

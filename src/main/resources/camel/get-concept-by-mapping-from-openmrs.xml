@@ -53,7 +53,23 @@
             <simple>${exchangeProperty.conceptResource} == null</simple>
             <log message="Fetching concept by mapping from OpenMRS with code: ${exchangeProperty.conceptCode} in source: ${exchangeProperty.conceptSource} " />
 
-            <toD uri="{{openmrs.baseUrl}}/ws/rest/v1/concept?httpMethod=GET&amp;authMethod=Basic&amp;authUsername={{openmrs.username}}&amp;authPassword={{openmrs.password}}&amp;source=${exchangeProperty.conceptSource}&amp;code=${exchangeProperty.conceptCode}" />
+            <setBody>
+                <simple>{{openmrs.username}}:{{openmrs.password}}</simple>
+            </setBody>
+            <marshal>
+                <base64 />
+            </marshal>
+            <setHeader name="Authorization">
+                <simple>Basic ${body}</simple>
+            </setHeader>
+            <setHeader name="CamelHttpMethod">
+                <simple>GET</simple>
+            </setHeader>
+            <setHeader name="CamelHttpRawQuery">
+                <simple>source=${exchangeProperty.conceptSource}&amp;code=${exchangeProperty.conceptCode}</simple>
+            </setHeader>
+
+            <toD uri="{{openmrs.baseUrl}}/ws/rest/v1/concept" />
 
             <setProperty name="conceptResults">
                 <jsonpath>$</jsonpath>

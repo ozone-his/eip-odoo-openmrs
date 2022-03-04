@@ -47,6 +47,8 @@ public class OdooTestConstants {
 	public static final String EX_PROP_SKIP_CUSTOMER_UPDATE = "skipCustomerUpdate";
 	
 	public static final String EX_PROP_QTY = "order-quantity";
+
+    public static final String HEADER_AUTH = "Authorization";
 	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
