@@ -170,8 +170,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 			e.setProperty("odooStateId", stateId);
 		});
 		
-		mockGetCustomDataEndpoint.expectedMessageCount(1);
-		mockGetCustomDataEndpoint.expectedPropertyReceived(EX_PROP_CUSTOM_DATA, new HashMap());
+		mockGetCustomDataEndpoint.expectedMessageCount(0);
 		mockManageCustomerEndpoint.expectedMessageCount(1);
 		mockManageCustomerEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
 		mockManageCustomerEndpoint.expectedPropertyReceived("patient-name", name);
@@ -209,8 +208,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_CREATE_CUSTOMER, false);
 		exchange.setProperty(PROP_EVENT, event);
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
-		mockGetCustomDataEndpoint.expectedMessageCount(1);
-		mockGetCustomDataEndpoint.expectedPropertyReceived(EX_PROP_CUSTOM_DATA, new HashMap());
+		mockGetCustomDataEndpoint.expectedMessageCount(0);
 		mockProcessAddressEndpoint.expectedMessageCount(0);
 		mockManageCustomerEndpoint.expectedMessageCount(1);
 		mockManageCustomerEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
@@ -246,8 +244,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_CREATE_CUSTOMER, true);
 		exchange.setProperty(PROP_EVENT, event);
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
-		mockGetCustomDataEndpoint.expectedMessageCount(1);
-		mockGetCustomDataEndpoint.expectedPropertyReceived(EX_PROP_CUSTOM_DATA, new HashMap());
+		mockGetCustomDataEndpoint.expectedMessageCount(0);
 		mockProcessAddressEndpoint.expectedMessageCount(0);
 		mockManageCustomerEndpoint.expectedMessageCount(1);
 		mockManageCustomerEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_CREATE);
@@ -283,8 +280,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 		patientResource.put("person", personResource);
 		exchange.setProperty(EX_PROP_PATIENT, patientResource);
 		exchange.setProperty(PROP_EVENT, event);
-		mockGetCustomDataEndpoint.expectedMessageCount(1);
-		mockGetCustomDataEndpoint.expectedPropertyReceived(EX_PROP_CUSTOM_DATA, new HashMap());
+		mockGetCustomDataEndpoint.expectedMessageCount(0);
 		mockGetCustomerEndpoint.expectedMessageCount(1);
 		mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] { patientId }));
 		

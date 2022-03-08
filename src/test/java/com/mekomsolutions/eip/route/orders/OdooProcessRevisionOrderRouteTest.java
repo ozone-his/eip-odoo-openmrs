@@ -58,7 +58,7 @@ public class OdooProcessRevisionOrderRouteTest extends BaseOrderOdooRouteTest {
 		
 		mockManageOrderLineEndpoint.assertIsSatisfied();
 		assertEquals(ODOO_OP_CREATE, exchange.getProperty(EX_PROP_ODOO_OP));
-		assertMessageLogged(Level.INFO, "Updating existing order line on the quotation");
+		assertMessageLogged(Level.INFO, "Adding new order line to the quotation");
 	}
 	
 	@Test
