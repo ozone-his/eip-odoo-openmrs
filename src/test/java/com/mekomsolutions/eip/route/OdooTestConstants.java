@@ -47,8 +47,8 @@ public class OdooTestConstants {
 	public static final String EX_PROP_SKIP_CUSTOMER_UPDATE = "skipCustomerUpdate";
 	
 	public static final String EX_PROP_QTY = "order-quantity";
-
-    public static final String HEADER_AUTH = "Authorization";
+	
+	public static final String HEADER_AUTH = "Authorization";
 	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
@@ -89,6 +89,8 @@ public class OdooTestConstants {
 	public static final String URI_CONCEPT_LINE_PROCESSOR = "direct:concept-to-order-line-processor";
 	
 	public static final String URI_GET_CONCEPT_BY_MAPPING = "direct:get-concept-by-mapping-from-openmrs";
+	
+	public static final String URI_CONVERT_TO_CONCEPT_UUID = "direct:convert-to-concept-uuid-if-is-mapping";
 	
 	public static final String URI_PRP_HANDLER = "direct:odoo-prp-handler";
 	
