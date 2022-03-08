@@ -98,7 +98,7 @@ public class GetConceptByMappingFromOpenmrsRouteTest extends BaseOdooRouteTest {
 		
 		mockHttpEndpoint.assertIsSatisfied();
 		assertEquals(expectedConcept, exchange.getIn().getBody(Map.class));
-		assertEquals(openmrsAuth, exchange.getIn().getHeader(HEADER_AUTH, String.class).trim());
+		assertEquals(openmrsAuth, exchange.getIn().getHeader(HEADER_AUTH));
 		assertEquals("GET", exchange.getIn().getHeader(Exchange.HTTP_METHOD));
 		assertEquals("source=" + source + "&code=" + code, exchange.getIn().getHeader(Exchange.HTTP_RAW_QUERY));
 		
@@ -123,7 +123,7 @@ public class GetConceptByMappingFromOpenmrsRouteTest extends BaseOdooRouteTest {
 		
 		mockHttpEndpoint.assertIsSatisfied();
 		assertEquals(expectedConcept, exchange.getIn().getBody(Map.class));
-		assertEquals(openmrsAuth, exchange.getIn().getHeader(HEADER_AUTH, String.class).trim());
+		assertEquals(openmrsAuth, exchange.getIn().getHeader(HEADER_AUTH));
 		assertEquals("GET", exchange.getIn().getHeader(Exchange.HTTP_METHOD));
 		assertEquals("source=" + source + "&code=" + code, exchange.getIn().getHeader(Exchange.HTTP_RAW_QUERY));
 	}

@@ -57,7 +57,7 @@
                 <simple>{{openmrs.username}}:{{openmrs.password}}</simple>
             </setBody>
             <marshal>
-                <base64 />
+                <base64 lineSeparator="" />
             </marshal>
             <setHeader name="Authorization">
                 <simple>Basic ${body}</simple>
