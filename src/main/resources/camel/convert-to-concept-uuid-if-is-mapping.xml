@@ -28,13 +28,15 @@
             <to uri="direct:get-concept-by-mapping-from-openmrs" />
 
             <when>
-                <simple>${body} != null</simple>
-                <setBody>
-                    <simple>${body.get('uuid')}</simple>
-                </setBody>
-                
-                <log loggingLevel="DEBUG" message="Resolved concept uuid -> ${body}" />
+                <simple>${body} == null</simple>
+                <throwException exceptionType="org.openmrs.eip.EIPException" message="No concept found with mapping matching source: ${exchangeProperty.conceptSource} and code: ${exchangeProperty.conceptCode}" />
             </when>
+
+            <setBody>
+                <simple>${body.get('uuid')}</simple>
+            </setBody>
+
+            <log loggingLevel="DEBUG" message="Resolved concept uuid -> ${body}" />
         </when>
 
         <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />

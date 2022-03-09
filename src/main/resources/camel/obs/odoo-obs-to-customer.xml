@@ -31,13 +31,23 @@
                     <split parallelProcessing="false">
                         <simple>{{odoo.obs.concept.question.answer.mappings}}</simple>
                         <setProperty name="obsQn">
-                            <simple>${body.split(":")[0].trim()}</simple>
+                            <simple>${body.split("#")[0].trim()}</simple>
                         </setProperty>
                         <setProperty name="obsAnswers">
-                            <simple>${body.split(":")[1].trim()}</simple>
+                            <simple>${body.split("#")[1].trim()}</simple>
                         </setProperty>
                         <setProperty name="obsAnswerSet">
                             <spel>#{new java.util.HashSet()}</spel>
+                        </setProperty>
+
+                        <setBody>
+                            <simple>${exchangeProperty.obsQn}</simple>
+                        </setBody>
+
+                        <to uri="direct:convert-to-concept-uuid-if-is-mapping" />
+
+                        <setProperty name="obsQn">
+                            <simple>${body}</simple>
                         </setProperty>
 
                         <!-- TODO Check the question concept datatype -->
@@ -45,8 +55,22 @@
                         <split parallelProcessing="false" >
                             <spel>#{T(org.apache.commons.lang3.StringUtils).split(getProperty('obsAnswers'), '^')}</spel>
 
+                            <setProperty name="obsAns">
+                                <simple>${body.trim()}</simple>
+                            </setProperty>
+
+                            <setBody>
+                                <simple>${exchangeProperty.obsAns}</simple>
+                            </setBody>
+
+                            <to uri="direct:convert-to-concept-uuid-if-is-mapping" />
+
+                            <setProperty name="obsAns">
+                                <simple>${body}</simple>
+                            </setProperty>
+
                             <script>
-                                <simple>${exchangeProperty.obsAnswerSet.add(${body.trim()})}</simple>
+                                <spel>#{getProperty('obsAnswerSet').add(getProperty('obsAns'))}</spel>
                             </script>
                         </split>
 

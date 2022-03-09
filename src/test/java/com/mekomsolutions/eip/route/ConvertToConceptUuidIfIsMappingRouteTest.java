@@ -13,7 +13,6 @@ import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -60,7 +59,7 @@ public class ConvertToConceptUuidIfIsMappingRouteTest extends BaseOdooRouteTest 
 	}
 	
 	@Test
-	public void shouldReturnNullIfNoConceptIsFoundMatchingTheMapping() throws Exception {
+	public void shouldFailIfNoConceptIsFoundMatchingTheMapping() throws Exception {
 		final String source = "test-source";
 		final String code = "test-code";
 		final Exchange exchange = new DefaultExchange(camelContext);
@@ -75,11 +74,12 @@ public class ConvertToConceptUuidIfIsMappingRouteTest extends BaseOdooRouteTest 
 		producerTemplate.send(URI_CONVERT_TO_CONCEPT_UUID, exchange);
 		
 		mockGetConceptByMapEndpoint.assertIsSatisfied();
-		Assert.assertNull(exchange.getIn().getBody());
+		assertEquals("No concept found with mapping matching source: " + source + " and code: " + code,
+		    getErrorMessage(exchange));
 	}
 	
 	@Test
-	public void shouldReturnTheOriginalValueIfItIsNotAValidConceptMapping() throws Exception {
+	public void shouldReturnTheOriginalValueForANonValidConceptMapping() throws Exception {
 		final String testConceptUuid = "test-uuid";
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.getIn().setBody(testConceptUuid);
