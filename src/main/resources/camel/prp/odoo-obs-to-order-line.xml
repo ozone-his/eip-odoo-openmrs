@@ -54,7 +54,7 @@
                             <simple>${exchangeProperty.entity-instance}</simple>
                         </setBody>
 
-                        <to uri="direct:is-obs-encounter-validated-rule" />
+                        <to uri="direct:is-obs-form-validated-rule" />
 
                         <setProperty name="decisionRulePassed">
                             <simple>${body}</simple>

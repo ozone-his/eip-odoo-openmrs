@@ -4,7 +4,7 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_CREATE_QUOT
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_LINE_CONCEPT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_CONCEPT_LINE_PROCESSOR;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ENC_VALIDATED_RULE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FORM_VALIDATED_RULE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_NON_VOIDED_OBS_PROCESSOR;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_ORDER_LINE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_UUID_TO_CUSTOMER;
@@ -59,7 +59,7 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 	@EndpointInject("mock:non-voided-obs-to-order-line-processor")
 	private MockEndpoint mockNonVoidedObsProcEndpoint;
 	
-	@EndpointInject("mock:is-obs-encounter-validated-rule")
+	@EndpointInject("mock:is-obs-form-validated-rule")
 	private MockEndpoint mockTestRuleEndpoint;
 	
 	@EndpointInject("mock:patient-uuid-to-odoo-customer")
@@ -87,7 +87,7 @@ public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {
 				interceptSendToEndpoint(URI_UUID_TO_CUSTOMER).skipSendToOriginalEndpoint().to(mockUuidToCustomerEndpoint);
 				interceptSendToEndpoint(URI_CONCEPT_LINE_PROCESSOR).skipSendToOriginalEndpoint()
 				        .to(mockOrderLineProcessorEndpoint);
-				interceptSendToEndpoint(URI_ENC_VALIDATED_RULE).skipSendToOriginalEndpoint().to(mockTestRuleEndpoint);
+				interceptSendToEndpoint(URI_FORM_VALIDATED_RULE).skipSendToOriginalEndpoint().to(mockTestRuleEndpoint);
 			}
 			
 		});

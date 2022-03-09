@@ -84,7 +84,7 @@ public class OdooTestConstants {
 	
 	public static final String URI_UUID_TO_CUSTOMER = "direct:patient-uuid-to-odoo-customer";
 	
-	public static final String URI_ENC_VALIDATED_RULE = "direct:is-obs-encounter-validated-rule";
+	public static final String URI_FORM_VALIDATED_RULE = "direct:is-obs-form-validated-rule";
 	
 	public static final String URI_CONCEPT_LINE_PROCESSOR = "direct:concept-to-order-line-processor";
 	
