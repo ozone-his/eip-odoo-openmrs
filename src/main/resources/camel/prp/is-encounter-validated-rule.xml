@@ -66,23 +66,27 @@
                     </when>
                     <otherwise>
                         <log message="No associated encounter found with uuid: ${exchangeProperty.resourceId}" />
-                        <setProperty name="isValidated">
-                            <simple>false</simple>
-                        </setProperty>
                     </otherwise>
                 </choice>
             </when>
             <otherwise>
                 <log message="Obs has no encounter" />
-                <setProperty name="isValidated">
-                    <simple>false</simple>
-                </setProperty>
             </otherwise>
         </choice>
 
-        <setBody>
-            <simple>${exchangeProperty.isValidated}</simple>
-        </setBody>
+        <choice>
+            <when>
+                <simple>${exchangeProperty.isValidated} == true</simple>
+                <setBody>
+                    <simple>true</simple>
+                </setBody>
+            </when>
+            <otherwise>
+                <setBody>
+                    <simple>false</simple>
+                </setBody>
+            </otherwise>
+        </choice>
 
         <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
     </route>
