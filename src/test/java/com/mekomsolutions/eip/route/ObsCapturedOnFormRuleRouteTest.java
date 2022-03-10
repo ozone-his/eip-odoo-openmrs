@@ -1,14 +1,16 @@
-package com.mekomsolutions.eip.route.prp;
+package com.mekomsolutions.eip.route;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RES_REP;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
-import static java.util.Arrays.asList;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_CAPTURED_ON_FORM;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.camel.EndpointInject;
@@ -19,18 +21,16 @@ import org.apache.camel.support.DefaultExchange;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.test.context.TestPropertySource;
 
 import ch.qos.logback.classic.Level;
 
-@TestPropertySource(properties = "validation.concept=" + IsObsFormValidatedRuleRouteTest.VALIDATION_CONCEPT_UUID)
-public class IsObsFormValidatedRuleRouteTest extends BasePrpRouteTest {
+public class ObsCapturedOnFormRuleRouteTest extends BaseOdooRouteTest {
 	
-	private static final String ROUTE_ID = "is-obs-form-validated-rule";
+	private static final String ROUTE_ID = "obs-captured-on-form-rule";
 	
-	private static final String URI = "direct:" + ROUTE_ID;
+	public static final String EX_PROP_OBS = "obs";
 	
-	protected static final String VALIDATION_CONCEPT_UUID = "validation-concept-uuid";
+	public static final String EX_PROP_FORM_UUID = "formUuid";
 	
 	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
 	private MockEndpoint mockFetchResourceEndpoint;
@@ -38,6 +38,7 @@ public class IsObsFormValidatedRuleRouteTest extends BasePrpRouteTest {
 	@Before
 	public void setup() throws Exception {
 		mockFetchResourceEndpoint.reset();
+		
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
 			@Override
@@ -50,16 +51,14 @@ public class IsObsFormValidatedRuleRouteTest extends BasePrpRouteTest {
 	}
 	
 	@Test
-	public void shouldSetBodyToTrueIfTheEncounterContainsTheValidationObs() throws Exception {
+	public void shouldSetBodyToTrueIfTheObsWasRecordedOnTheFormWithTheSpecifiedUuid() throws Exception {
 		final String encounterUuid = "enc-uuid";
+		final String formUuid = "form-uuid";
 		Exchange exchange = new DefaultExchange(camelContext);
-		Map encResource = new HashMap();
-		encResource.put("obs",
-		    asList(singletonMap("concept", singletonMap("uuid", "test-1")),
-		        singletonMap("concept", singletonMap("uuid", VALIDATION_CONCEPT_UUID)),
-		        singletonMap("concept", singletonMap("uuid", "test-2"))));
+		Map encResource = singletonMap("form", singletonMap("uuid", formUuid));
 		Map obsResource = singletonMap("encounter", singletonMap("uuid", encounterUuid));
-		exchange.getIn().setBody(obsResource);
+		exchange.setProperty(EX_PROP_OBS, obsResource);
+		exchange.setProperty(EX_PROP_FORM_UUID, formUuid);
 		mockFetchResourceEndpoint.expectedMessageCount(1);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "encounter");
@@ -68,22 +67,20 @@ public class IsObsFormValidatedRuleRouteTest extends BasePrpRouteTest {
 		final String encJson = mapper.writeValueAsString(encResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(encJson));
 		
-		producerTemplate.send(URI, exchange);
+		producerTemplate.send(URI_OBS_CAPTURED_ON_FORM, exchange);
 		
 		mockFetchResourceEndpoint.assertIsSatisfied();
 		Assert.assertTrue(exchange.getIn().getBody(Boolean.class));
 	}
 	
 	@Test
-	public void shouldSetBodyToTrueIfTheEncounterContainsTheValidationObsIfItIsTheLastInTheList() throws Exception {
+	public void shouldSetBodyToFalseIfTheObsWasRecordedOnAFormWithADifferentUuid() throws Exception {
 		final String encounterUuid = "enc-uuid";
 		Exchange exchange = new DefaultExchange(camelContext);
-		exchange.getIn().setBody(encounterUuid);
-		Map encResource = new HashMap();
-		encResource.put("obs", asList(singletonMap("concept", singletonMap("uuid", "test-1")),
-		    singletonMap("concept", singletonMap("uuid", VALIDATION_CONCEPT_UUID))));
+		Map encResource = singletonMap("form", singletonMap("uuid", "another-form-uuid"));
 		Map obsResource = singletonMap("encounter", singletonMap("uuid", encounterUuid));
-		exchange.getIn().setBody(obsResource);
+		exchange.setProperty(EX_PROP_OBS, obsResource);
+		exchange.setProperty(EX_PROP_FORM_UUID, "form-uuid");
 		mockFetchResourceEndpoint.expectedMessageCount(1);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "encounter");
@@ -92,69 +89,64 @@ public class IsObsFormValidatedRuleRouteTest extends BasePrpRouteTest {
 		final String encJson = mapper.writeValueAsString(encResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(encJson));
 		
-		producerTemplate.send(URI, exchange);
+		producerTemplate.send(URI_OBS_CAPTURED_ON_FORM, exchange);
 		
 		mockFetchResourceEndpoint.assertIsSatisfied();
-		Assert.assertTrue(exchange.getIn().getBody(Boolean.class));
+		assertFalse(exchange.getIn().getBody(Boolean.class));
 	}
 	
 	@Test
-	public void shouldSetBodyToFalseIfTheEncounterDoesNotContainTheValidationObs() throws Exception {
-		final String encounterUuid = "enc-uuid";
-		Exchange exchange = new DefaultExchange(camelContext);
-		exchange.getIn().setBody(encounterUuid);
-		Map encResource = new HashMap();
-		encResource.put("obs", asList(singletonMap("concept", singletonMap("uuid", "test-1")),
-		    singletonMap("concept", singletonMap("uuid", "test-2"))));
-		Map obsResource = singletonMap("encounter", singletonMap("uuid", encounterUuid));
-		exchange.getIn().setBody(obsResource);
-		mockFetchResourceEndpoint.expectedMessageCount(1);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "encounter");
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, encounterUuid);
-		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RES_REP, "full");
-		final String encJson = mapper.writeValueAsString(encResource);
-		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(encJson));
-		
-		producerTemplate.send(URI, exchange);
-		
-		mockFetchResourceEndpoint.assertIsSatisfied();
-		Assert.assertFalse(exchange.getIn().getBody(Boolean.class));
-		
-	}
-	
-	@Test
-	public void shouldSetBodyToFalseIfNoEncounterIsFound() throws Exception {
+	public void shouldSetBodyToFalseForAFormLessEncounter() throws Exception {
 		final String encounterUuid = "enc-uuid";
 		Exchange exchange = new DefaultExchange(camelContext);
 		exchange.getIn().setBody(encounterUuid);
 		Map obsResource = singletonMap("encounter", singletonMap("uuid", encounterUuid));
-		exchange.getIn().setBody(obsResource);
+		exchange.setProperty(EX_PROP_OBS, obsResource);
 		mockFetchResourceEndpoint.expectedMessageCount(1);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "encounter");
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, encounterUuid);
-		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(null));
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(emptyMap()));
 		
-		producerTemplate.send(URI, exchange);
+		producerTemplate.send(URI_OBS_CAPTURED_ON_FORM, exchange);
 		
 		mockFetchResourceEndpoint.assertIsSatisfied();
-		assertMessageLogged(Level.INFO, "No associated encounter found with uuid: " + encounterUuid);
-		Assert.assertFalse(exchange.getIn().getBody(Boolean.class));
+		assertMessageLogged(Level.INFO, "Obs encounter does not belong to any form");
+		assertFalse(exchange.getIn().getBody(Boolean.class));
 		
 	}
 	
 	@Test
 	public void shouldSetBodyToFalseForAnEncounterLessObs() throws Exception {
 		Exchange exchange = new DefaultExchange(camelContext);
-		exchange.getIn().setBody(new HashMap());
+		exchange.setProperty(EX_PROP_OBS, emptyMap());
 		mockFetchResourceEndpoint.expectedMessageCount(0);
 		
-		producerTemplate.send(URI, exchange);
+		producerTemplate.send(URI_OBS_CAPTURED_ON_FORM, exchange);
 		
 		mockFetchResourceEndpoint.assertIsSatisfied();
-		Assert.assertFalse(exchange.getIn().getBody(Boolean.class));
-		assertMessageLogged(Level.INFO, "Obs has no encounter");
+		assertFalse(exchange.getIn().getBody(Boolean.class));
+		assertMessageLogged(Level.INFO, "Obs does not belong to any encounter");
+		
+	}
+	
+	@Test
+	public void shouldFailIfNoEncounterIsFoundMatchingTheEncounterUuid() throws Exception {
+		final String encounterUuid = "enc-uuid";
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.getIn().setBody(encounterUuid);
+		Map obsResource = singletonMap("encounter", singletonMap("uuid", encounterUuid));
+		exchange.setProperty(EX_PROP_OBS, obsResource);
+		mockFetchResourceEndpoint.expectedMessageCount(1);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "encounter");
+		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, encounterUuid);
+		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(null));
+		
+		producerTemplate.send(URI_OBS_CAPTURED_ON_FORM, exchange);
+		
+		mockFetchResourceEndpoint.assertIsSatisfied();
+		assertEquals("No encounter found with uuid: " + encounterUuid, getErrorMessage(exchange));
 		
 	}
 	

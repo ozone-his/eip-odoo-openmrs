@@ -99,6 +99,8 @@ public class OdooTestConstants {
 	public static final String URI_CUSTOM_DATA = "direct:callback-get-custom-customer-data";
 	
 	public static final String URI_MANAGE_ORDER_LINE = "direct:odoo-manage-order-line";
+
+    public static final String URI_OBS_CAPTURED_ON_FORM = "direct:obs-captured-on-form-rule";
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	
