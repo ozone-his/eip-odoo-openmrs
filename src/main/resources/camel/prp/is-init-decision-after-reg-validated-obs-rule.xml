@@ -1,0 +1,31 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <!--
+        Checks if the specified validated obs belongs to an encounter that is associated to the initial decision after
+        registration form
+
+        @bodyIn obs (Map) - The OpenMRS obs rest resource to check
+
+        @bodyOut (boolean) - True if the obs belongs to an encounter associated to the initial decision after
+        registration form otherwise false
+    -->
+    
+    <route id="is-init-decision-after-reg-validated-obs-rule" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:is-init-decision-after-reg-validated-obs-rule" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+        <log message="Checking if the obs encounter was recorded on the initial decision after registration form" />
+
+        <setProperty name="obs">
+            <simple>${body}</simple>
+        </setProperty>
+
+        <setProperty name="formUuid">
+            <simple>97c09137-5bf6-4afc-8073-ccde16bb2698</simple>
+        </setProperty>
+
+        <to uri="direct:obs-captured-on-form-rule" />
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+</routes>

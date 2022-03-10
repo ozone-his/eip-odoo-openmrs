@@ -4,6 +4,7 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOU
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RES_REP;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_CAPTURED_ON_FORM;
 import static java.util.Collections.emptyMap;
@@ -43,8 +44,7 @@ public class ObsCapturedOnFormRuleRouteTest extends BaseOdooRouteTest {
 			
 			@Override
 			public void configure() {
-				interceptSendToEndpoint("direct:odoo-fetch-resource").skipSendToOriginalEndpoint()
-				        .to(mockFetchResourceEndpoint);
+				interceptSendToEndpoint(URI_FETCH_RESOURCE).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
 			}
 			
 		});

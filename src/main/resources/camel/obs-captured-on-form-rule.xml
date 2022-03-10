@@ -46,7 +46,7 @@
                         </setProperty>
 
                         <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.encounter}" />
-                        <log message="Checking if the obs encounter was recorded on the initial decision after registration form" />
+                        <log message="Checking if the obs encounter was recorded on the form with uuid: ${exchangeProperty.formUuid}" />
 
                         <choice>
                             <when>
@@ -57,7 +57,7 @@
                                         <simple>true</simple>
                                     </setProperty>
 
-                                    <log message="Obs was recorded on the initial decision after registration form" />
+                                    <log message="Obs was recorded on the form with uuid: ${exchangeProperty.formUuid}" />
                                 </when>
                             </when>
                             <otherwise>
