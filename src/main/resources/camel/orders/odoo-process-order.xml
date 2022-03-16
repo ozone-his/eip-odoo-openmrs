@@ -17,7 +17,7 @@
 
         <log message="Fetching patient associated to the order from OpenMRS..." loggingLevel="DEBUG" />
 
-        <to uri="direct:odoo-fetch-resource" />
+        <to uri="direct:get-entity-by-uuid-from-openmrs" />
 
         <!-- TODO Check if no matching patient was found -->
         <setProperty name="patient">

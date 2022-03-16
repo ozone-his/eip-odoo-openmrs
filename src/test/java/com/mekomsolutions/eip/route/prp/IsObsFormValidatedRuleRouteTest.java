@@ -42,7 +42,7 @@ public class IsObsFormValidatedRuleRouteTest extends BasePrpRouteTest {
 			
 			@Override
 			public void configure() {
-				interceptSendToEndpoint("direct:odoo-fetch-resource").skipSendToOriginalEndpoint()
+				interceptSendToEndpoint("direct:get-entity-by-uuid-from-openmrs").skipSendToOriginalEndpoint()
 				        .to(mockFetchResourceEndpoint);
 			}
 			

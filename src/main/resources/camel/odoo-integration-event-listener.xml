@@ -90,7 +90,7 @@
 
             <log message="Fetching resource from OpenMRS..." loggingLevel="DEBUG" />
             
-            <to uri="direct:odoo-fetch-resource" />
+            <to uri="direct:get-entity-by-uuid-from-openmrs" />
 
             <choice>
                 <when>

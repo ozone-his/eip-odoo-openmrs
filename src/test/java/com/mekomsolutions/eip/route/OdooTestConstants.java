@@ -48,8 +48,6 @@ public class OdooTestConstants {
 	
 	public static final String EX_PROP_QTY = "order-quantity";
 	
-	public static final String HEADER_AUTH = "Authorization";
-	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
 	public static final String URI_ORDER_HANDLER = "direct:odoo-order-handler";
@@ -68,9 +66,9 @@ public class OdooTestConstants {
 	
 	public static final String URI_PROCESS_ORDER = "direct:odoo-process-order";
 	
-	public static final String URI_FETCH_RESOURCE = "direct:odoo-fetch-resource";
+	public static final String URI_FETCH_RESOURCE = "direct:get-entity-by-uuid-from-openmrs";
 	
-	public static final String URI_MOCK_FETCH_RESOURCE = "mock:odoo-fetch-resource";
+	public static final String URI_MOCK_FETCH_RESOURCE = "mock:get-entity-by-uuid-from-openmrs";
 	
 	public static final String URI_OBS_HANDLER = "direct:odoo-obs-to-customer";
 	
@@ -99,8 +97,8 @@ public class OdooTestConstants {
 	public static final String URI_CUSTOM_DATA = "direct:callback-get-custom-customer-data";
 	
 	public static final String URI_MANAGE_ORDER_LINE = "direct:odoo-manage-order-line";
-
-    public static final String URI_OBS_CAPTURED_ON_FORM = "direct:obs-captured-on-form-rule";
+	
+	public static final String URI_OBS_CAPTURED_ON_FORM = "direct:obs-captured-on-form-rule";
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	

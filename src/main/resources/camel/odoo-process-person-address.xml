@@ -23,7 +23,7 @@
 
         <log message="Fetching patient address from OpenMRS" />
 
-        <to uri="direct:odoo-fetch-resource" />
+        <to uri="direct:get-entity-by-uuid-from-openmrs" />
 
         <!-- TODO check if no record was found -->
         <setProperty name="personAddress">

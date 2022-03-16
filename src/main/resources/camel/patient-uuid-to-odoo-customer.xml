@@ -16,7 +16,7 @@
             <simple>${body}</simple>
         </setProperty>
 
-        <to uri="direct:odoo-fetch-resource" />
+        <to uri="direct:get-entity-by-uuid-from-openmrs" />
 
         <choice>
             <when>

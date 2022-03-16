@@ -1,10 +1,10 @@
 package com.mekomsolutions.eip.route;
 
-import static com.mekomsolutions.eip.route.GetConceptByMappingFromOpenmrsRouteTest.EX_PROP_CODE;
-import static com.mekomsolutions.eip.route.GetConceptByMappingFromOpenmrsRouteTest.EX_PROP_SOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_CONVERT_TO_CONCEPT_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_CONCEPT_BY_MAPPING;
 import static org.junit.Assert.assertEquals;
+import static org.openmrs.eip.Constants.EX_PROP_CONCEPT_CODE;
+import static org.openmrs.eip.Constants.EX_PROP_CONCEPT_SOURCE;
 
 import java.util.Collections;
 
@@ -46,8 +46,8 @@ public class ConvertToConceptUuidIfIsMappingRouteTest extends BaseOdooRouteTest 
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.getIn().setBody(source + ":" + code);
 		mockGetConceptByMapEndpoint.expectedMessageCount(1);
-		mockGetConceptByMapEndpoint.expectedPropertyReceived(EX_PROP_SOURCE, source);
-		mockGetConceptByMapEndpoint.expectedPropertyReceived(EX_PROP_CODE, code);
+		mockGetConceptByMapEndpoint.expectedPropertyReceived(EX_PROP_CONCEPT_SOURCE, source);
+		mockGetConceptByMapEndpoint.expectedPropertyReceived(EX_PROP_CONCEPT_CODE, code);
 		mockGetConceptByMapEndpoint.whenAnyExchangeReceived(e -> {
 			e.getIn().setBody(Collections.singletonMap("uuid", expectedConceptUuid));
 		});
@@ -65,8 +65,8 @@ public class ConvertToConceptUuidIfIsMappingRouteTest extends BaseOdooRouteTest 
 		final Exchange exchange = new DefaultExchange(camelContext);
 		exchange.getIn().setBody(source + ":" + code);
 		mockGetConceptByMapEndpoint.expectedMessageCount(1);
-		mockGetConceptByMapEndpoint.expectedPropertyReceived(EX_PROP_SOURCE, source);
-		mockGetConceptByMapEndpoint.expectedPropertyReceived(EX_PROP_CODE, code);
+		mockGetConceptByMapEndpoint.expectedPropertyReceived(EX_PROP_CONCEPT_SOURCE, source);
+		mockGetConceptByMapEndpoint.expectedPropertyReceived(EX_PROP_CONCEPT_CODE, code);
 		mockGetConceptByMapEndpoint.whenAnyExchangeReceived(e -> {
 			e.getIn().setBody(null);
 		});

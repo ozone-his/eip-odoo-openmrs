@@ -54,7 +54,7 @@ public class OdooProcessPersonAddressRouteTest extends BaseOdooRouteTest {
 	@EndpointInject("mock:odoo-get-country")
 	private MockEndpoint mockGetCountryEndpoint;
 	
-	@EndpointInject("mock:odoo-fetch-resource")
+	@EndpointInject("mock:get-entity-by-uuid-from-openmrs")
 	private MockEndpoint mockFetchResourceEndpoint;
 	
 	@Before
@@ -74,7 +74,7 @@ public class OdooProcessPersonAddressRouteTest extends BaseOdooRouteTest {
 			public void configure() {
 				interceptSendToEndpoint("direct:odoo-get-state").skipSendToOriginalEndpoint().to(mockGetStateEndpoint);
 				interceptSendToEndpoint("direct:odoo-get-country").skipSendToOriginalEndpoint().to(mockGetCountryEndpoint);
-				interceptSendToEndpoint("direct:odoo-fetch-resource").skipSendToOriginalEndpoint()
+				interceptSendToEndpoint("direct:get-entity-by-uuid-from-openmrs").skipSendToOriginalEndpoint()
 				        .to(mockFetchResourceEndpoint);
 			}
 			

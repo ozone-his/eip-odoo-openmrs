@@ -39,7 +39,7 @@ public class PatientUuidToOdooCustomerRouteTest extends BaseOdooRouteTest {
 			
 			@Override
 			public void configure() {
-				interceptSendToEndpoint("direct:odoo-fetch-resource").skipSendToOriginalEndpoint()
+				interceptSendToEndpoint("direct:get-entity-by-uuid-from-openmrs").skipSendToOriginalEndpoint()
 				        .to(mockFetchResourceEndpoint);
 				interceptSendToEndpoint("direct:odoo-patient-handler").skipSendToOriginalEndpoint()
 				        .to(mockPatientHandlerEndpoint);
