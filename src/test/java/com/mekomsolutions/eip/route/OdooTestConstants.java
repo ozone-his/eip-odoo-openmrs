@@ -34,6 +34,10 @@ public class OdooTestConstants {
 	
 	public static final String EX_PROP_ODOO_USER_ID_KEY = "odooUserIdKey";
 	
+	public static final String EX_PROP_RPC_CLIENT_KEY = "xmlRpcClientKey";
+	
+	public static final String EX_PROP_RPC_CFG_KEY = "xmlRpcConfigKey";
+	
 	public static final String EX_PROP_QUOTE_ID = "quotation-id";
 	
 	public static final String EX_PROP_LINE_COUNT = "orderLineCount";
@@ -100,6 +104,10 @@ public class OdooTestConstants {
 	
 	public static final String URI_OBS_CAPTURED_ON_FORM = "direct:obs-captured-on-form-rule";
 	
+	public static final String ROUTE_ID_SAVE_CALENDAR_EVENT = "save-calendar-event-in-odoo";
+	
+	public static final String URI_SAVE_CALENDAR_EVENT = "direct:" + ROUTE_ID_SAVE_CALENDAR_EVENT;
+	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	
 	public static final String LISTENER_URI = "direct:odoo-event-listener";
@@ -129,5 +137,7 @@ public class OdooTestConstants {
 	public static final String RPC_CLIENT_KEY = "odoo-event-listener-xmlRpcClient";
 	
 	public static final String RPC_CONFIG_KEY = "odoo-event-listener-xmlRpcConfig";
+	
+	public static final String ODOO_RPC_METHOD = "execute_kw";
 	
 }
