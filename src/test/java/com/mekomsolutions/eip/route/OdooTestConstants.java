@@ -106,7 +106,11 @@ public class OdooTestConstants {
 	
 	public static final String ROUTE_ID_SAVE_CALENDAR_EVENT = "save-calendar-event-in-odoo";
 	
+	public static final String ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO = "get-resource-by-name-from-odoo";
+	
 	public static final String URI_SAVE_CALENDAR_EVENT = "direct:" + ROUTE_ID_SAVE_CALENDAR_EVENT;
+	
+	public static final String URI_GET_RES_BY_NAME_FROM_ODOO = "direct:" + ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO;
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	
@@ -129,6 +133,8 @@ public class OdooTestConstants {
 	public static final String ODOO_OP_WRITE = "write";
 	
 	public static final String ODOO_OP_UNLINK = "unlink";
+	
+	public static final String ODOO_OP_SEARCH_READ = "search_read";
 	
 	public static final String ODOO_RES_PRODUCT = "product.product";
 	
