@@ -52,6 +52,10 @@ public class OdooTestConstants {
 	
 	public static final String EX_PROP_QTY = "order-quantity";
 	
+	public static final String EX_PROP_ENC = "encounter";
+	
+	public static final String EX_PROP_QN_CONCEPT_UUID = "questionConceptUuid";
+	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
 	public static final String URI_ORDER_HANDLER = "direct:odoo-order-handler";
@@ -111,6 +115,8 @@ public class OdooTestConstants {
 	public static final String URI_SAVE_CALENDAR_EVENT = "direct:" + ROUTE_ID_SAVE_CALENDAR_EVENT;
 	
 	public static final String URI_GET_RES_BY_NAME_FROM_ODOO = "direct:" + ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO;
+	
+	public static final String URI_ENC_CONTAINS_OBS = "direct:get-obs-by-concept-uuid-from-encounter";
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	

@@ -1,0 +1,59 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <!--
+        Gets the non-voided obs from the specified encounter that has a question concept with a uuid matching the
+        specified uuid
+
+        @exchangePropertyIn encounter (Map) - The encounter resource to search
+        @exchangePropertyIn questionConceptUuid (String) - The concept uuid to match
+
+        @bodyOut (Map) - The obs resource if a match is found otherwise null
+    -->
+    
+    <route id="get-obs-by-concept-uuid-from-encounter" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:get-obs-by-concept-uuid-from-encounter" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+
+        <log message="Looking up an obs from the encounter that has a question concept with uuid: ${exchangeProperty.questionConceptUuid}" />
+
+        <setProperty name="encObs">
+            <simple>${exchangeProperty.encounter.get('obs')}</simple>
+        </setProperty>
+        <setBody>
+            <simple>${exchangeProperty.encObs}</simple>
+        </setBody>
+
+        <loop doWhile="true">
+            <simple>${exchangeProperty.foundMatch} == null</simple>
+            <setProperty name="currentObs">
+                <spel>#{getProperty('encObs').get(getProperty('CamelLoopIndex'))}</spel>
+            </setProperty>
+
+            <when>
+                <simple>${exchangeProperty.currentObs.get('concept').get('uuid')} == ${exchangeProperty.questionConceptUuid} &amp;&amp; ${exchangeProperty.currentObs.get('voided')} != true</simple>
+                <setProperty name="matchingObs">
+                    <simple>${exchangeProperty.currentObs}</simple>
+                </setProperty>
+                <setProperty name="foundMatch">
+                    <simple>true</simple>
+                </setProperty>
+
+                <log message="Obs found with matching question concept uuid" />
+            </when>
+
+            <when>
+                <spel>#{getProperty('foundMatch') == null &amp;&amp; getProperty('CamelLoopIndex') == getProperty('encObs').size() - 1}</spel>
+                <setProperty name="foundMatch">
+                    <simple>false</simple>
+                </setProperty>
+            </when>
+        </loop>
+
+        <setBody>
+            <simple>${exchangeProperty.matchingObs}</simple>
+        </setBody>
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+</routes>
