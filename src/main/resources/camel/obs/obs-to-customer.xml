@@ -1,0 +1,54 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <!--
+        Creates or updates a customer record in odoo for the patient associated to the observation
+    -->
+
+    <route id="obs-to-customer" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:obs-to-customer" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+
+        <setProperty name="decisionRuleEndpoint">
+            <simple>${properties:obs.to.customer.decision.rule.endpoint:null}</simple>
+        </setProperty>
+
+        <choice>
+            <when>
+                <simple>${exchangeProperty.decisionRuleEndpoint.trim()} != 'null'</simple>
+                <setBody>
+                    <simple>${exchangeProperty.entity-instance}</simple>
+                </setBody>
+
+                <toD uri="${exchangeProperty.decisionRuleEndpoint}" />
+
+                <setProperty name="decisionRulePassed">
+                    <simple>${body}</simple>
+                </setProperty>
+            </when>
+            <otherwise>
+                <log loggingLevel="DEBUG" message="No decision rule endpoint defined" />
+            </otherwise>
+        </choice>
+
+        <choice>
+            <when>
+                <simple>${exchangeProperty.decisionRuleEndpoint} == 'null' || ${exchangeProperty.decisionRulePassed} == true</simple>
+                <setBody>
+                    <simple>${exchangeProperty.entity-instance.get('person').get('uuid')}</simple>
+                </setBody>
+                <setProperty name="skipCustomerUpdate">
+                    <simple>true</simple>
+                </setProperty>
+
+                <to uri="direct:patient-uuid-to-odoo-customer" />
+            </when>
+            <otherwise>
+                <log message="Skipping obs event because it failed the decision rules defined in -> ${exchangeProperty.decisionRuleEndpoint}" />
+            </otherwise>
+        </choice>
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+
+</routes>

@@ -152,4 +152,6 @@ public class OdooTestConstants {
 	
 	public static final String ODOO_RPC_METHOD = "execute_kw";
 	
+	public static final String APP_PROP_NAME = "obs.to.odoo.resource.routes";
+	
 }

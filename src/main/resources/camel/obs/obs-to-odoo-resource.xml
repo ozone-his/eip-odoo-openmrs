@@ -1,12 +1,8 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
     <!--
-        Handles an obs event and invokes all obs to odoo
-
-        @bodyIn obs (Map) - The OpenMRS obs rest resource to check
-
-        @bodyOut (boolean) - True if the obs belongs to an encounter associated to the initial decision after
-        registration form otherwise false
+        Handles an obs event and invokes all routes registered via the obs.to.odoo.resource.routes property. Note that
+        voided observations and delete events are skipped.
     -->
 
     <route id="obs-to-odoo-resource" errorHandlerRef="watcherErrorHandler">
@@ -118,7 +114,7 @@
 
                                 <split parallelProcessing="false">
                                     <simple>{{obs.to.odoo.resource.routes}}</simple>
-                                    <toD uri="${body.trim()}" />
+                                    <toD uri="direct:${body.trim()}" />
                                 </split>
                             </when>
                             <otherwise>
