@@ -2,7 +2,7 @@ package com.mekomsolutions.eip.route.obs;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_CONVERT_TO_CONCEPT_UUID;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_HANDLER;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_ODOO_RESOURCE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PATIENT_UUID_TO_CUSTOMER;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
@@ -31,17 +31,17 @@ import com.mekomsolutions.eip.route.BaseOdooRouteTest;
 
 import ch.qos.logback.classic.Level;
 
-@TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/obs/odoo-obs-to-customer.xml,classpath*:camel/convert-to-concept-uuid-if-is-mapping.xml")
+@TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/obs/obs-to-odoo-resource.xml,classpath*:camel/convert-to-concept-uuid-if-is-mapping.xml")
 @TestPropertySource(properties = "eip.watchedTables=obs")
 @TestPropertySource(properties = "odoo.handler.route=odoo-prp-handler")
 @TestPropertySource(properties = "odoo.custom.table.resource.mappings=obs:obs")
-@TestPropertySource(properties = "odoo.obs.concept.question.answer.mappings=" + OdooObsToCustomerRouteTest.CONCEPT_UUID_1
-        + "#" + OdooObsToCustomerRouteTest.CONCEPT_UUID_A + "," + OdooObsToCustomerRouteTest.CONCEPT_SOURCE_2 + ":"
-        + OdooObsToCustomerRouteTest.CONCEPT_CODE_2 + "#" + OdooObsToCustomerRouteTest.CONCEPT_UUID_B + "^"
-        + OdooObsToCustomerRouteTest.CONCEPT_SOURCE_C + ":" + OdooObsToCustomerRouteTest.CONCEPT_CODE_C)
-public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
+@TestPropertySource(properties = "odoo.obs.concept.question.answer.mappings=" + ObsToOdooResourceRouteTest.CONCEPT_UUID_1
+        + "#" + ObsToOdooResourceRouteTest.CONCEPT_UUID_A + "," + ObsToOdooResourceRouteTest.CONCEPT_SOURCE_2 + ":"
+        + ObsToOdooResourceRouteTest.CONCEPT_CODE_2 + "#" + ObsToOdooResourceRouteTest.CONCEPT_UUID_B + "^"
+        + ObsToOdooResourceRouteTest.CONCEPT_SOURCE_C + ":" + ObsToOdooResourceRouteTest.CONCEPT_CODE_C)
+public class ObsToOdooResourceRouteTest extends BaseOdooRouteTest {
 	
-	private static final String ROUTE_ID = "odoo-obs-to-customer";
+	private static final String ROUTE_ID = "obs-to-odoo-resource";
 	
 	private static final String URI_TEST_RULE = "mock:test-rule";
 	
@@ -128,7 +128,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		mockPatientUuidToCustomerEndpoint.expectedMessageCount(1);
 		mockPatientUuidToCustomerEndpoint.expectedBodiesReceived(PATIENT_UUID);
 		
-		producerTemplate.send(URI_OBS_HANDLER, exchange);
+		producerTemplate.send(URI_OBS_TO_ODOO_RESOURCE, exchange);
 		
 		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		mockPatientUuidToCustomerEndpoint.expectedBodyReceived();
@@ -156,7 +156,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		mockPatientUuidToCustomerEndpoint.expectedMessageCount(1);
 		mockPatientUuidToCustomerEndpoint.expectedBodiesReceived(PATIENT_UUID);
 		
-		producerTemplate.send(URI_OBS_HANDLER, exchange);
+		producerTemplate.send(URI_OBS_TO_ODOO_RESOURCE, exchange);
 		
 		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		mockPatientUuidToCustomerEndpoint.expectedBodyReceived();
@@ -176,7 +176,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(PROP_EVENT, event);
 		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		mockConvertToConceptUuidEndpoint.expectedMessageCount(0);
-		producerTemplate.send(URI_OBS_HANDLER, exchange);
+		producerTemplate.send(URI_OBS_TO_ODOO_RESOURCE, exchange);
 		
 		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		assertNull(exchange.getProperty(EX_PROP_OBS_QN_ANS_MAP));
@@ -192,7 +192,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		mockConvertToConceptUuidEndpoint.expectedMessageCount(0);
 		
-		producerTemplate.send(URI_OBS_HANDLER, exchange);
+		producerTemplate.send(URI_OBS_TO_ODOO_RESOURCE, exchange);
 		
 		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		assertNull(exchange.getProperty(EX_PROP_OBS_QN_ANS_MAP));
@@ -217,7 +217,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		mockConvertToConceptUuidEndpoint.expectedMessageCount(0);
 		
-		producerTemplate.send(URI_OBS_HANDLER, exchange);
+		producerTemplate.send(URI_OBS_TO_ODOO_RESOURCE, exchange);
 		
 		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		Assert.assertEquals(cachedObsQnAnsMap, exchange.getProperty(EX_PROP_OBS_QN_ANS_MAP, Map.class));
@@ -234,7 +234,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
 		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		
-		producerTemplate.send(URI_OBS_HANDLER, exchange);
+		producerTemplate.send(URI_OBS_TO_ODOO_RESOURCE, exchange);
 		
 		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		assertMessageLogged(Level.DEBUG, "Skipping Obs because the question concept doesn't match any configured question");
@@ -252,7 +252,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
 		mockPatientUuidToCustomerEndpoint.expectedMessageCount(0);
 		
-		producerTemplate.send(URI_OBS_HANDLER, exchange);
+		producerTemplate.send(URI_OBS_TO_ODOO_RESOURCE, exchange);
 		
 		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		assertMessageLogged(Level.DEBUG, "Skipping Obs because the answer concept doesn't match any configured answer");
@@ -277,7 +277,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		mockTestRuleEndpoint.expectedBodiesReceived(obsResource);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(false));
 		
-		producerTemplate.send(URI_OBS_HANDLER, exchange);
+		producerTemplate.send(URI_OBS_TO_ODOO_RESOURCE, exchange);
 		
 		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		mockTestRuleEndpoint.assertIsSatisfied();
@@ -304,7 +304,7 @@ public class OdooObsToCustomerRouteTest extends BaseOdooRouteTest {
 		mockTestRuleEndpoint.expectedBodiesReceived(obsResource);
 		mockTestRuleEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
-		producerTemplate.send(URI_OBS_HANDLER, exchange);
+		producerTemplate.send(URI_OBS_TO_ODOO_RESOURCE, exchange);
 		
 		mockPatientUuidToCustomerEndpoint.assertIsSatisfied();
 		mockPatientUuidToCustomerEndpoint.expectedBodyReceived();

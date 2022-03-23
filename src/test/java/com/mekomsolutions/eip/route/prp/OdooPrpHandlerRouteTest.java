@@ -19,26 +19,21 @@ public class OdooPrpHandlerRouteTest extends BasePrpRouteTest {
 	@EndpointInject("mock:odoo-person-handler")
 	private MockEndpoint mockPersonHandlerEndpoint;
 	
-	@EndpointInject("mock:odoo-obs-to-customer")
-	private MockEndpoint mockObsToCustomerEndpoint;
-	
-	@EndpointInject("mock:odoo-obs-to-order-line")
-	private MockEndpoint mockObsToOrderLineEndpoint;
+	@EndpointInject("mock:obs-to-odoo-resource")
+	private MockEndpoint mockObsToOdooResEndpoint;
 	
 	@Before
 	public void setup() throws Exception {
 		mockPersonHandlerEndpoint.reset();
-		mockObsToCustomerEndpoint.reset();
+		mockObsToOdooResEndpoint.reset();
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
 			@Override
 			public void configure() {
 				interceptSendToEndpoint("direct:odoo-person-handler").skipSendToOriginalEndpoint()
 				        .to(mockPersonHandlerEndpoint);
-				interceptSendToEndpoint("direct:odoo-obs-to-customer").skipSendToOriginalEndpoint()
-				        .to(mockObsToCustomerEndpoint);
-				interceptSendToEndpoint("direct:odoo-obs-to-order-line").skipSendToOriginalEndpoint()
-				        .to(mockObsToOrderLineEndpoint);
+				interceptSendToEndpoint("direct:obs-to-odoo-resource").skipSendToOriginalEndpoint()
+				        .to(mockObsToOdooResEndpoint);
 			}
 			
 		});
@@ -50,14 +45,12 @@ public class OdooPrpHandlerRouteTest extends BasePrpRouteTest {
 		Event event = createEvent("person", "1", "person-uuid", "c");
 		exchange.setProperty(PROP_EVENT, event);
 		mockPersonHandlerEndpoint.expectedMessageCount(1);
-		mockObsToCustomerEndpoint.expectedMessageCount(0);
-		mockObsToOrderLineEndpoint.expectedMessageCount(0);
+		mockObsToOdooResEndpoint.expectedMessageCount(0);
 		
 		producerTemplate.send(URI_PRP_HANDLER, exchange);
 		
 		mockPersonHandlerEndpoint.assertIsSatisfied();
-		mockObsToCustomerEndpoint.assertIsSatisfied();
-		mockObsToOrderLineEndpoint.assertIsSatisfied();
+		mockObsToOdooResEndpoint.assertIsSatisfied();
 	}
 	
 	@Test
@@ -66,14 +59,12 @@ public class OdooPrpHandlerRouteTest extends BasePrpRouteTest {
 		Event event = createEvent("obs", "1", "obs-uuid", "c");
 		exchange.setProperty(PROP_EVENT, event);
 		mockPersonHandlerEndpoint.expectedMessageCount(0);
-		mockObsToCustomerEndpoint.expectedMessageCount(1);
-		mockObsToOrderLineEndpoint.expectedMessageCount(1);
+		mockObsToOdooResEndpoint.expectedMessageCount(1);
 		
 		producerTemplate.send(URI_PRP_HANDLER, exchange);
 		
 		mockPersonHandlerEndpoint.assertIsSatisfied();
-		mockObsToCustomerEndpoint.assertIsSatisfied();
-		mockObsToOrderLineEndpoint.assertIsSatisfied();
+		mockObsToOdooResEndpoint.assertIsSatisfied();
 	}
 	
 	@Test
@@ -82,14 +73,12 @@ public class OdooPrpHandlerRouteTest extends BasePrpRouteTest {
 		Event event = createEvent("encounter", "1", "encounter-uuid", "c");
 		exchange.setProperty(PROP_EVENT, event);
 		mockPersonHandlerEndpoint.expectedMessageCount(0);
-		mockObsToCustomerEndpoint.expectedMessageCount(0);
-		mockObsToOrderLineEndpoint.expectedMessageCount(0);
+		mockObsToOdooResEndpoint.expectedMessageCount(0);
 		
 		producerTemplate.send(URI_PRP_HANDLER, exchange);
 		
 		mockPersonHandlerEndpoint.assertIsSatisfied();
-		mockObsToCustomerEndpoint.assertIsSatisfied();
-		mockObsToOrderLineEndpoint.assertIsSatisfied();
+		mockObsToOdooResEndpoint.assertIsSatisfied();
 	}
 	
 }

@@ -78,7 +78,7 @@ public class OdooTestConstants {
 	
 	public static final String URI_MOCK_FETCH_RESOURCE = "mock:get-entity-by-uuid-from-openmrs";
 	
-	public static final String URI_OBS_HANDLER = "direct:odoo-obs-to-customer";
+	public static final String URI_OBS_TO_ODOO_RESOURCE = "direct:obs-to-odoo-resource";
 	
 	public static final String URI_PATIENT_UUID_TO_CUSTOMER = "direct:patient-uuid-to-odoo-customer";
 	
