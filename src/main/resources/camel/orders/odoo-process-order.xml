@@ -199,6 +199,19 @@
 
                                 <log message="Odoo units of measure id: ${exchangeProperty.unitsId}" loggingLevel="DEBUG" />
                             </when>
+
+                            <when>
+                                <simple>${properties:append.orderer.to.order.description:false} == true</simple>
+                                <when>
+                                    <simple>${exchangeProperty.includeComma} == true</simple>
+                                    <setProperty name="description">
+                                        <spel>#{getProperty('description')+','}</spel>
+                                    </setProperty>
+                                </when>
+                                <setProperty name="description">
+                                    <simple>${exchangeProperty.description} Orderer: ${exchangeProperty.entity-instance.get('orderer').get('display')}</simple>
+                                </setProperty>
+                            </when>
                         </when>
 
                         <choice>
