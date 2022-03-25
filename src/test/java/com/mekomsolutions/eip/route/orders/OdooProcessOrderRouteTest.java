@@ -29,8 +29,6 @@ import org.apache.camel.support.DefaultExchange;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.test.context.support.TestPropertySourceUtils;
-
 import ch.qos.logback.classic.Level;
 
 public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
@@ -128,7 +126,6 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 	
 	@After
 	public void tearDown() throws Exception {
-		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(env, "append.orderer.to.order.description=false");
 		mockFetchResourceEndpoint.assertIsSatisfied();
 		mockPatientHandlerEndpoint.assertIsSatisfied();
 		mockGetDraftQuotesEndpoint.assertIsSatisfied();
@@ -789,7 +786,6 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 	
 	@Test
 	public void shouldProcessQuantityDetailsAndDosingInstructionsForANewDrugOrderAppedingOrdererToDescription() throws Exception {
-		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(env, "append.orderer.to.order.description=true");
 		final Integer odooPatientId = 5;
 		Map patientResource = new HashMap();
 		patientResource.put("uuid", PATIENT_UUID);
@@ -952,7 +948,6 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 	
 	@Test
 	public void shouldProcessQuantityDetailsAndDosingInstructionsForARevisionDrugOrderAppedingOrdererToDescription() throws Exception {
-		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(env, "append.orderer.to.order.description=true");
 		final Integer odooPatientId = 5;
 		Map patientResource = new HashMap();
 		patientResource.put("uuid", PATIENT_UUID);

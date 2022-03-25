@@ -201,7 +201,7 @@
                             </when>
 
                             <when>
-                                <simple>${properties:append.orderer.to.order.description:false} == true</simple>
+                                <simple>${exchangeProperty.entity-instance.get('orderer')} != null</simple>
                                 <when>
                                     <simple>${exchangeProperty.includeComma} == true</simple>
                                     <setProperty name="description">
