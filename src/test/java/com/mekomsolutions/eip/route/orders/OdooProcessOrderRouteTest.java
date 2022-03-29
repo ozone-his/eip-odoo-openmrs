@@ -1026,7 +1026,6 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 		final String description = drugName + " " + dose.toString() + mg + ", " + daily + ", " + duration + " " + week + " ("
 		        + qty + " " + tabs + "), " + "Orderer: " + ordererResource.get("display");
 		assertEquals(description, exchange.getProperty(EX_PROP_DESC));
-		System.out.println(description);
 	}
 	
 	@Test
