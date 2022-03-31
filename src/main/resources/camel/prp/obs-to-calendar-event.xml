@@ -1,0 +1,180 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <!--
+        Processes an event for a validation obs recorded on the basic service plan form and creates a calendar event to
+        all users that belong the group specified by application property named odoo.dormitory.notification.group.name
+    -->
+
+    <route id="obs-to-calendar-event" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:obs-to-calendar-event" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+
+        <!-- Only process an event for a form validation obs -->
+        <when>
+            <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')} == '1382a47a-3e63-11e9-b210-d663bd873d93'</simple>
+            <log message="Received an event for a form validation obs" />
+            
+            <setProperty name="obs">
+                <exchangeProperty>entity-instance</exchangeProperty>
+            </setProperty>
+            <setProperty name="formUuid">
+                <simple>3b07b00c-1623-4380-af4a-4bb68244eff5</simple>
+            </setProperty>
+
+            <to uri="direct:obs-captured-on-form-rule" />
+
+            <setProperty name="isBasicServicePlanForm">
+                <simple>${body}</simple>
+            </setProperty>
+
+            <when>
+                <simple>${exchangeProperty.isBasicServicePlanForm} == true</simple>
+                <log message="Obs recorded on the basic service plan form" />
+                <setProperty name="isSubResource">
+                    <simple>false</simple>
+                </setProperty>
+                <setProperty name="resourceName">
+                    <simple>encounter</simple>
+                </setProperty>
+                <setProperty name="resourceId">
+                    <simple>${exchangeProperty.entity-instance.get('encounter').get('uuid')}</simple>
+                </setProperty>
+                <setProperty name="resourceRepresentation">
+                    <simple>full</simple>
+                </setProperty>
+
+                <to uri="direct:get-entity-by-uuid-from-openmrs" />
+
+                <when>
+                    <simple>${body} == null</simple>
+                    <throwException exceptionType="org.openmrs.eip.EIPException" message="No associated encounter found with uuid: ${exchangeProperty.resourceId}" />
+                </when>
+
+                <setProperty name="encounter">
+                    <jsonpath>$</jsonpath>
+                </setProperty>
+
+                <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.encounter}" />
+
+                <setProperty name="questionConceptUuid">
+                    <simple>5b2efd02-be26-4789-b5ec-7c5ceb428725</simple>
+                </setProperty>
+
+                <toD uri="direct:get-obs-by-concept-uuid-from-encounter" />
+
+                <setProperty name="inpatientObs">
+                    <simple>${body}</simple>
+                </setProperty>
+
+                <log loggingLevel="DEBUG" message="Inpatient obs -> ${exchangeProperty.inpatientObs}" />
+
+                <when>
+                    <simple>${exchangeProperty.inpatientObs.get('value').get('uuid')} == 'a0b86497-cb21-46ad-9a9b-c99db8db9528'</simple>
+                    <log message="Patient is admitted, fetching their record from OpenMRS by uuid: ${body}" />
+
+                    <setProperty name="isSubResource">
+                        <simple>false</simple>
+                    </setProperty>
+                    <setProperty name="resourceName">
+                        <simple>patient</simple>
+                    </setProperty>
+                    <setProperty name="resourceId">
+                        <simple>${exchangeProperty.entity-instance.get('person').get('uuid')}</simple>
+                    </setProperty>
+                    <setProperty name="resourceRepresentation">
+                        <simple>full</simple>
+                    </setProperty>
+
+                    <to uri="direct:get-entity-by-uuid-from-openmrs" />
+
+                    <when>
+                        <simple>${body} == null</simple>
+                        <throwException exceptionType="org.openmrs.eip.EIPException" message="No patient found in OpenMRS with uuid: ${exchangeProperty.resourceId}" />
+                    </when>
+
+                    <setProperty name="patient">
+                        <jsonpath>$</jsonpath>
+                    </setProperty>
+
+                    <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.patient}" />
+
+                    <split>
+                        <simple>${exchangeProperty.patient.get('identifiers')}</simple>
+                        <when>
+                            <simple>${body.get('identifierType').get('uuid')} == '{{openmrs.identifier.type.uuid}}'</simple>
+                        </when>
+                        <setProperty name="hsuId">
+                            <simple>${body.get('identifier')}</simple>
+                        </setProperty>
+                    </split>
+
+                    <setProperty name="questionConceptUuid">
+                        <simple>a320170f-2417-45eb-86ab-5f8eb4074500</simple>
+                    </setProperty>
+
+                    <toD uri="direct:get-obs-by-concept-uuid-from-encounter" />
+
+                    <setProperty name="estimatedDaysObs">
+                        <simple>${body}</simple>
+                    </setProperty>
+
+                    <log loggingLevel="DEBUG" message="Estimated days obs -> ${exchangeProperty.estimatedDaysObs}" />
+
+                    <setProperty name="questionConceptUuid">
+                        <simple>25929a4b-fa2d-4657-b74c-385b1eb4384f</simple>
+                    </setProperty>
+
+                    <toD uri="direct:get-obs-by-concept-uuid-from-encounter" />
+
+                    <setProperty name="careGiverObs">
+                        <simple>${body}</simple>
+                    </setProperty>
+
+                    <log loggingLevel="DEBUG" message="Accompanied by care giver obs -> ${exchangeProperty.careGiverObs}" />
+
+                    <setProperty name="subject">
+                        <simple>${exchangeProperty.patient.get('display')} / ${exchangeProperty.numberOfDays} </simple>
+                    </setProperty>
+                    <setProperty name="description">
+                        <simple>Service User ${exchangeProperty.entity-instance.get('person').get('display')} ${exchangeProperty.hsuId} inpatient for estimated ${exchangeProperty.estimatedDays.get('value')} days</simple>
+                    </setProperty>
+                    <when>
+                        <simple>${exchangeProperty.careGiverObs.get('value').get('uuid')} == '1065AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'</simple>
+                        <setProperty name="description">
+                            <simple>${exchangeProperty.description}, accompanied by a caregiver</simple>
+                        </setProperty>
+                    </when>
+
+                    <setProperty name="name">
+                        <simple>{{odoo.dormitory.notification.group.name}}</simple>
+                    </setProperty>
+                    <setProperty name="modelName">
+                        <simple>res.groups</simple>
+                    </setProperty>
+
+                    <to uri="direct:get-resource-by-name-from-odoo" />
+                    
+                    <setProperty name="attendeePartnerIds">
+                        <simple>${body.get('users')}</simple>
+                    </setProperty>
+                    <setProperty name="startDateTime">
+                        <spel>#{T(java.time.LocalDateTime).now(T(java.time.ZoneId).of('UTC'))}</spel>
+                    </setProperty>
+                    <setProperty name="duration">
+                        <simple>1440</simple>
+                    </setProperty>
+
+                    <log message="Adding a calendar event in odoo" />
+
+                    <to uri="direct:save-calendar-event-in-odoo" />
+
+                    <log message="Successfully added a calendar event in odoo" />
+                </when>
+            </when>
+        </when>
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+
+</routes>

@@ -50,7 +50,7 @@
                 #{T(org.openmrs.eip.AppContext).get(getProperty('xmlRpcClientKey')).execute(T(org.openmrs.eip.AppContext).get(getProperty('xmlRpcConfigKey')), 'execute_kw', getProperty('rpcArgs'))}
             </spel>
         </setBody>
-        <log loggingLevel="DEBUG" message="Body -> ${body}" />
+        
         <choice>
             <when>
                 <simple>${body.length} == 1</simple>
