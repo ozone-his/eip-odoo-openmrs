@@ -74,9 +74,9 @@ public class OdooTestConstants {
 	
 	public static final String URI_PROCESS_ORDER = "direct:odoo-process-order";
 	
-	public static final String URI_FETCH_RESOURCE = "direct:get-entity-by-uuid-from-openmrs";
+	public static final String URI_GET_ENTITY_BY_UUID = "direct:get-entity-by-uuid-from-openmrs";
 	
-	public static final String URI_MOCK_FETCH_RESOURCE = "mock:get-entity-by-uuid-from-openmrs";
+	public static final String URI_MOCK_GET_ENTITY_BY_UUID = "mock:get-entity-by-uuid-from-openmrs";
 	
 	public static final String URI_OBS_TO_ODOO_RESOURCE = "direct:obs-to-odoo-resource";
 	
@@ -111,12 +111,14 @@ public class OdooTestConstants {
 	public static final String ROUTE_ID_SAVE_CALENDAR_EVENT = "save-calendar-event-in-odoo";
 	
 	public static final String ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO = "get-resource-by-name-from-odoo";
+
+    public static final String ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC = "get-obs-by-concept-uuid-from-encounter";
 	
 	public static final String URI_SAVE_CALENDAR_EVENT = "direct:" + ROUTE_ID_SAVE_CALENDAR_EVENT;
 	
 	public static final String URI_GET_RES_BY_NAME_FROM_ODOO = "direct:" + ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO;
 	
-	public static final String URI_ENC_CONTAINS_OBS = "direct:get-obs-by-concept-uuid-from-encounter";
+	public static final String URI_GET_CONCEPT_BY_UUID_FROM_ENC = "direct:"+ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC;
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	
@@ -153,5 +155,13 @@ public class OdooTestConstants {
 	public static final String ODOO_RPC_METHOD = "execute_kw";
 	
 	public static final String APP_PROP_NAME = "obs.to.odoo.resource.routes";
+	
+	public static final String APP_PROP_NAME_ID_TYPE_UUID = "openmrs.identifier.type.uuid";
+	
+	public static final String APP_PROP_NAME_GRP_NAME = "odoo.dormitory.notification.group.name";
+	
+	public static final String CONCEPT_UUID_VALIDATED = "1382a47a-3e63-11e9-b210-d663bd873d93";
+	
+	public static final String CONCEPT_UUID_YES = "1065AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 	
 }

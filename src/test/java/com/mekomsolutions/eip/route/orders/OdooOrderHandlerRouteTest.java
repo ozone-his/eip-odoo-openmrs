@@ -3,9 +3,9 @@ package com.mekomsolutions.eip.route.orders;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ORDER_UUID_1;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ORDER_UUID_2;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_EXT_ID;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ORDER_HANDLER;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PROCESS_ORDER;
 import static java.util.Collections.emptyMap;
@@ -29,8 +29,6 @@ import org.junit.Test;
 import org.openmrs.eip.EIPException;
 import org.openmrs.eip.mysql.watcher.Event;
 
-import com.mekomsolutions.eip.route.orders.BaseOrderOdooRouteTest;
-
 import ch.qos.logback.classic.Level;
 
 public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
@@ -43,7 +41,7 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 	@EndpointInject("mock:odoo-process-order")
 	private MockEndpoint mockProcessOrderEndpoint;
 	
-	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
+	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
 	private MockEndpoint mockFetchResourceEndpoint;
 	
 	@Before
@@ -55,7 +53,7 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 			
 			@Override
 			public void configure() {
-				interceptSendToEndpoint(URI_FETCH_RESOURCE).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
+				interceptSendToEndpoint(URI_GET_ENTITY_BY_UUID).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
 				interceptSendToEndpoint(URI_GET_EXT_ID).skipSendToOriginalEndpoint().to(mockExtIdMapEndpoint);
 				interceptSendToEndpoint(URI_PROCESS_ORDER).skipSendToOriginalEndpoint().to(mockProcessOrderEndpoint);
 			}

@@ -9,8 +9,8 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NA
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_TABLE_RESOURCE_MAP;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_OP_CREATE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_UUID;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_ENTITY_BY_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PROCESS_ORDER;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -81,7 +81,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 	@EndpointInject("mock:odoo-process-dc-or-voided-order")
 	private MockEndpoint mockProcessDcOrVoidedOrderEndpoint;
 	
-	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
+	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
 	private MockEndpoint mockFetchResourceEndpoint;
 	
 	@Before
@@ -102,7 +102,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 			
 			@Override
 			public void configure() {
-				interceptSendToEndpoint(URI_FETCH_RESOURCE).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
+				interceptSendToEndpoint(URI_GET_ENTITY_BY_UUID).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
 				interceptSendToEndpoint("direct:odoo-patient-handler").skipSendToOriginalEndpoint()
 				        .to(mockPatientHandlerEndpoint);
 				interceptSendToEndpoint("direct:odoo-get-draft-quotations").skipSendToOriginalEndpoint()

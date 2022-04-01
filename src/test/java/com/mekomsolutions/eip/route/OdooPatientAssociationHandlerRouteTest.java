@@ -6,8 +6,8 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_ID_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_UUID;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_ENTITY_BY_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PATIENT_ASSOCIATION_HANDLER;
 import static java.util.Collections.singletonMap;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
@@ -35,7 +35,7 @@ public class OdooPatientAssociationHandlerRouteTest extends BaseOdooRouteTest {
 	@EndpointInject("mock:odoo-patient-handler")
 	private MockEndpoint mockPatientHandlerEndpoint;
 	
-	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
+	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
 	private MockEndpoint mockFetchResourceEndpoint;
 	
 	@Before
@@ -46,7 +46,7 @@ public class OdooPatientAssociationHandlerRouteTest extends BaseOdooRouteTest {
 			
 			@Override
 			public void configure() {
-				interceptSendToEndpoint(URI_FETCH_RESOURCE).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
+				interceptSendToEndpoint(URI_GET_ENTITY_BY_UUID).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
 				interceptSendToEndpoint("direct:odoo-patient-handler").skipSendToOriginalEndpoint()
 				        .to(mockPatientHandlerEndpoint);
 			}

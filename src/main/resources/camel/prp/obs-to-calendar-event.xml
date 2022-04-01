@@ -28,9 +28,11 @@
                 <simple>${body}</simple>
             </setProperty>
 
+            <!-- Only process if this was recorded on the basic service plan form -->
             <when>
                 <simple>${exchangeProperty.isBasicServicePlanForm} == true</simple>
-                <log message="Obs recorded on the basic service plan form" />
+                <log message="Obs was recorded on the basic service plan form" />
+
                 <setProperty name="isSubResource">
                     <simple>false</simple>
                 </setProperty>
@@ -48,7 +50,7 @@
 
                 <when>
                     <simple>${body} == null</simple>
-                    <throwException exceptionType="org.openmrs.eip.EIPException" message="No associated encounter found with uuid: ${exchangeProperty.resourceId}" />
+                    <throwException exceptionType="org.openmrs.eip.EIPException" message="No encounter found in OpenMRS with uuid: ${exchangeProperty.entity-instance.get('encounter').get('uuid')}" />
                 </when>
 
                 <setProperty name="encounter">
@@ -61,17 +63,18 @@
                     <simple>5b2efd02-be26-4789-b5ec-7c5ceb428725</simple>
                 </setProperty>
 
-                <toD uri="direct:get-obs-by-concept-uuid-from-encounter" />
+                <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
 
-                <setProperty name="inpatientObs">
+                <setProperty name="patientTypeObs">
                     <simple>${body}</simple>
                 </setProperty>
 
-                <log loggingLevel="DEBUG" message="Inpatient obs -> ${exchangeProperty.inpatientObs}" />
+                <log loggingLevel="DEBUG" message="Patient Type obs -> ${exchangeProperty.patientTypeObs}" />
 
+                <!-- Only process if this inpatient was selected on the form -->
                 <when>
-                    <simple>${exchangeProperty.inpatientObs.get('value').get('uuid')} == 'a0b86497-cb21-46ad-9a9b-c99db8db9528'</simple>
-                    <log message="Patient is admitted, fetching their record from OpenMRS by uuid: ${body}" />
+                    <simple>${exchangeProperty.patientTypeObs.get('value').get('uuid')} == 'a0b86497-cb21-46ad-9a9b-c99db8db9528'</simple>
+                    <log message="Patient is admitted, fetching their record from OpenMRS by uuid: ${exchangeProperty.entity-instance.get('person').get('uuid')}" />
 
                     <setProperty name="isSubResource">
                         <simple>false</simple>
@@ -90,7 +93,7 @@
 
                     <when>
                         <simple>${body} == null</simple>
-                        <throwException exceptionType="org.openmrs.eip.EIPException" message="No patient found in OpenMRS with uuid: ${exchangeProperty.resourceId}" />
+                        <throwException exceptionType="org.openmrs.eip.EIPException" message="No patient found in OpenMRS with uuid: ${exchangeProperty.entity-instance.get('person').get('uuid')}" />
                     </when>
 
                     <setProperty name="patient">
@@ -99,21 +102,50 @@
 
                     <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.patient}" />
 
-                    <split>
-                        <simple>${exchangeProperty.patient.get('identifiers')}</simple>
-                        <when>
-                            <simple>${body.get('identifierType').get('uuid')} == '{{openmrs.identifier.type.uuid}}'</simple>
-                        </when>
-                        <setProperty name="hsuId">
-                            <simple>${body.get('identifier')}</simple>
+                    <setProperty name="name">
+                        <simple>{{odoo.dormitory.notification.group.name}}</simple>
+                    </setProperty>
+                    <setProperty name="modelName">
+                        <simple>res.groups</simple>
+                    </setProperty>
+
+                    <to uri="direct:get-resource-by-name-from-odoo" />
+
+                    <setProperty name="attendeePartnerIds">
+                        <simple>${body.get('users')}</simple>
+                    </setProperty>
+
+                    <loop doWhile="true">
+                        <simple>${exchangeProperty.endHsuIdLoop} != true</simple>
+                        <setProperty name="currentHsuId">
+                            <spel>#{getProperty('patient').get('identifiers').get(getProperty('CamelLoopIndex'))}</spel>
                         </setProperty>
-                    </split>
+
+                        <when>
+                            <simple>${exchangeProperty.currentHsuId.get('identifierType').get('uuid')} == '{{openmrs.identifier.type.uuid}}'</simple>
+                            <setProperty name="hsuId">
+                                <simple>${exchangeProperty.currentHsuId.get('identifier')}</simple>
+                            </setProperty>
+                            <setProperty name="endHsuIdLoop">
+                                <simple>true</simple>
+                            </setProperty>
+
+                            <log loggingLevel="DEBUG" message="Found HSU id -> ${exchangeProperty.hsuId}" />
+                        </when>
+
+                        <when>
+                            <spel>#{getProperty('CamelLoopIndex') == getProperty('patient').get('identifiers').size() - 1}</spel>
+                            <setProperty name="endHsuIdLoop">
+                                <simple>true</simple>
+                            </setProperty>
+                        </when>
+                    </loop>
 
                     <setProperty name="questionConceptUuid">
                         <simple>a320170f-2417-45eb-86ab-5f8eb4074500</simple>
                     </setProperty>
 
-                    <toD uri="direct:get-obs-by-concept-uuid-from-encounter" />
+                    <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
 
                     <setProperty name="estimatedDaysObs">
                         <simple>${body}</simple>
@@ -125,7 +157,7 @@
                         <simple>25929a4b-fa2d-4657-b74c-385b1eb4384f</simple>
                     </setProperty>
 
-                    <toD uri="direct:get-obs-by-concept-uuid-from-encounter" />
+                    <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
 
                     <setProperty name="careGiverObs">
                         <simple>${body}</simple>
@@ -134,36 +166,24 @@
                     <log loggingLevel="DEBUG" message="Accompanied by care giver obs -> ${exchangeProperty.careGiverObs}" />
 
                     <setProperty name="subject">
-                        <simple>${exchangeProperty.patient.get('display')} / ${exchangeProperty.numberOfDays} </simple>
+                        <simple>${exchangeProperty.patient.get('person').get('display')}/${exchangeProperty.estimatedDaysObs.get('value')}</simple>
+                    </setProperty>
+                    <setProperty name="duration">
+                        <simple>1440</simple>
+                    </setProperty>
+                    <setProperty name="startDateTime">
+                        <spel>#{T(java.time.LocalDateTime).now(T(java.time.ZoneId).of('UTC'))}</spel>
                     </setProperty>
                     <setProperty name="description">
-                        <simple>Service User ${exchangeProperty.entity-instance.get('person').get('display')} ${exchangeProperty.hsuId} inpatient for estimated ${exchangeProperty.estimatedDays.get('value')} days</simple>
+                        <simple>Service User ${exchangeProperty.patient.get('person').get('display')} ${exchangeProperty.hsuId} inpatient for estimated ${exchangeProperty.estimatedDaysObs.get('value')} days</simple>
                     </setProperty>
+
                     <when>
                         <simple>${exchangeProperty.careGiverObs.get('value').get('uuid')} == '1065AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'</simple>
                         <setProperty name="description">
                             <simple>${exchangeProperty.description}, accompanied by a caregiver</simple>
                         </setProperty>
                     </when>
-
-                    <setProperty name="name">
-                        <simple>{{odoo.dormitory.notification.group.name}}</simple>
-                    </setProperty>
-                    <setProperty name="modelName">
-                        <simple>res.groups</simple>
-                    </setProperty>
-
-                    <to uri="direct:get-resource-by-name-from-odoo" />
-                    
-                    <setProperty name="attendeePartnerIds">
-                        <simple>${body.get('users')}</simple>
-                    </setProperty>
-                    <setProperty name="startDateTime">
-                        <spel>#{T(java.time.LocalDateTime).now(T(java.time.ZoneId).of('UTC'))}</spel>
-                    </setProperty>
-                    <setProperty name="duration">
-                        <simple>1440</simple>
-                    </setProperty>
 
                     <log message="Adding a calendar event in odoo" />
 

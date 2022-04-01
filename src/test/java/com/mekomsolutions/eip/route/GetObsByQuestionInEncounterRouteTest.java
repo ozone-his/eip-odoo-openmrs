@@ -2,7 +2,7 @@ package com.mekomsolutions.eip.route;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENC;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_QN_CONCEPT_UUID;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ENC_CONTAINS_OBS;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_CONCEPT_BY_UUID_FROM_ENC;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
@@ -27,7 +27,7 @@ public class GetObsByQuestionInEncounterRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_ENC, encResource);
 		exchange.setProperty(EX_PROP_QN_CONCEPT_UUID, qnUuid);
 		
-		producerTemplate.send(URI_ENC_CONTAINS_OBS, exchange);
+		producerTemplate.send(URI_GET_CONCEPT_BY_UUID_FROM_ENC, exchange);
 		
 		assertEquals(expectedObs, exchange.getIn().getBody());
 	}
@@ -41,7 +41,7 @@ public class GetObsByQuestionInEncounterRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_ENC, encResource);
 		exchange.setProperty(EX_PROP_QN_CONCEPT_UUID, qnUuid);
 		
-		producerTemplate.send(URI_ENC_CONTAINS_OBS, exchange);
+		producerTemplate.send(URI_GET_CONCEPT_BY_UUID_FROM_ENC, exchange);
 		
 		assertEquals(expectedObs, exchange.getIn().getBody());
 	}
@@ -53,7 +53,7 @@ public class GetObsByQuestionInEncounterRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_ENC, encResource);
 		exchange.setProperty(EX_PROP_QN_CONCEPT_UUID, "question-concept-uuid");
 		
-		producerTemplate.send(URI_ENC_CONTAINS_OBS, exchange);
+		producerTemplate.send(URI_GET_CONCEPT_BY_UUID_FROM_ENC, exchange);
 		
 		assertNull(exchange.getIn().getBody());
 		
@@ -71,7 +71,7 @@ public class GetObsByQuestionInEncounterRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(EX_PROP_ENC, encResource);
 		exchange.setProperty(EX_PROP_QN_CONCEPT_UUID, qnUuid);
 		
-		producerTemplate.send(URI_ENC_CONTAINS_OBS, exchange);
+		producerTemplate.send(URI_GET_CONCEPT_BY_UUID_FROM_ENC, exchange);
 		
 		assertNull(exchange.getIn().getBody());
 	}

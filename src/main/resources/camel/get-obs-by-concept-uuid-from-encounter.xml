@@ -23,9 +23,18 @@
         <setBody>
             <simple>${exchangeProperty.encObs}</simple>
         </setBody>
+        <setProperty name="endFindObsLoop">
+            <simple>${null}</simple>
+        </setProperty>
+        <setProperty name="currentObs">
+            <simple>${null}</simple>
+        </setProperty>
+        <setProperty name="matchingObs">
+            <simple>${null}</simple>
+        </setProperty>
 
         <loop doWhile="true">
-            <simple>${exchangeProperty.foundMatch} == null</simple>
+            <simple>${exchangeProperty.endFindObsLoop} != true</simple>
             <setProperty name="currentObs">
                 <spel>#{getProperty('encObs').get(getProperty('CamelLoopIndex'))}</spel>
             </setProperty>
@@ -35,7 +44,7 @@
                 <setProperty name="matchingObs">
                     <simple>${exchangeProperty.currentObs}</simple>
                 </setProperty>
-                <setProperty name="foundMatch">
+                <setProperty name="endFindObsLoop">
                     <simple>true</simple>
                 </setProperty>
 
@@ -43,9 +52,9 @@
             </when>
 
             <when>
-                <spel>#{getProperty('foundMatch') == null &amp;&amp; getProperty('CamelLoopIndex') == getProperty('encObs').size() - 1}</spel>
-                <setProperty name="foundMatch">
-                    <simple>false</simple>
+                <spel>#{getProperty('CamelLoopIndex') == getProperty('encObs').size() - 1}</spel>
+                <setProperty name="endFindObsLoop">
+                    <simple>true</simple>
                 </setProperty>
             </when>
         </loop>

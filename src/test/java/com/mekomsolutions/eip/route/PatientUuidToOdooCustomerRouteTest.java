@@ -5,7 +5,7 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOU
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_PATIENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PATIENT_UUID_TO_CUSTOMER;
 
 import java.util.HashMap;
@@ -25,7 +25,7 @@ public class PatientUuidToOdooCustomerRouteTest extends BaseOdooRouteTest {
 	
 	private static final String ROUTE_ID = "patient-uuid-to-odoo-customer";
 	
-	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
+	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
 	private MockEndpoint mockFetchResourceEndpoint;
 	
 	@EndpointInject("mock:odoo-patient-handler")

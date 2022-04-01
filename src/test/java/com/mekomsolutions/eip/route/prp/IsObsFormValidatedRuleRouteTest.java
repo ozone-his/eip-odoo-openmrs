@@ -4,7 +4,7 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOU
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RES_REP;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 
@@ -32,7 +32,7 @@ public class IsObsFormValidatedRuleRouteTest extends BasePrpRouteTest {
 	
 	protected static final String VALIDATION_CONCEPT_UUID = "validation-concept-uuid";
 	
-	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
+	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
 	private MockEndpoint mockFetchResourceEndpoint;
 	
 	@Before

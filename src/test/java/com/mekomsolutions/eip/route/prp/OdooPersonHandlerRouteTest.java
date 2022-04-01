@@ -5,8 +5,8 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOU
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_PATIENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_ENTITY_BY_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PATIENT_HANDLER;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PERSON_HANDLER;
 
@@ -32,7 +32,7 @@ public class OdooPersonHandlerRouteTest extends BasePrpRouteTest {
 	
 	protected static final String TABLE = "person";
 	
-	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
+	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
 	private MockEndpoint mockFetchResourceEndpoint;
 	
 	@EndpointInject("mock:odoo-patient-handler")
@@ -51,7 +51,7 @@ public class OdooPersonHandlerRouteTest extends BasePrpRouteTest {
 			
 			@Override
 			public void configure() {
-				interceptSendToEndpoint(URI_FETCH_RESOURCE).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
+				interceptSendToEndpoint(URI_GET_ENTITY_BY_UUID).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
 				interceptSendToEndpoint(URI_PATIENT_HANDLER).skipSendToOriginalEndpoint().to(mockPatientHandlerEndpoint);
 			}
 			

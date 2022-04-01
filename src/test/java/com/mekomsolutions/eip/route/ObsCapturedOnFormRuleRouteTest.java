@@ -4,8 +4,8 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOU
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RES_REP;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_ENTITY_BY_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_CAPTURED_ON_FORM;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -33,7 +33,7 @@ public class ObsCapturedOnFormRuleRouteTest extends BaseOdooRouteTest {
 	
 	public static final String EX_PROP_FORM_UUID = "formUuid";
 	
-	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
+	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
 	private MockEndpoint mockFetchResourceEndpoint;
 	
 	@Before
@@ -44,7 +44,7 @@ public class ObsCapturedOnFormRuleRouteTest extends BaseOdooRouteTest {
 			
 			@Override
 			public void configure() {
-				interceptSendToEndpoint(URI_FETCH_RESOURCE).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
+				interceptSendToEndpoint(URI_GET_ENTITY_BY_UUID).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
 			}
 			
 		});

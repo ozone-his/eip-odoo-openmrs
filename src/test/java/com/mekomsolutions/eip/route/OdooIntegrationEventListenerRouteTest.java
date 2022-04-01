@@ -17,8 +17,8 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_ID_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.PATIENT_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.RPC_CLIENT_KEY;
 import static com.mekomsolutions.eip.route.OdooTestConstants.RPC_CONFIG_KEY;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_FETCH_RESOURCE;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_FETCH_RESOURCE;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_ENTITY_BY_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_ODOO_AUTH;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PATIENT_ASSOCIATION_HANDLER;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PATIENT_HANDLER;
@@ -62,7 +62,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 	@EndpointInject("mock:odoo-patient-association-handler")
 	private MockEndpoint mockPatientAssociationEndpoint;
 	
-	@EndpointInject(URI_MOCK_FETCH_RESOURCE)
+	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
 	private MockEndpoint mockFetchResourceEndpoint;
 	
 	@Before
@@ -77,7 +77,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
 			@Override
 			public void configure() {
 				interceptSendToEndpoint(URI_ODOO_AUTH).skipSendToOriginalEndpoint().to(mockAuthEndpoint);
-				interceptSendToEndpoint(URI_FETCH_RESOURCE).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
+				interceptSendToEndpoint(URI_GET_ENTITY_BY_UUID).skipSendToOriginalEndpoint().to(mockFetchResourceEndpoint);
 				interceptSendToEndpoint("direct:odoo-entity-handler").skipSendToOriginalEndpoint()
 				        .to(mockEntityHandlerEndpoint);
 				interceptSendToEndpoint(URI_PATIENT_HANDLER).skipSendToOriginalEndpoint().to(mockPatientHandlerEndpoint);
