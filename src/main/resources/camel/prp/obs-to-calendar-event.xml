@@ -14,7 +14,7 @@
         <when>
             <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')} == '1382a47a-3e63-11e9-b210-d663bd873d93'</simple>
             <log message="Received an event for a form validation obs" />
-            
+
             <setProperty name="obs">
                 <exchangeProperty>entity-instance</exchangeProperty>
             </setProperty>
@@ -112,9 +112,18 @@
                     <to uri="direct:get-resource-by-name-from-odoo" />
 
                     <setProperty name="attendeePartnerIds">
-                        <simple>${body.get('users')}</simple>
+                        <spel>#{T(java.util.Arrays).asList(body.get('users'))}</spel>
                     </setProperty>
 
+                    <setProperty name="endHsuIdLoop">
+                        <simple>${null}</simple>
+                    </setProperty>
+                    <setProperty name="currentHsuId">
+                        <simple>${null}</simple>
+                    </setProperty>
+                    <setProperty name="hsuId">
+                        <simple>${null}</simple>
+                    </setProperty>
                     <loop doWhile="true">
                         <simple>${exchangeProperty.endHsuIdLoop} != true</simple>
                         <setProperty name="currentHsuId">
@@ -166,7 +175,7 @@
                     <log loggingLevel="DEBUG" message="Accompanied by care giver obs -> ${exchangeProperty.careGiverObs}" />
 
                     <setProperty name="subject">
-                        <simple>${exchangeProperty.patient.get('person').get('display')}/${exchangeProperty.estimatedDaysObs.get('value')}</simple>
+                        <simple>${exchangeProperty.patient.get('person').get('display')}/${exchangeProperty.estimatedDaysObs.get('value')} days</simple>
                     </setProperty>
                     <setProperty name="duration">
                         <simple>1440</simple>

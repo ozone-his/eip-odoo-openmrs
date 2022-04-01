@@ -16,7 +16,7 @@ import org.junit.Test;
 
 public class GetResourceByNameFromOdooRouteTest extends BaseOdooApiRouteTest {
 	
-	private static final String MODEL_NAME = "res.groups";
+	public static final String MODEL_NAME_GROUPS = "res.groups";
 	
 	public static final String EX_PROP_NAME = "name";
 	
@@ -27,12 +27,12 @@ public class GetResourceByNameFromOdooRouteTest extends BaseOdooApiRouteTest {
 		Exchange exchange = buildExchange();
 		final String groupName = "Test group name";
 		exchange.setProperty(EX_PROP_NAME, groupName);
-		exchange.setProperty(EX_PROP_MODEL_NAME, MODEL_NAME);
+		exchange.setProperty(EX_PROP_MODEL_NAME, MODEL_NAME_GROUPS);
 		final ArrayList rpcArgs = new ArrayList();
 		rpcArgs.add(APP_PROP_ODOO_DB);
 		rpcArgs.add(USER_ID);
 		rpcArgs.add(APP_PROP_ODOO_PASS);
-		rpcArgs.add(MODEL_NAME);
+		rpcArgs.add(MODEL_NAME_GROUPS);
 		rpcArgs.add(ODOO_OP_SEARCH_READ);
 		rpcArgs.add(singletonList(singletonList(asList("name", "=", groupName))));
 		final Object expectedItem = "test";
@@ -49,12 +49,12 @@ public class GetResourceByNameFromOdooRouteTest extends BaseOdooApiRouteTest {
 		Exchange exchange = buildExchange();
 		final String groupName = "Test group name";
 		exchange.setProperty(EX_PROP_NAME, groupName);
-		exchange.setProperty(EX_PROP_MODEL_NAME, MODEL_NAME);
+		exchange.setProperty(EX_PROP_MODEL_NAME, MODEL_NAME_GROUPS);
 		final ArrayList rpcArgs = new ArrayList();
 		rpcArgs.add(APP_PROP_ODOO_DB);
 		rpcArgs.add(USER_ID);
 		rpcArgs.add(APP_PROP_ODOO_PASS);
-		rpcArgs.add(MODEL_NAME);
+		rpcArgs.add(MODEL_NAME_GROUPS);
 		rpcArgs.add(ODOO_OP_SEARCH_READ);
 		rpcArgs.add(singletonList(singletonList(asList("name", "=", groupName))));
 		when(mockXmlRpcClient.execute(mockXmlRpcClientConfig, ODOO_RPC_METHOD, rpcArgs)).thenReturn(new Object[] {});
@@ -69,12 +69,12 @@ public class GetResourceByNameFromOdooRouteTest extends BaseOdooApiRouteTest {
 		Exchange exchange = buildExchange();
 		final String groupName = "Test group name";
 		exchange.setProperty(EX_PROP_NAME, groupName);
-		exchange.setProperty(EX_PROP_MODEL_NAME, MODEL_NAME);
+		exchange.setProperty(EX_PROP_MODEL_NAME, MODEL_NAME_GROUPS);
 		final ArrayList rpcArgs = new ArrayList();
 		rpcArgs.add(APP_PROP_ODOO_DB);
 		rpcArgs.add(USER_ID);
 		rpcArgs.add(APP_PROP_ODOO_PASS);
-		rpcArgs.add(MODEL_NAME);
+		rpcArgs.add(MODEL_NAME_GROUPS);
 		rpcArgs.add(ODOO_OP_SEARCH_READ);
 		rpcArgs.add(singletonList(singletonList(asList("name", "=", groupName))));
 		when(mockXmlRpcClient.execute(mockXmlRpcClientConfig, ODOO_RPC_METHOD, rpcArgs))
@@ -82,7 +82,8 @@ public class GetResourceByNameFromOdooRouteTest extends BaseOdooApiRouteTest {
 		
 		producerTemplate.send(URI_GET_RES_BY_NAME_FROM_ODOO, exchange);
 		
-		assertEquals("Found 2 resources (" + MODEL_NAME + ") in odoo with name: " + groupName, getErrorMessage(exchange));
+		assertEquals("Found 2 resources (" + MODEL_NAME_GROUPS + ") in odoo with name: " + groupName,
+		    getErrorMessage(exchange));
 	}
 	
 }
