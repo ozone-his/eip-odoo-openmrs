@@ -175,7 +175,7 @@
                     <log loggingLevel="DEBUG" message="Accompanied by care giver obs -> ${exchangeProperty.careGiverObs}" />
 
                     <setProperty name="subject">
-                        <simple>${exchangeProperty.patient.get('person').get('display')}/${exchangeProperty.estimatedDaysObs.get('value')} days</simple>
+                        <simple>${exchangeProperty.patient.get('person').get('display')}/${exchangeProperty.estimatedDaysObs.get('value').intValue()} days</simple>
                     </setProperty>
                     <setProperty name="duration">
                         <simple>1440</simple>
@@ -184,7 +184,7 @@
                         <spel>#{T(java.time.LocalDateTime).now(T(java.time.ZoneId).of('UTC'))}</spel>
                     </setProperty>
                     <setProperty name="description">
-                        <simple>Service User ${exchangeProperty.patient.get('person').get('display')} ${exchangeProperty.hsuId} inpatient for estimated ${exchangeProperty.estimatedDaysObs.get('value')} days</simple>
+                        <simple>Service User ${exchangeProperty.patient.get('person').get('display')} ${exchangeProperty.hsuId} inpatient for estimated ${exchangeProperty.estimatedDaysObs.get('value').intValue()} days</simple>
                     </setProperty>
 
                     <when>

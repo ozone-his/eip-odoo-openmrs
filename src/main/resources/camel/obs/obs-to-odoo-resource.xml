@@ -1,8 +1,8 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
     <!--
-        Handles an obs event and invokes all routes registered via the obs.to.odoo.resource.routes property. Note that
-        voided observations and delete events are skipped.
+        Handles an obs event and invokes the registered handler route via the obs.to.odoo.resource.handler.route
+        property. Note that voided observations and delete events are skipped.
     -->
 
     <route id="obs-to-odoo-resource" errorHandlerRef="watcherErrorHandler">
@@ -112,10 +112,7 @@
 
                                 <log message="Obs has configured question and answer concepts" />
 
-                                <split parallelProcessing="false">
-                                    <simple>{{obs.to.odoo.resource.routes}}</simple>
-                                    <toD uri="direct:${body.trim()}" />
-                                </split>
+                                <toD uri="direct:{{obs.to.odoo.resource.handler.route}}" />
                             </when>
                             <otherwise>
                                 <log loggingLevel="DEBUG" message="Skipping Obs because the answer concept doesn't match any configured answer" />

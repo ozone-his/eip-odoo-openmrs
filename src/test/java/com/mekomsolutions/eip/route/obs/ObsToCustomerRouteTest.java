@@ -1,6 +1,8 @@
 package com.mekomsolutions.eip.route.obs;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_OBS_TO_CUSTOMER;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_CUSTOMER;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_PATIENT_UUID_TO_CUSTOMER;
 import static java.util.Collections.singletonMap;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
@@ -26,10 +28,6 @@ import ch.qos.logback.classic.Level;
 @TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/obs/obs-to-customer.xml")
 public class ObsToCustomerRouteTest extends BaseOdooRouteTest {
 	
-	private static final String ROUTE_ID = "obs-to-customer";
-	
-	public static final String URI_OBS_TO_CUSTOMER = "direct:" + ROUTE_ID;
-	
 	private static final String URI_TEST_RULE = "mock:test-rule";
 	
 	private static final String TABLE = "obs";
@@ -53,7 +51,7 @@ public class ObsToCustomerRouteTest extends BaseOdooRouteTest {
 		mockTestRuleEndpoint.reset();
 		mockPatientUuidToCustomerEndpoint.reset();
 		
-		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
+		advise(ROUTE_ID_OBS_TO_CUSTOMER, new AdviceWithRouteBuilder() {
 			
 			@Override
 			public void configure() {

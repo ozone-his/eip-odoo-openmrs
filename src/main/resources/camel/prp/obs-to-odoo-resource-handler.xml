@@ -1,0 +1,20 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <!--
+        This route is registered with the obs-to-odoo-resource route via the obs.to.odoo.resource.handler.route
+        application property to manager customers and calendar events.
+    -->
+
+    <route id="obs-to-odoo-resource-handler" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:obs-to-odoo-resource-handler" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+
+        <to uri="direct:obs-to-customer" />
+
+        <to uri="direct:obs-to-calendar-event" />
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+
+</routes>

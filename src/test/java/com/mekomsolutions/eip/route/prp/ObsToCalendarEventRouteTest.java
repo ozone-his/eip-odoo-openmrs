@@ -248,7 +248,7 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 	public void shouldCreateTheCalendarEventInOdoo() throws Exception {
 		final String encUuid = "enc-uuid";
 		final String patientUuid = "patient-uuid";
-		final int estimatedDays = 6;
+		final Integer estimatedDays = 6;
 		final String hsuId = "Test Id";
 		final String fullName = "Horation Hornblower";
 		final Integer attendeeId1 = 11;
@@ -258,7 +258,7 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 		patientTypeObsRes.put("value", singletonMap("uuid", CONCEPT_UUID_INPATIENT));
 		Map estimatedDaysObsRes = new HashMap();
 		estimatedDaysObsRes.put("concept", singletonMap("uuid", CONCEPT_UUID_ESTIMATED_DAYS));
-		estimatedDaysObsRes.put("value", estimatedDays);
+		estimatedDaysObsRes.put("value", estimatedDays.doubleValue());
 		Map careGiverObsRes = new HashMap();
 		careGiverObsRes.put("concept", singletonMap("uuid", CONCEPT_UUID_HAS_CAREGIVER));
 		careGiverObsRes.put("value", singletonMap("uuid", null));
@@ -330,7 +330,7 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 	public void shouldCreateTheCalendarEventInOdooAndTheyAreAccompaniedByACareGiver() throws Exception {
 		final String encUuid = "enc-uuid";
 		final String patientUuid = "patient-uuid";
-		final int estimatedDays = 6;
+		final Integer estimatedDays = 6;
 		final String hsuId = "Test Id";
 		final String fullName = "Horation Hornblower";
 		final Integer attendeeId1 = 11;
@@ -340,7 +340,7 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 		patientTypeObsRes.put("value", singletonMap("uuid", CONCEPT_UUID_INPATIENT));
 		Map estimatedDaysObsRes = new HashMap();
 		estimatedDaysObsRes.put("concept", singletonMap("uuid", CONCEPT_UUID_ESTIMATED_DAYS));
-		estimatedDaysObsRes.put("value", estimatedDays);
+		estimatedDaysObsRes.put("value", estimatedDays.doubleValue());
 		Map careGiverObsRes = new HashMap();
 		careGiverObsRes.put("concept", singletonMap("uuid", CONCEPT_UUID_HAS_CAREGIVER));
 		careGiverObsRes.put("value", singletonMap("uuid", CONCEPT_UUID_YES));

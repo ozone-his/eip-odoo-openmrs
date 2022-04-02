@@ -56,6 +56,18 @@ public class OdooTestConstants {
 	
 	public static final String EX_PROP_QN_CONCEPT_UUID = "questionConceptUuid";
 	
+	public static final String ROUTE_ID_OBS_TO_ODOO_RESOURCE = "obs-to-odoo-resource";
+	
+	public static final String ROUTE_ID_SAVE_CALENDAR_EVENT = "save-calendar-event-in-odoo";
+	
+	public static final String ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO = "get-resource-by-name-from-odoo";
+	
+	public static final String ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC = "get-obs-by-concept-uuid-from-encounter";
+	
+	public static final String ROUTE_ID_OBS_TO_CUSTOMER = "obs-to-customer";
+	
+	public static final String ROUTE_ID_OBS_TO_RES_HANDLER = "obs-to-odoo-resource-handler";
+	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
 	public static final String URI_ORDER_HANDLER = "direct:odoo-order-handler";
@@ -78,7 +90,7 @@ public class OdooTestConstants {
 	
 	public static final String URI_MOCK_GET_ENTITY_BY_UUID = "mock:get-entity-by-uuid-from-openmrs";
 	
-	public static final String URI_OBS_TO_ODOO_RESOURCE = "direct:obs-to-odoo-resource";
+	public static final String URI_OBS_TO_ODOO_RESOURCE = "direct:" + ROUTE_ID_OBS_TO_ODOO_RESOURCE;
 	
 	public static final String URI_PATIENT_UUID_TO_CUSTOMER = "direct:patient-uuid-to-odoo-customer";
 	
@@ -108,17 +120,15 @@ public class OdooTestConstants {
 	
 	public static final String URI_OBS_CAPTURED_ON_FORM = "direct:obs-captured-on-form-rule";
 	
-	public static final String ROUTE_ID_SAVE_CALENDAR_EVENT = "save-calendar-event-in-odoo";
-	
-	public static final String ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO = "get-resource-by-name-from-odoo";
-
-    public static final String ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC = "get-obs-by-concept-uuid-from-encounter";
-	
 	public static final String URI_SAVE_CALENDAR_EVENT = "direct:" + ROUTE_ID_SAVE_CALENDAR_EVENT;
 	
 	public static final String URI_GET_RES_BY_NAME_FROM_ODOO = "direct:" + ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO;
 	
-	public static final String URI_GET_CONCEPT_BY_UUID_FROM_ENC = "direct:"+ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC;
+	public static final String URI_GET_CONCEPT_BY_UUID_FROM_ENC = "direct:" + ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC;
+	
+	public static final String URI_OBS_TO_CUSTOMER = "direct:" + ROUTE_ID_OBS_TO_CUSTOMER;
+	
+	public static final String URI_OBS_TO_RES_HANDLER = "direct:" + ROUTE_ID_OBS_TO_RES_HANDLER;
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	
@@ -154,7 +164,7 @@ public class OdooTestConstants {
 	
 	public static final String ODOO_RPC_METHOD = "execute_kw";
 	
-	public static final String APP_PROP_NAME = "obs.to.odoo.resource.routes";
+	public static final String APP_PROP_NAME_OBS_TO_ODOO_HANDLER = "obs.to.odoo.resource.handler.route";
 	
 	public static final String APP_PROP_NAME_ID_TYPE_UUID = "openmrs.identifier.type.uuid";
 	
