@@ -15,9 +15,11 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RES_REP;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_PARTNERS_BY_USERS;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_SAVE_CALENDAR_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_ENTITY_BY_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_PARTNERS_BY_USERS;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_RES_BY_NAME_FROM_ODOO;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_CAPTURED_ON_FORM;
@@ -27,6 +29,7 @@ import static com.mekomsolutions.eip.route.SaveCalendarEventInOdooRouteTest.EX_P
 import static com.mekomsolutions.eip.route.SaveCalendarEventInOdooRouteTest.EX_PROP_DURATION;
 import static com.mekomsolutions.eip.route.SaveCalendarEventInOdooRouteTest.EX_PROP_START;
 import static com.mekomsolutions.eip.route.SaveCalendarEventInOdooRouteTest.EX_PROP_SUBJECT;
+import static com.mekomsolutions.eip.route.prp.GetPartnerIdsByUserIdsRouteTest.PARAM_USER_IDS;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -34,7 +37,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.camel.EndpointInject;
@@ -78,6 +83,9 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 	@EndpointInject("mock:" + ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO)
 	private MockEndpoint mockGetResByNameEndpoint;
 	
+	@EndpointInject("mock:" + ROUTE_ID_GET_PARTNERS_BY_USERS)
+	private MockEndpoint mockGetPartnersByUsersEndpoint;
+	
 	@EndpointInject("mock:" + ROUTE_ID_SAVE_CALENDAR_EVENT)
 	private MockEndpoint mockSaveCalendarEventEndpoint;
 	
@@ -88,7 +96,9 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 		mockObsCapturedOnFormEndpoint.reset();
 		mockGetEntityByUuidEndpoint.reset();
 		mockGetResByNameEndpoint.reset();
+		mockGetPartnersByUsersEndpoint.reset();
 		mockSaveCalendarEventEndpoint.reset();
+		
 		if (!loadedExtraRoutes) {
 			loadXmlRoutesInCamelDirectory(ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC + ".xml");
 			loadedExtraRoutes = true;
@@ -102,6 +112,8 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 				        .to(mockObsCapturedOnFormEndpoint);
 				interceptSendToEndpoint(URI_GET_RES_BY_NAME_FROM_ODOO).skipSendToOriginalEndpoint()
 				        .to(mockGetResByNameEndpoint);
+				interceptSendToEndpoint(URI_GET_PARTNERS_BY_USERS).skipSendToOriginalEndpoint()
+				        .to(mockGetPartnersByUsersEndpoint);
 				interceptSendToEndpoint(URI_SAVE_CALENDAR_EVENT).skipSendToOriginalEndpoint()
 				        .to(mockSaveCalendarEventEndpoint);
 				interceptSendToEndpoint(URI_GET_ENTITY_BY_UUID).skipSendToOriginalEndpoint().to(mockGetEntityByUuidEndpoint);
@@ -251,8 +263,10 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 		final Integer estimatedDays = 6;
 		final String hsuId = "Test Id";
 		final String fullName = "Horation Hornblower";
-		final Integer attendeeId1 = 11;
-		final Integer attendeeId2 = 17;
+		final Integer userId1 = 11;
+		final Integer userId2 = 17;
+		final Integer partnerId1 = 31;
+		final Integer partnerId2 = 37;
 		Map patientTypeObsRes = new HashMap();
 		patientTypeObsRes.put("concept", singletonMap("uuid", CONCEPT_UUID_PATIENT_TYPE));
 		patientTypeObsRes.put("value", singletonMap("uuid", CONCEPT_UUID_INPATIENT));
@@ -297,11 +311,17 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.expectedPropertyValuesReceivedInAnyOrder(EX_PROP_RES_REP, asList("full", "full"));
 		mockGetEntityByUuidEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody(mapper.writeValueAsString(patientRes)));
 		
+		List<Integer> userIds = asList(userId1, userId2);
 		mockGetResByNameEndpoint.expectedMessageCount(1);
 		mockGetResByNameEndpoint.expectedPropertyReceived(EX_PROP_NAME, GROUP_NAME);
 		mockGetResByNameEndpoint.expectedPropertyReceived(EX_PROP_MODEL_NAME, MODEL_NAME_GROUPS);
-		mockGetResByNameEndpoint.whenAnyExchangeReceived(
-		    e -> e.getIn().setBody(singletonMap("users", new Object[] { attendeeId1, attendeeId2 })));
+		mockGetResByNameEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(singletonMap("users", userIds)));
+		
+		mockGetPartnersByUsersEndpoint.expectedMessageCount(1);
+		mockGetPartnersByUsersEndpoint.expectedBodiesReceived(singletonMap(PARAM_USER_IDS, userIds));
+		mockGetPartnersByUsersEndpoint.whenAnyExchangeReceived(
+		    e -> e.getIn().setBody(asList(singletonMap("partner_id", asList(partnerId1, "Partner 1")),
+		        singletonMap("partner_id", asList(partnerId2, "Partner 2")))));
 		
 		mockSaveCalendarEventEndpoint.expectedMessageCount(1);
 		mockSaveCalendarEventEndpoint.expectedPropertyReceived(EX_PROP_SUBJECT, fullName + "/" + estimatedDays + " days");
@@ -311,7 +331,7 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 		LocalDateTime timestamp = LocalDateTime.now(ZoneId.of("UTC"));
 		mockSaveCalendarEventEndpoint.expectedPropertyReceived(EX_PROP_DURATION, 1440);
 		mockSaveCalendarEventEndpoint.expectedPropertyReceived(EX_PROP_ATTENDEE_PARTNER_IDS,
-		    asList(attendeeId1, attendeeId2));
+		    new ArrayList(asList(partnerId1, partnerId2)));
 		
 		producerTemplate.send(URI, exchange);
 		
@@ -320,6 +340,7 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.assertExchangeReceived(0);
 		mockGetEntityByUuidEndpoint.assertExchangeReceived(1);
 		mockGetResByNameEndpoint.assertIsSatisfied();
+		mockGetPartnersByUsersEndpoint.assertIsSatisfied();
 		mockSaveCalendarEventEndpoint.assertIsSatisfied();
 		LocalDateTime eventStart = exchange.getProperty(EX_PROP_START, LocalDateTime.class);
 		Assert.assertTrue(eventStart.isAfter(timestamp));
@@ -333,8 +354,10 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 		final Integer estimatedDays = 6;
 		final String hsuId = "Test Id";
 		final String fullName = "Horation Hornblower";
-		final Integer attendeeId1 = 11;
-		final Integer attendeeId2 = 17;
+		final Integer userId1 = 11;
+		final Integer userId2 = 17;
+		final Integer partnerId1 = 31;
+		final Integer partnerId2 = 37;
 		Map patientTypeObsRes = new HashMap();
 		patientTypeObsRes.put("concept", singletonMap("uuid", CONCEPT_UUID_PATIENT_TYPE));
 		patientTypeObsRes.put("value", singletonMap("uuid", CONCEPT_UUID_INPATIENT));
@@ -379,11 +402,17 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.expectedPropertyValuesReceivedInAnyOrder(EX_PROP_RES_REP, asList("full", "full"));
 		mockGetEntityByUuidEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody(mapper.writeValueAsString(patientRes)));
 		
+		List<Integer> userIds = asList(userId1, userId2);
 		mockGetResByNameEndpoint.expectedMessageCount(1);
 		mockGetResByNameEndpoint.expectedPropertyReceived(EX_PROP_NAME, GROUP_NAME);
 		mockGetResByNameEndpoint.expectedPropertyReceived(EX_PROP_MODEL_NAME, MODEL_NAME_GROUPS);
-		mockGetResByNameEndpoint.whenAnyExchangeReceived(
-		    e -> e.getIn().setBody(singletonMap("users", new Object[] { attendeeId1, attendeeId2 })));
+		mockGetResByNameEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(singletonMap("users", userIds)));
+		
+		mockGetPartnersByUsersEndpoint.expectedMessageCount(1);
+		mockGetPartnersByUsersEndpoint.expectedBodiesReceived(singletonMap(PARAM_USER_IDS, userIds));
+		mockGetPartnersByUsersEndpoint.whenAnyExchangeReceived(
+		    e -> e.getIn().setBody(asList(singletonMap("partner_id", asList(partnerId1, "Partner 1")),
+		        singletonMap("partner_id", asList(partnerId2, "Partner 2")))));
 		
 		mockSaveCalendarEventEndpoint.expectedMessageCount(1);
 		mockSaveCalendarEventEndpoint.expectedPropertyReceived(EX_PROP_SUBJECT, fullName + "/" + estimatedDays + " days");
@@ -393,7 +422,7 @@ public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
 		LocalDateTime timestamp = LocalDateTime.now(ZoneId.of("UTC"));
 		mockSaveCalendarEventEndpoint.expectedPropertyReceived(EX_PROP_DURATION, 1440);
 		mockSaveCalendarEventEndpoint.expectedPropertyReceived(EX_PROP_ATTENDEE_PARTNER_IDS,
-		    asList(attendeeId1, attendeeId2));
+		    new ArrayList(asList(partnerId1, partnerId2)));
 		
 		producerTemplate.send(URI, exchange);
 		

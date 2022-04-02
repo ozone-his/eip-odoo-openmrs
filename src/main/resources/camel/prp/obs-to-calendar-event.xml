@@ -111,10 +111,24 @@
 
                     <to uri="direct:get-resource-by-name-from-odoo" />
 
+                    <setBody>
+                        <spel>#{T(java.util.Collections).singletonMap('userIds', body.get('users'))}</spel>
+                    </setBody>
+
+                    <to uri="direct:get-partner-ids-by-user-ids" />
+
+                    <setProperty name="${routeId}-partnerIdsAndNames">
+                        <simple>${body}</simple>
+                    </setProperty>
                     <setProperty name="attendeePartnerIds">
-                        <spel>#{T(java.util.Arrays).asList(body.get('users'))}</spel>
+                        <spel>#{new java.util.ArrayList()}</spel>
                     </setProperty>
 
+                    <split parallelProcessing="false">
+                        <simple>${exchangeProperty.obs-to-calendar-event-partnerIdsAndNames}</simple>
+                        <script><spel>#{getProperty('attendeePartnerIds').add(body.get('partner_id')[0])}</spel></script>
+                    </split>
+                    
                     <setProperty name="endHsuIdLoop">
                         <simple>${null}</simple>
                     </setProperty>
