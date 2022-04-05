@@ -5,8 +5,8 @@
         all users that belong the group specified by application property named odoo.dormitory.notification.group.name
     -->
 
-    <route id="obs-to-calendar-event" errorHandlerRef="watcherErrorHandler">
-        <from uri="direct:obs-to-calendar-event" />
+    <route id="obs-to-admission-calendar-event" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:obs-to-admission-calendar-event" />
 
         <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
@@ -125,7 +125,7 @@
                     </setProperty>
 
                     <split parallelProcessing="false">
-                        <simple>${exchangeProperty.obs-to-calendar-event-partnerIdsAndNames}</simple>
+                        <simple>${exchangeProperty.obs-to-admission-calendar-event-partnerIdsAndNames}</simple>
                         <script><spel>#{getProperty('attendeePartnerIds').add(body.get('partner_id')[0])}</spel></script>
                     </split>
                     

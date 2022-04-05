@@ -12,7 +12,7 @@
 
         <to uri="direct:obs-to-customer" />
 
-        <to uri="direct:obs-to-calendar-event" />
+        <to uri="direct:obs-to-admission-calendar-event" />
 
         <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
     </route>

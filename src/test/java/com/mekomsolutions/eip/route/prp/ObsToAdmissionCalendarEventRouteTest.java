@@ -52,11 +52,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = APP_PROP_NAME_GRP_NAME + "=" + ObsToCalendarEventRouteTest.GROUP_NAME)
-@TestPropertySource(properties = APP_PROP_NAME_ID_TYPE_UUID + "=" + ObsToCalendarEventRouteTest.ID_TYPE_UUID)
-public class ObsToCalendarEventRouteTest extends BasePrpRouteTest {
+@TestPropertySource(properties = APP_PROP_NAME_GRP_NAME + "=" + ObsToAdmissionCalendarEventRouteTest.GROUP_NAME)
+@TestPropertySource(properties = APP_PROP_NAME_ID_TYPE_UUID + "=" + ObsToAdmissionCalendarEventRouteTest.ID_TYPE_UUID)
+public class ObsToAdmissionCalendarEventRouteTest extends BasePrpRouteTest {
 	
-	private static final String ROUTE_ID = "obs-to-calendar-event";
+	private static final String ROUTE_ID = "obs-to-admission-calendar-event";
 	
 	private static final String URI = "direct:" + ROUTE_ID;
 	
