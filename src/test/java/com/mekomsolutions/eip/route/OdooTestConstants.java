@@ -70,6 +70,10 @@ public class OdooTestConstants {
 	
 	public static final String ROUTE_ID_GET_PARTNERS_BY_USERS = "get-partner-ids-by-user-ids";
 	
+	public static final String ROUTE_ID_OBS_TO_ADMISSION_EVENT = "obs-to-admission-calendar-event";
+	
+	public static final String ROUTE_ID_OBS_TO_DISCHARGE_EVENT = "obs-to-discharge-calendar-event";
+	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
 	public static final String URI_ORDER_HANDLER = "direct:odoo-order-handler";
@@ -133,6 +137,10 @@ public class OdooTestConstants {
 	public static final String URI_OBS_TO_RES_HANDLER = "direct:" + ROUTE_ID_OBS_TO_RES_HANDLER;
 	
 	public static final String URI_GET_PARTNERS_BY_USERS = "direct:" + ROUTE_ID_GET_PARTNERS_BY_USERS;
+	
+	public static final String URI_OBS_TO_ADMISSION_EVENT = "direct:" + ROUTE_ID_OBS_TO_ADMISSION_EVENT;
+	
+	public static final String URI_OBS_TO_DISCHARGE_EVENT = "direct:" + ROUTE_ID_OBS_TO_DISCHARGE_EVENT;
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	

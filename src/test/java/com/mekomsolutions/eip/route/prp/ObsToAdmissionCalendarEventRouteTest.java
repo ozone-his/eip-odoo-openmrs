@@ -17,12 +17,14 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RES_REP;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_PARTNERS_BY_USERS;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_OBS_TO_ADMISSION_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_SAVE_CALENDAR_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_PARTNERS_BY_USERS;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_RES_BY_NAME_FROM_ODOO;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_CAPTURED_ON_FORM;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_ADMISSION_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_SAVE_CALENDAR_EVENT;
 import static com.mekomsolutions.eip.route.SaveCalendarEventInOdooRouteTest.EX_PROP_ATTENDEE_PARTNER_IDS;
 import static com.mekomsolutions.eip.route.SaveCalendarEventInOdooRouteTest.EX_PROP_DESCRIPTION;
@@ -55,10 +57,6 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(properties = APP_PROP_NAME_GRP_NAME + "=" + ObsToAdmissionCalendarEventRouteTest.GROUP_NAME)
 @TestPropertySource(properties = APP_PROP_NAME_ID_TYPE_UUID + "=" + ObsToAdmissionCalendarEventRouteTest.ID_TYPE_UUID)
 public class ObsToAdmissionCalendarEventRouteTest extends BasePrpRouteTest {
-	
-	private static final String ROUTE_ID = "obs-to-admission-calendar-event";
-	
-	private static final String URI = "direct:" + ROUTE_ID;
 	
 	protected static final String GROUP_NAME = "TEST GROUP NAME";
 	
@@ -104,7 +102,7 @@ public class ObsToAdmissionCalendarEventRouteTest extends BasePrpRouteTest {
 			loadedExtraRoutes = true;
 		}
 		
-		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
+		advise(ROUTE_ID_OBS_TO_ADMISSION_EVENT, new AdviceWithRouteBuilder() {
 			
 			@Override
 			public void configure() {
@@ -128,7 +126,7 @@ public class ObsToAdmissionCalendarEventRouteTest extends BasePrpRouteTest {
 		mockSaveCalendarEventEndpoint.expectedMessageCount(0);
 		mockObsCapturedOnFormEndpoint.expectedMessageCount(0);
 		
-		producerTemplate.send(URI, exchange);
+		producerTemplate.send(URI_OBS_TO_ADMISSION_EVENT, exchange);
 		
 		mockSaveCalendarEventEndpoint.assertIsSatisfied();
 		mockObsCapturedOnFormEndpoint.assertIsSatisfied();
@@ -146,7 +144,7 @@ public class ObsToAdmissionCalendarEventRouteTest extends BasePrpRouteTest {
 		mockObsCapturedOnFormEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(false));
 		mockGetEntityByUuidEndpoint.expectedMessageCount(0);
 		
-		producerTemplate.send(URI, exchange);
+		producerTemplate.send(URI_OBS_TO_ADMISSION_EVENT, exchange);
 		
 		mockSaveCalendarEventEndpoint.assertIsSatisfied();
 		mockObsCapturedOnFormEndpoint.assertIsSatisfied();
@@ -173,7 +171,7 @@ public class ObsToAdmissionCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.expectedPropertyReceived(EX_PROP_RES_REP, "full");
 		mockGetEntityByUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(null));
 		
-		producerTemplate.send(URI, exchange);
+		producerTemplate.send(URI_OBS_TO_ADMISSION_EVENT, exchange);
 		
 		mockSaveCalendarEventEndpoint.assertIsSatisfied();
 		mockObsCapturedOnFormEndpoint.assertIsSatisfied();
@@ -207,7 +205,7 @@ public class ObsToAdmissionCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.expectedPropertyReceived(EX_PROP_RES_REP, "full");
 		mockGetEntityByUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(mapper.writeValueAsString(encRes)));
 		
-		producerTemplate.send(URI, exchange);
+		producerTemplate.send(URI_OBS_TO_ADMISSION_EVENT, exchange);
 		
 		mockSaveCalendarEventEndpoint.assertIsSatisfied();
 		mockObsCapturedOnFormEndpoint.assertIsSatisfied();
@@ -246,7 +244,7 @@ public class ObsToAdmissionCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.expectedPropertyValuesReceivedInAnyOrder(EX_PROP_RES_REP, asList("full", "full"));
 		mockGetEntityByUuidEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody(null));
 		
-		producerTemplate.send(URI, exchange);
+		producerTemplate.send(URI_OBS_TO_ADMISSION_EVENT, exchange);
 		
 		mockSaveCalendarEventEndpoint.assertIsSatisfied();
 		mockObsCapturedOnFormEndpoint.assertIsSatisfied();
@@ -333,7 +331,7 @@ public class ObsToAdmissionCalendarEventRouteTest extends BasePrpRouteTest {
 		mockSaveCalendarEventEndpoint.expectedPropertyReceived(EX_PROP_ATTENDEE_PARTNER_IDS,
 		    new ArrayList(asList(partnerId1, partnerId2)));
 		
-		producerTemplate.send(URI, exchange);
+		producerTemplate.send(URI_OBS_TO_ADMISSION_EVENT, exchange);
 		
 		mockObsCapturedOnFormEndpoint.assertIsSatisfied();
 		mockGetEntityByUuidEndpoint.assertIsSatisfied();
@@ -424,7 +422,7 @@ public class ObsToAdmissionCalendarEventRouteTest extends BasePrpRouteTest {
 		mockSaveCalendarEventEndpoint.expectedPropertyReceived(EX_PROP_ATTENDEE_PARTNER_IDS,
 		    new ArrayList(asList(partnerId1, partnerId2)));
 		
-		producerTemplate.send(URI, exchange);
+		producerTemplate.send(URI_OBS_TO_ADMISSION_EVENT, exchange);
 		
 		mockObsCapturedOnFormEndpoint.assertIsSatisfied();
 		mockGetEntityByUuidEndpoint.assertIsSatisfied();

@@ -1,8 +1,9 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
     <!--
-        Processes an event for a validation obs recorded on the basic service plan form and creates a calendar event to
-        all users that belong the group specified by application property named odoo.dormitory.notification.group.name
+        Processes an event for a validation obs recorded on the basic service plan form and creates an admission
+        calendar event to all users that belong the group specified by application property named
+        odoo.dormitory.notification.group.name
     -->
 
     <route id="obs-to-admission-calendar-event" errorHandlerRef="watcherErrorHandler">
@@ -71,10 +72,10 @@
 
                 <log loggingLevel="DEBUG" message="Patient Type obs -> ${exchangeProperty.patientTypeObs}" />
 
-                <!-- Only process if this inpatient was selected on the form -->
+                <!-- Only process if inpatient was selected on the form -->
                 <when>
                     <simple>${exchangeProperty.patientTypeObs.get('value').get('uuid')} == 'a0b86497-cb21-46ad-9a9b-c99db8db9528'</simple>
-                    <log message="Patient is admitted, fetching their record from OpenMRS by uuid: ${exchangeProperty.entity-instance.get('person').get('uuid')}" />
+                    <log message="Patient is admitted, preparing admission notification" />
 
                     <setProperty name="isSubResource">
                         <simple>false</simple>
@@ -125,7 +126,7 @@
                     </setProperty>
 
                     <split parallelProcessing="false">
-                        <simple>${exchangeProperty.obs-to-admission-calendar-event-partnerIdsAndNames}</simple>
+                        <simple>${exchangeProperty.${routeId}-partnerIdsAndNames}</simple>
                         <script><spel>#{getProperty('attendeePartnerIds').add(body.get('partner_id')[0])}</spel></script>
                     </split>
                     
@@ -208,11 +209,11 @@
                         </setProperty>
                     </when>
 
-                    <log message="Adding a calendar event in odoo" />
+                    <log message="Adding an admission calendar event in odoo" />
 
                     <to uri="direct:save-calendar-event-in-odoo" />
 
-                    <log message="Successfully added a calendar event in odoo" />
+                    <log message="Successfully added an admission calendar event in odoo" />
                 </when>
             </when>
         </when>
