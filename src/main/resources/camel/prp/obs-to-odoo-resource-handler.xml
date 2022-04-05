@@ -14,6 +14,8 @@
 
         <to uri="direct:obs-to-admission-calendar-event" />
 
+        <to uri="direct:obs-to-discharge-calendar-event" />
+
         <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
     </route>
 

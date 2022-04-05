@@ -1,0 +1,197 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <!--
+        Processes an event for a validation obs recorded on the Assessment outcome and GS Final form and creates a
+        discharge calendar event to all users that belong the group specified by application property named
+        odoo.dormitory.notification.group.name
+    -->
+
+    <route id="obs-to-discharge-calendar-event" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:obs-to-discharge-calendar-event" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+
+        <setBody>
+            <simple>{{validation.concept}}</simple>
+        </setBody>
+
+        <to uri="direct:convert-to-concept-uuid-if-is-mapping" />
+
+        <setProperty name="${routeId}-validatedConceptUuid">
+            <simple>${body}</simple>
+        </setProperty>
+
+        <!-- Only process an event for a form validation obs -->
+        <when>
+            <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')} == ${exchangeProperty.${routeId}-validatedConceptUuid}</simple>
+            <log message="Received an event for a form validation obs" />
+
+            <setProperty name="obs">
+                <exchangeProperty>entity-instance</exchangeProperty>
+            </setProperty>
+            <setProperty name="formUuid">
+                <simple>TODO</simple>
+            </setProperty>
+
+            <to uri="direct:obs-captured-on-form-rule" />
+
+            <setProperty name="${routeId}-isExpectedForm">
+                <simple>${body}</simple>
+            </setProperty>
+
+            <!-- Only process if this was recorded on the Assessment outcome and GS Final form -->
+            <when>
+                <simple>${exchangeProperty.obs-to-discharge-calendar-event-isExpectedForm} == true</simple>
+                <log message="Obs was recorded on the assessment outcome and GS final form" />
+
+                <setProperty name="isSubResource">
+                    <simple>false</simple>
+                </setProperty>
+                <setProperty name="resourceName">
+                    <simple>encounter</simple>
+                </setProperty>
+                <setProperty name="resourceId">
+                    <simple>${exchangeProperty.entity-instance.get('encounter').get('uuid')}</simple>
+                </setProperty>
+                <setProperty name="resourceRepresentation">
+                    <simple>full</simple>
+                </setProperty>
+
+                <to uri="direct:get-entity-by-uuid-from-openmrs" />
+
+                <when>
+                    <simple>${body} == null</simple>
+                    <throwException exceptionType="org.openmrs.eip.EIPException" message="No encounter found in OpenMRS with uuid: ${exchangeProperty.entity-instance.get('encounter').get('uuid')}" />
+                </when>
+
+                <setProperty name="${routeId}-encounter">
+                    <jsonpath>$</jsonpath>
+                </setProperty>
+
+                <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
+
+                <setProperty name="questionConceptUuid">
+                    <simple>TODO</simple>
+                </setProperty>
+
+                <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
+
+                <setProperty name="${routeId}-closeEoSObs">
+                    <simple>${body}</simple>
+                </setProperty>
+
+                <log loggingLevel="DEBUG" message="Close end of service obs -> ${exchangeProperty.${routeId}-closeEoSObs}" />
+
+                <!-- Only process if Close EoS was checked on the form -->
+                <when>
+                    <simple>${exchangeProperty.${routeId}-closeEoSObs.get('value').get('uuid')} == 'a0b86497-cb21-46ad-9a9b-c99db8db9528'</simple>
+                    <log message="Patient is admitted, fetching their record from OpenMRS by uuid: ${exchangeProperty.entity-instance.get('person').get('uuid')}" />
+
+                    <setBody>
+                        <simple>{{patient.type.question.concept}}</simple>
+                    </setBody>
+
+                    <to uri="direct:convert-to-concept-uuid-if-is-mapping" />
+
+                    <setProperty name="${routeId}-patientTypeConceptUuid">
+                        <simple>${body}</simple>
+                    </setProperty>
+                    <setBody>
+                        <spel>#{new java.util.HashMap()}</spel>
+                    </setBody>
+
+                    <script>
+                        <spel>
+                            #{body.put('questionObsUuid', getProperty('obs-to-discharge-calendar-event-patientTypeConceptUuid')})}
+                            #{body.put('formUuid', '{{basic.service.plan.form.uuid}}')}
+                            #{body.put('visitUuid', getProperty('obs-to-discharge-calendar-event-encounter').get('visit').get('uuid')}
+                        </spel>
+                    </script>
+
+                    <to uri="direct:get-obs-by-qn-on-form-in-visit" />
+
+                    <!-- Only process if the patient was admitted in the associated visit -->
+                    <when>
+                        <simple>${body} != null</simple>
+                        <log message="The patient was admitted in the visit associated to the obs being processed, preparing discharge notification" />
+                        
+                        <setProperty name="isSubResource">
+                            <simple>false</simple>
+                        </setProperty>
+                        <setProperty name="resourceName">
+                            <simple>patient</simple>
+                        </setProperty>
+                        <setProperty name="resourceId">
+                            <simple>${exchangeProperty.entity-instance.get('person').get('uuid')}</simple>
+                        </setProperty>
+                        <setProperty name="resourceRepresentation">
+                            <simple>full</simple>
+                        </setProperty>
+
+                        <to uri="direct:get-entity-by-uuid-from-openmrs" />
+
+                        <when>
+                            <simple>${body} == null</simple>
+                            <throwException exceptionType="org.openmrs.eip.EIPException" message="No patient found in OpenMRS with uuid: ${exchangeProperty.entity-instance.get('person').get('uuid')}" />
+                        </when>
+
+                        <setProperty name="${routeId}-patient">
+                            <jsonpath>$</jsonpath>
+                        </setProperty>
+
+                        <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.${routeId}-patient}" />
+
+                        <setProperty name="name">
+                            <simple>{{odoo.dormitory.notification.group.name}}</simple>
+                        </setProperty>
+                        <setProperty name="modelName">
+                            <simple>res.groups</simple>
+                        </setProperty>
+
+                        <to uri="direct:get-resource-by-name-from-odoo" />
+
+                        <setBody>
+                            <spel>#{T(java.util.Collections).singletonMap('userIds', body.get('users'))}</spel>
+                        </setBody>
+
+                        <to uri="direct:get-partner-ids-by-user-ids" />
+
+                        <setProperty name="${routeId}-partnerIdsAndNames">
+                            <simple>${body}</simple>
+                        </setProperty>
+                        <setProperty name="attendeePartnerIds">
+                            <spel>#{new java.util.ArrayList()}</spel>
+                        </setProperty>
+
+                        <split parallelProcessing="false">
+                            <simple>${exchangeProperty.obs-to-discharge-calendar-event-partnerIdsAndNames}</simple>
+                            <script><spel>#{getProperty('attendeePartnerIds').add(body.get('partner_id')[0])}</spel></script>
+                        </split>
+
+                        <setProperty name="subject">
+                            <simple>${exchangeProperty.patient.get('person').get('display')}/Discharge</simple>
+                        </setProperty>
+                        <setProperty name="duration">
+                            <simple>1440</simple>
+                        </setProperty>
+                        <setProperty name="startDateTime">
+                            <spel>#{T(java.time.LocalDateTime).now(T(java.time.ZoneId).of('UTC'))}</spel>
+                        </setProperty>
+                        <setProperty name="description">
+                            <simple>Dear Dormitory Manager, episode of Service for ${exchangeProperty.${routeId}-patient.get('person').get('display')} ${exchangeProperty.hsuId} been closed</simple>
+                        </setProperty>
+
+                        <log message="Adding a discharge calendar event in odoo" />
+
+                        <to uri="direct:save-calendar-event-in-odoo" />
+
+                        <log message="Successfully added a discharge calendar event in odoo" />
+                    </when>
+                </when>
+            </when>
+        </when>
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+
+</routes>
