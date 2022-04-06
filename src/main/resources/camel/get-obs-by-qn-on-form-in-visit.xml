@@ -1,0 +1,123 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <!--
+        Gets a non-voided observation that has a question concept with a uuid matching the specified concept uuid
+        belonging to an encounter in the visit matching the specified visit uuid and the encounter was captured on a
+        form matching the specified form uuid.
+
+        @param visitUuid (Map) - The visit uuid to match
+        @param formUuid (String) - The form uuid to match
+        @param conceptUuid (String) - The observation question concept uuid to match
+
+        @bodyOut (Map) - The obs resource if a match is found otherwise null
+    -->
+
+    <route id="get-obs-by-qn-on-form-in-visit" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:get-obs-by-qn-on-form-in-visit" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+
+        <setProperty name="${routeId}-visitUuid">
+            <simple>${body.get('visitUuid')}</simple>
+        </setProperty>
+
+        <setProperty name="${routeId}-formUuid">
+            <simple>${body.get('formUuid')}</simple>
+        </setProperty>
+
+        <setProperty name="${routeId}-conceptUuid">
+            <simple>${body.get('conceptUuid')}</simple>
+        </setProperty>
+
+        <setProperty name="isSubResource">
+            <simple>false</simple>
+        </setProperty>
+        <setProperty name="resourceName">
+            <simple>visit</simple>
+        </setProperty>
+        <setProperty name="resourceId">
+            <simple>${body.get('visitUuid')}</simple>
+        </setProperty>
+        <setProperty name="resourceRepresentation">
+            <simple>full</simple>
+        </setProperty>
+
+        <to uri="direct:get-entity-by-uuid-from-openmrs" />
+
+        <when>
+            <simple>${body} == null</simple>
+            <throwException exceptionType="org.openmrs.eip.EIPException" message="No visit found in OpenMRS with uuid: ${exchangeProperty.${routeId}-visitUuid}" />
+        </when>
+        
+        <setBody>
+            <jsonpath>$</jsonpath>
+        </setBody>
+
+        <log loggingLevel="DEBUG" message="Fetched Visit -> ${body}"  />
+        
+        <setProperty name="${routeId}-encounters">
+            <simple>${body.get('encounters')}</simple>
+        </setProperty>
+        <setBody>
+            <exchangeProperty>${routeId}-encounters</exchangeProperty>
+        </setBody>
+        <setProperty name="${routeId}-lastIndex">
+            <spel>#{body.size() - 1}</spel>
+        </setProperty>
+        <setProperty name="${routeId}-endLoop">
+            <simple>${null}</simple>
+        </setProperty>
+        <setProperty name="${routeId}-currentItem">
+            <simple>${null}</simple>
+        </setProperty>
+        <setProperty name="${routeId}-match">
+            <simple>${null}</simple>
+        </setProperty>
+
+        <when>
+            <simple>${body.size()} > 0</simple>
+            <loop doWhile="true">
+                <simple>${exchangeProperty.${routeId}-endLoop} != true</simple>
+                <setProperty name="${routeId}-currentItem">
+                    <simple>${exchangeProperty.${routeId}-encounters.get(${exchangeProperty.CamelLoopIndex})}</simple>
+                </setProperty>
+
+                <when>
+                    <simple>${exchangeProperty.${routeId}-formUuid} == ${exchangeProperty.${routeId}-currentItem.get('form').get('uuid')}</simple>
+                    <setProperty name="encounter">
+                        <simple>${exchangeProperty.${routeId}-currentItem}</simple>
+                    </setProperty>
+                    <setProperty name="questionConceptUuid">
+                        <simple>${exchangeProperty.${routeId}-conceptUuid}</simple>
+                    </setProperty>
+
+                    <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
+
+                    <when>
+                        <simple>${body} != null</simple>
+                        <setProperty name="${routeId}-match">
+                            <simple>${body}</simple>
+                        </setProperty>
+                        <setProperty name="${routeId}-endLoop">
+                            <simple>true</simple>
+                        </setProperty>
+                    </when>
+                </when>
+
+                <when>
+                    <simple>${exchangeProperty.CamelLoopIndex} == ${exchangeProperty.${routeId}-lastIndex}</simple>
+                    <setProperty name="${routeId}-endLoop">
+                        <simple>true</simple>
+                    </setProperty>
+                </when>
+            </loop>
+        </when>
+
+        <setBody>
+            <exchangeProperty>${routeId}-match</exchangeProperty>
+        </setBody>
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+
+</routes>
