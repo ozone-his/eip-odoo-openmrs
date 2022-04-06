@@ -23,6 +23,9 @@
         <setBody>
             <exchangeProperty>${routeId}-encObs</exchangeProperty>
         </setBody>
+        <setProperty name="${routeId}-lastIndex">
+            <spel>#{body.size() - 1}</spel>
+        </setProperty>
         <setProperty name="${routeId}-endLoop">
             <simple>${null}</simple>
         </setProperty>
@@ -52,7 +55,7 @@
                 </when>
 
                 <when>
-                    <spel>#{getProperty('CamelLoopIndex') == getProperty('get-obs-by-concept-uuid-from-encounter-encObs').size() - 1}</spel>
+                    <simple>${exchangeProperty.CamelLoopIndex} == ${exchangeProperty.${routeId}-lastIndex}</simple>
                     <setProperty name="${routeId}-endLoop">
                         <simple>true</simple>
                     </setProperty>

@@ -19,6 +19,7 @@ public abstract class BaseOdooRouteTest extends BaseWatcherRouteTest {
 	
 	protected final ObjectMapper mapper = new ObjectMapper();
 	
+	@Override
 	protected String getErrorMessage(Exchange e) {
 		return e.getProperty("error", EIPException.class).getMessage();
 	}
