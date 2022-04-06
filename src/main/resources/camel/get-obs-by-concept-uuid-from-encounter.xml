@@ -17,50 +17,51 @@
 
         <log message="Looking up an obs from the encounter that has a question concept with uuid: ${exchangeProperty.questionConceptUuid}" />
 
-        <setProperty name="encObs">
+        <setProperty name="${routeId}-encObs">
             <simple>${exchangeProperty.encounter.get('obs')}</simple>
         </setProperty>
         <setBody>
-            <simple>${exchangeProperty.encObs}</simple>
+            <exchangeProperty>${routeId}-encObs</exchangeProperty>
         </setBody>
-        <setProperty name="endFindObsLoop">
+        <setProperty name="${routeId}-endLoop">
             <simple>${null}</simple>
         </setProperty>
-        <setProperty name="currentObs">
+        <setProperty name="${routeId}-currentItem">
             <simple>${null}</simple>
         </setProperty>
-        <setProperty name="matchingObs">
+        <setProperty name="${routeId}-match">
             <simple>${null}</simple>
         </setProperty>
 
-        <loop doWhile="true">
-            <simple>${exchangeProperty.endFindObsLoop} != true</simple>
-            <setProperty name="currentObs">
-                <spel>#{getProperty('encObs').get(getProperty('CamelLoopIndex'))}</spel>
-            </setProperty>
-
-            <when>
-                <simple>${exchangeProperty.currentObs.get('concept').get('uuid')} == ${exchangeProperty.questionConceptUuid} &amp;&amp; ${exchangeProperty.currentObs.get('voided')} != true</simple>
-                <setProperty name="matchingObs">
-                    <simple>${exchangeProperty.currentObs}</simple>
-                </setProperty>
-                <setProperty name="endFindObsLoop">
-                    <simple>true</simple>
+        <when>
+            <simple>${body.size()} > 0</simple>
+            <loop doWhile="true">
+                <simple>${exchangeProperty.${routeId}-endLoop} != true</simple>
+                <setProperty name="${routeId}-currentItem">
+                    <simple>${exchangeProperty.${routeId}-encObs.get(${exchangeProperty.CamelLoopIndex})}</simple>
                 </setProperty>
 
-                <log message="Obs found with matching question concept uuid" />
-            </when>
+                <when>
+                    <simple>${exchangeProperty.${routeId}-currentItem.get('concept').get('uuid')} == ${exchangeProperty.questionConceptUuid} &amp;&amp; ${exchangeProperty.${routeId}-currentItem.get('voided')} != true</simple>
+                    <setProperty name="${routeId}-match">
+                        <exchangeProperty>${routeId}-currentItem</exchangeProperty>
+                    </setProperty>
+                    <setProperty name="${routeId}-endLoop">
+                        <simple>true</simple>
+                    </setProperty>
+                </when>
 
-            <when>
-                <spel>#{getProperty('CamelLoopIndex') == getProperty('encObs').size() - 1}</spel>
-                <setProperty name="endFindObsLoop">
-                    <simple>true</simple>
-                </setProperty>
-            </when>
-        </loop>
+                <when>
+                    <spel>#{getProperty('CamelLoopIndex') == getProperty('get-obs-by-concept-uuid-from-encounter-encObs').size() - 1}</spel>
+                    <setProperty name="${routeId}-endLoop">
+                        <simple>true</simple>
+                    </setProperty>
+                </when>
+            </loop>
+        </when>
 
         <setBody>
-            <simple>${exchangeProperty.matchingObs}</simple>
+            <exchangeProperty>${routeId}-match</exchangeProperty>
         </setBody>
 
         <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
