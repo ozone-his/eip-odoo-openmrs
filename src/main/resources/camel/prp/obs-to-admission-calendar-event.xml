@@ -25,13 +25,13 @@
 
             <to uri="direct:obs-captured-on-form-rule" />
 
-            <setProperty name="isBasicServicePlanForm">
+            <setProperty name="${routeId}-isBasicServicePlanForm">
                 <simple>${body}</simple>
             </setProperty>
 
             <!-- Only process if this was recorded on the basic service plan form -->
             <when>
-                <simple>${exchangeProperty.isBasicServicePlanForm} == true</simple>
+                <simple>${exchangeProperty.obs-to-admission-calendar-event-isBasicServicePlanForm} == true</simple>
                 <log message="Obs was recorded on the basic service plan form" />
 
                 <setProperty name="isSubResource">
@@ -66,15 +66,15 @@
 
                 <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
 
-                <setProperty name="patientTypeObs">
+                <setProperty name="${routeId}-patientTypeObs">
                     <simple>${body}</simple>
                 </setProperty>
 
-                <log loggingLevel="DEBUG" message="Patient Type obs -> ${exchangeProperty.patientTypeObs}" />
+                <log loggingLevel="DEBUG" message="Patient Type obs -> ${exchangeProperty.${routeId}-patientTypeObs}" />
 
                 <!-- Only process if inpatient was selected on the form -->
                 <when>
-                    <simple>${exchangeProperty.patientTypeObs.get('value').get('uuid')} == 'a0b86497-cb21-46ad-9a9b-c99db8db9528'</simple>
+                    <simple>${exchangeProperty.obs-to-admission-calendar-event-patientTypeObs.get('value').get('uuid')} == 'a0b86497-cb21-46ad-9a9b-c99db8db9528'</simple>
                     <log message="Patient is admitted, preparing admission notification" />
 
                     <setProperty name="isSubResource">
@@ -97,11 +97,11 @@
                         <throwException exceptionType="org.openmrs.eip.EIPException" message="No patient found in OpenMRS with uuid: ${exchangeProperty.entity-instance.get('person').get('uuid')}" />
                     </when>
 
-                    <setProperty name="patient">
+                    <setProperty name="${routeId}-patient">
                         <jsonpath>$</jsonpath>
                     </setProperty>
 
-                    <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.patient}" />
+                    <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.${routeId}-patient}" />
 
                     <setProperty name="name">
                         <simple>{{odoo.dormitory.notification.group.name}}</simple>
@@ -129,41 +129,41 @@
                         <simple>${exchangeProperty.${routeId}-partnerIdsAndNames}</simple>
                         <script><spel>#{getProperty('attendeePartnerIds').add(body.get('partner_id')[0])}</spel></script>
                     </split>
-                    
-                    <setProperty name="endHsuIdLoop">
+
+                    <setProperty name="${routeId}-endLoop">
                         <simple>${null}</simple>
                     </setProperty>
-                    <setProperty name="currentHsuId">
+                    <setProperty name="${routeId}-currentItem">
                         <simple>${null}</simple>
                     </setProperty>
-                    <setProperty name="hsuId">
+                    <setProperty name="${routeId}-hsuId">
                         <simple>${null}</simple>
                     </setProperty>
                     <loop doWhile="true">
-                        <simple>${exchangeProperty.endHsuIdLoop} != true</simple>
-                        <setProperty name="currentHsuId">
-                            <spel>#{getProperty('patient').get('identifiers').get(getProperty('CamelLoopIndex'))}</spel>
+                        <simple>${exchangeProperty.${routeId}-endLoop} != true</simple>
+                        <setProperty name="${routeId}-currentItem">
+                            <simple>${exchangeProperty.${routeId}-patient.get('identifiers').get(${exchangeProperty.CamelLoopIndex})}</simple>
                         </setProperty>
 
                         <when>
-                            <simple>${exchangeProperty.currentHsuId.get('identifierType').get('uuid')} == '{{openmrs.identifier.type.uuid}}'</simple>
-                            <setProperty name="hsuId">
-                                <simple>${exchangeProperty.currentHsuId.get('identifier')}</simple>
+                            <simple>${exchangeProperty.${routeId}-currentItem.get('identifierType').get('uuid')} == '{{openmrs.identifier.type.uuid}}'</simple>
+                            <setProperty name="${routeId}-hsuId">
+                                <simple>${exchangeProperty.${routeId}-currentItem.get('identifier')}</simple>
                             </setProperty>
-                            <setProperty name="endHsuIdLoop">
+                            <setProperty name="${routeId}-endLoop">
                                 <simple>true</simple>
                             </setProperty>
                         </when>
 
                         <when>
-                            <spel>#{getProperty('CamelLoopIndex') == getProperty('patient').get('identifiers').size() - 1}</spel>
-                            <setProperty name="endHsuIdLoop">
+                            <spel>#{getProperty('CamelLoopIndex') == getProperty('obs-to-admission-calendar-event-patient').get('identifiers').size() - 1}</spel>
+                            <setProperty name="${routeId}-endLoop">
                                 <simple>true</simple>
                             </setProperty>
                         </when>
                     </loop>
 
-                    <log loggingLevel="DEBUG" message="HSU id -> ${exchangeProperty.hsuId}" />
+                    <log loggingLevel="DEBUG" message="HSU id -> ${exchangeProperty.${routeId}-hsuId}" />
 
                     <setProperty name="questionConceptUuid">
                         <simple>a320170f-2417-45eb-86ab-5f8eb4074500</simple>
@@ -171,11 +171,11 @@
 
                     <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
 
-                    <setProperty name="estimatedDaysObs">
+                    <setProperty name="${routeId}-estimatedDaysObs">
                         <simple>${body}</simple>
                     </setProperty>
 
-                    <log loggingLevel="DEBUG" message="Estimated days obs -> ${exchangeProperty.estimatedDaysObs}" />
+                    <log loggingLevel="DEBUG" message="Estimated days obs -> ${exchangeProperty.${routeId}-estimatedDaysObs}" />
 
                     <setProperty name="questionConceptUuid">
                         <simple>25929a4b-fa2d-4657-b74c-385b1eb4384f</simple>
@@ -183,14 +183,14 @@
 
                     <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
 
-                    <setProperty name="careGiverObs">
+                    <setProperty name="${routeId}-careGiverObs">
                         <simple>${body}</simple>
                     </setProperty>
 
-                    <log loggingLevel="DEBUG" message="Accompanied by care giver obs -> ${exchangeProperty.careGiverObs}" />
+                    <log loggingLevel="DEBUG" message="Accompanied by care giver obs -> ${exchangeProperty.${routeId}-careGiverObs}" />
 
                     <setProperty name="subject">
-                        <simple>${exchangeProperty.patient.get('person').get('display')}/${exchangeProperty.estimatedDaysObs.get('value').intValue()} days</simple>
+                        <simple>${exchangeProperty.${routeId}-patient.get('person').get('display')}/${exchangeProperty.${routeId}-estimatedDaysObs.get('value').intValue()} days</simple>
                     </setProperty>
                     <setProperty name="duration">
                         <simple>1440</simple>
@@ -199,11 +199,11 @@
                         <spel>#{T(java.time.LocalDateTime).now(T(java.time.ZoneId).of('UTC'))}</spel>
                     </setProperty>
                     <setProperty name="description">
-                        <simple>Service User ${exchangeProperty.patient.get('person').get('display')} ${exchangeProperty.hsuId} inpatient for estimated ${exchangeProperty.estimatedDaysObs.get('value').intValue()} days</simple>
+                        <simple>Service User ${exchangeProperty.${routeId}-patient.get('person').get('display')} ${exchangeProperty.${routeId}-hsuId} inpatient for estimated ${exchangeProperty.${routeId}-estimatedDaysObs.get('value').intValue()} days</simple>
                     </setProperty>
 
                     <when>
-                        <simple>${exchangeProperty.careGiverObs.get('value').get('uuid')} == '1065AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'</simple>
+                        <simple>${exchangeProperty.${routeId}-careGiverObs.get('value').get('uuid')} == '1065AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'</simple>
                         <setProperty name="description">
                             <simple>${exchangeProperty.description}, accompanied by a caregiver</simple>
                         </setProperty>

@@ -150,9 +150,6 @@
                             <script><spel>#{getProperty('attendeePartnerIds').add(body.get('partner_id')[0])}</spel></script>
                         </split>
 
-                        <setBody>
-                            <exchangeProperty>${routeId}-encObs</exchangeProperty>
-                        </setBody>
                         <setProperty name="${routeId}-endLoop">
                             <simple>${null}</simple>
                         </setProperty>
