@@ -20,7 +20,7 @@
                 <exchangeProperty>entity-instance</exchangeProperty>
             </setProperty>
             <setProperty name="formUuid">
-                <simple>3b07b00c-1623-4380-af4a-4bb68244eff5</simple>
+                <simple>{{basic.service.plan.form.uuid}}</simple>
             </setProperty>
 
             <to uri="direct:obs-captured-on-form-rule" />
@@ -153,8 +153,6 @@
                             <setProperty name="endHsuIdLoop">
                                 <simple>true</simple>
                             </setProperty>
-
-                            <log loggingLevel="DEBUG" message="Found HSU id -> ${exchangeProperty.hsuId}" />
                         </when>
 
                         <when>
@@ -164,6 +162,8 @@
                             </setProperty>
                         </when>
                     </loop>
+
+                    <log loggingLevel="DEBUG" message="HSU id -> ${exchangeProperty.hsuId}" />
 
                     <setProperty name="questionConceptUuid">
                         <simple>a320170f-2417-45eb-86ab-5f8eb4074500</simple>

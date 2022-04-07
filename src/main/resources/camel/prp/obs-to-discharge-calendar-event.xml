@@ -11,26 +11,16 @@
 
         <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
-        <setBody>
-            <simple>{{validation.concept}}</simple>
-        </setBody>
-
-        <to uri="direct:convert-to-concept-uuid-if-is-mapping" />
-
-        <setProperty name="${routeId}-validatedConceptUuid">
-            <simple>${body}</simple>
-        </setProperty>
-
         <!-- Only process an event for a form validation obs -->
         <when>
-            <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')} == ${exchangeProperty.${routeId}-validatedConceptUuid}</simple>
+            <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')} == '1382a47a-3e63-11e9-b210-d663bd873d93'</simple>
             <log message="Received an event for a form validation obs" />
 
             <setProperty name="obs">
                 <exchangeProperty>entity-instance</exchangeProperty>
             </setProperty>
             <setProperty name="formUuid">
-                <simple>TODO</simple>
+                <simple>5fa318a9-eade-ea79-a96e-d91754135a5c</simple>
             </setProperty>
 
             <to uri="direct:obs-captured-on-form-rule" />
@@ -67,44 +57,37 @@
                 <setProperty name="${routeId}-encounter">
                     <jsonpath>$</jsonpath>
                 </setProperty>
+                <setProperty name="encounter">
+                    <exchangeProperty>${routeId}-encounter</exchangeProperty>
+                </setProperty>
 
                 <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
 
                 <setProperty name="questionConceptUuid">
-                    <simple>TODO</simple>
+                    <simple>675b4e02-1a96-4eda-af84-b6ebe0d715a4</simple>
                 </setProperty>
 
                 <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
 
-                <setProperty name="${routeId}-closeEoSObs">
+                <setProperty name="${routeId}-assmtDecisionObs">
                     <simple>${body}</simple>
                 </setProperty>
 
-                <log loggingLevel="DEBUG" message="Close end of service obs -> ${exchangeProperty.${routeId}-closeEoSObs}" />
+                <log loggingLevel="DEBUG" message="Final assessment decision obs -> ${exchangeProperty.${routeId}-assmtDecisionObs}" />
 
-                <!-- Only process if Close EoS was checked on the form -->
+                <!-- Only process if Close EoS was the final assessment decision checked on the form -->
                 <when>
-                    <simple>${exchangeProperty.${routeId}-closeEoSObs.get('value').get('uuid')} == 'a0b86497-cb21-46ad-9a9b-c99db8db9528'</simple>
-                    <log message="Patient is admitted, fetching their record from OpenMRS by uuid: ${exchangeProperty.entity-instance.get('person').get('uuid')}" />
+                    <simple>${exchangeProperty.obs-to-discharge-calendar-event-assmtDecisionObs.get('value').get('uuid')} == '9bc5c6f2-7c82-11e9-8f9e-2a86e4085a59'</simple>
+                    <log message="Episode of service closed for patient" />
 
-                    <setBody>
-                        <simple>{{patient.type.question.concept}}</simple>
-                    </setBody>
-
-                    <to uri="direct:convert-to-concept-uuid-if-is-mapping" />
-
-                    <setProperty name="${routeId}-patientTypeConceptUuid">
-                        <simple>${body}</simple>
-                    </setProperty>
                     <setBody>
                         <spel>#{new java.util.HashMap()}</spel>
                     </setBody>
-
                     <script>
                         <spel>
-                            #{body.put('questionObsUuid', getProperty('obs-to-discharge-calendar-event-patientTypeConceptUuid')})}
+                            #{body.put('conceptUuid', '5b2efd02-be26-4789-b5ec-7c5ceb428725')}
                             #{body.put('formUuid', '{{basic.service.plan.form.uuid}}')}
-                            #{body.put('visitUuid', getProperty('obs-to-discharge-calendar-event-encounter').get('visit').get('uuid')}
+                            #{body.put('visitUuid', getProperty('obs-to-discharge-calendar-event-encounter').get('visit').get('uuid'))}
                         </spel>
                     </script>
 
@@ -114,7 +97,6 @@
                     <when>
                         <simple>${body} != null</simple>
                         <log message="The patient was admitted in the visit associated to the obs being processed, preparing discharge notification" />
-                        
                         <setProperty name="isSubResource">
                             <simple>false</simple>
                         </setProperty>
@@ -164,12 +146,50 @@
                         </setProperty>
 
                         <split parallelProcessing="false">
-                            <simple>${exchangeProperty.obs-to-discharge-calendar-event-partnerIdsAndNames}</simple>
+                            <simple>${exchangeProperty.${routeId}-partnerIdsAndNames}</simple>
                             <script><spel>#{getProperty('attendeePartnerIds').add(body.get('partner_id')[0])}</spel></script>
                         </split>
 
+                        <setBody>
+                            <exchangeProperty>${routeId}-encObs</exchangeProperty>
+                        </setBody>
+                        <setProperty name="${routeId}-endLoop">
+                            <simple>${null}</simple>
+                        </setProperty>
+                        <setProperty name="${routeId}-currentItem">
+                            <simple>${null}</simple>
+                        </setProperty>
+                        <setProperty name="${routeId}-hsuId">
+                            <simple>${null}</simple>
+                        </setProperty>
+                        <loop doWhile="true">
+                            <simple>${exchangeProperty.${routeId}-endLoop} != true</simple>
+                            <setProperty name="${routeId}-currentItem">
+                                <simple>${exchangeProperty.${routeId}-patient.get('identifiers').get(${exchangeProperty.CamelLoopIndex})}</simple>
+                            </setProperty>
+
+                            <when>
+                                <simple>${exchangeProperty.${routeId}-currentItem.get('identifierType').get('uuid')} == '{{openmrs.identifier.type.uuid}}'</simple>
+                                <setProperty name="${routeId}-hsuId">
+                                    <simple>${exchangeProperty.${routeId}-currentItem.get('identifier')}</simple>
+                                </setProperty>
+                                <setProperty name="${routeId}-endLoop">
+                                    <simple>true</simple>
+                                </setProperty>
+                            </when>
+
+                            <when>
+                                <spel>#{getProperty('CamelLoopIndex') == getProperty('obs-to-discharge-calendar-event-patient').get('identifiers').size() - 1}</spel>
+                                <setProperty name="${routeId}-endLoop">
+                                    <simple>true</simple>
+                                </setProperty>
+                            </when>
+                        </loop>
+
+                        <log loggingLevel="DEBUG" message="HSU id -> ${exchangeProperty.${routeId}-hsuId}" />
+
                         <setProperty name="subject">
-                            <simple>${exchangeProperty.patient.get('person').get('display')}/Discharge</simple>
+                            <simple>${exchangeProperty.${routeId}-patient.get('person').get('display')}/Discharge</simple>
                         </setProperty>
                         <setProperty name="duration">
                             <simple>1440</simple>
@@ -178,7 +198,7 @@
                             <spel>#{T(java.time.LocalDateTime).now(T(java.time.ZoneId).of('UTC'))}</spel>
                         </setProperty>
                         <setProperty name="description">
-                            <simple>Dear Dormitory Manager, episode of Service for ${exchangeProperty.${routeId}-patient.get('person').get('display')} ${exchangeProperty.hsuId} been closed</simple>
+                            <simple>Dear Dormitory Manager, episode of Service for ${exchangeProperty.${routeId}-patient.get('person').get('display')} ${exchangeProperty.${routeId}-hsuId} been closed</simple>
                         </setProperty>
 
                         <log message="Adding a discharge calendar event in odoo" />
