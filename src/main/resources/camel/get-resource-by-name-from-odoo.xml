@@ -1,8 +1,8 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
 
     <!--
-        Gets a resource matching the specified name and modelName, the route assumes names for are unique implying that
-        the route will fail if multiple matches are found.
+        Gets a resource from odoo matching the specified name and modelName, the route assumes names for are unique
+        implying that the route will fail if multiple matches are found.
 
         @exchangePropertyIn name (String) - The name of the resource to match
         @exchangePropertyIn modelName (String) - The name of the model to match

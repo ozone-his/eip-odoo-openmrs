@@ -62,6 +62,12 @@ public class OdooTestConstants {
 	
 	public static final String ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO = "get-resource-by-name-from-odoo";
 	
+	public static final String ROUTE_ID_GET_RES_BY_ID_FROM_ODOO = "get-resource-by-id-from-odoo";
+	
+	public static final String ROUTE_ID_GET_EXT_ID_MAP = "odoo-get-external-id-map";
+	
+	public static final String ROUTE_ID_GET_RES_BY_EXT_ID_FROM_ODOO = "get-resource-by-ext-id-from-odoo";
+	
 	public static final String ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC = "get-obs-by-concept-uuid-from-encounter";
 	
 	public static final String ROUTE_ID_OBS_TO_CUSTOMER = "obs-to-customer";
@@ -84,7 +90,7 @@ public class OdooTestConstants {
 	
 	public static final String URI_PATIENT_ASSOCIATION_HANDLER = "direct:odoo-patient-association-handler";
 	
-	public static final String URI_GET_EXT_ID = "direct:odoo-get-external-id-map";
+	public static final String URI_GET_EXT_ID = "direct:" + ROUTE_ID_GET_EXT_ID_MAP;
 	
 	public static final String URI_GET_QUOTES = "direct:odoo-get-draft-quotations";
 	
@@ -132,6 +138,8 @@ public class OdooTestConstants {
 	
 	public static final String URI_GET_RES_BY_NAME_FROM_ODOO = "direct:" + ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO;
 	
+	public static final String URI_GET_RES_BY_ID_FROM_ODOO = "direct:" + ROUTE_ID_GET_RES_BY_ID_FROM_ODOO;
+	
 	public static final String URI_GET_CONCEPT_BY_UUID_FROM_ENC = "direct:" + ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC;
 	
 	public static final String URI_OBS_TO_CUSTOMER = "direct:" + ROUTE_ID_OBS_TO_CUSTOMER;
@@ -145,6 +153,8 @@ public class OdooTestConstants {
 	public static final String URI_OBS_TO_DISCHARGE_EVENT = "direct:" + ROUTE_ID_OBS_TO_DISCHARGE_EVENT;
 	
 	public static final String URI_GET_OBS_BY_QN_FORM_VISIT = "direct:" + ROUTE_ID_GET_OBS_BY_QN_FORM_VISIT;
+	
+	public static final String URI_GET_RES_BY_EXT_ID_FROM_ODOO = "direct:" + ROUTE_ID_GET_RES_BY_EXT_ID_FROM_ODOO;
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	
@@ -184,9 +194,9 @@ public class OdooTestConstants {
 	
 	public static final String APP_PROP_NAME_ID_TYPE_UUID = "openmrs.identifier.type.uuid";
 	
-	public static final String APP_PROP_NAME_GRP_NAME = "odoo.dormitory.notification.group.name";
-
-    public static final String APP_PROP_NAME_BASIC_SERVICE_PLAN_FORM_UUID = "basic.service.plan.form.uuid";
+	public static final String APP_PROP_NAME_GRP_EXT_ID = "odoo.dormitory.notification.group.ext.id";
+	
+	public static final String APP_PROP_NAME_BASIC_SERVICE_PLAN_FORM_UUID = "basic.service.plan.form.uuid";
 	
 	public static final String CONCEPT_UUID_VALIDATED = "1382a47a-3e63-11e9-b210-d663bd873d93";
 	
@@ -195,7 +205,9 @@ public class OdooTestConstants {
 	public static final String CONCEPT_UUID_PATIENT_TYPE = "5b2efd02-be26-4789-b5ec-7c5ceb428725";
 	
 	public static final String CONCEPT_UUID_INPATIENT = "a0b86497-cb21-46ad-9a9b-c99db8db9528";
-
-    public static final String BASIC_SERVICE_PLAN_FORM_UUID = "3b07b00c-1623-4380-af4a-4bb68244eff5";
+	
+	public static final String BASIC_SERVICE_PLAN_FORM_UUID = "3b07b00c-1623-4380-af4a-4bb68244eff5";
+	
+	public static final String PARAM_MODEL_NAME = "modelName";
 	
 }
