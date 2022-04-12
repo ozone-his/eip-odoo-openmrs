@@ -4,6 +4,7 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOU
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RES_REP;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_CONVERT_TO_CONCEPT_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
@@ -35,15 +36,22 @@ public class IsObsFormValidatedRuleRouteTest extends BasePrpRouteTest {
 	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
 	private MockEndpoint mockFetchResourceEndpoint;
 	
+	@EndpointInject("mock:convert-to-concept-uuid-if-is-mapping")
+	private MockEndpoint mockConvertToConceptUuidEndpoint;
+	
 	@Before
 	public void setup() throws Exception {
 		mockFetchResourceEndpoint.reset();
+		mockConvertToConceptUuidEndpoint.reset();
+		
 		advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 			
 			@Override
 			public void configure() {
 				interceptSendToEndpoint("direct:get-entity-by-uuid-from-openmrs").skipSendToOriginalEndpoint()
 				        .to(mockFetchResourceEndpoint);
+				interceptSendToEndpoint(URI_CONVERT_TO_CONCEPT_UUID).skipSendToOriginalEndpoint()
+				        .to(mockConvertToConceptUuidEndpoint);
 			}
 			
 		});
@@ -60,6 +68,9 @@ public class IsObsFormValidatedRuleRouteTest extends BasePrpRouteTest {
 		        singletonMap("concept", singletonMap("uuid", "test-2"))));
 		Map obsResource = singletonMap("encounter", singletonMap("uuid", encounterUuid));
 		exchange.getIn().setBody(obsResource);
+		mockConvertToConceptUuidEndpoint.expectedMessageCount(1);
+		mockConvertToConceptUuidEndpoint.expectedBodiesReceived(VALIDATION_CONCEPT_UUID);
+		mockConvertToConceptUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(VALIDATION_CONCEPT_UUID));
 		mockFetchResourceEndpoint.expectedMessageCount(1);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "encounter");
@@ -84,6 +95,9 @@ public class IsObsFormValidatedRuleRouteTest extends BasePrpRouteTest {
 		    singletonMap("concept", singletonMap("uuid", VALIDATION_CONCEPT_UUID))));
 		Map obsResource = singletonMap("encounter", singletonMap("uuid", encounterUuid));
 		exchange.getIn().setBody(obsResource);
+		mockConvertToConceptUuidEndpoint.expectedMessageCount(1);
+		mockConvertToConceptUuidEndpoint.expectedBodiesReceived(VALIDATION_CONCEPT_UUID);
+		mockConvertToConceptUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(VALIDATION_CONCEPT_UUID));
 		mockFetchResourceEndpoint.expectedMessageCount(1);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "encounter");
@@ -108,6 +122,9 @@ public class IsObsFormValidatedRuleRouteTest extends BasePrpRouteTest {
 		    singletonMap("concept", singletonMap("uuid", "test-2"))));
 		Map obsResource = singletonMap("encounter", singletonMap("uuid", encounterUuid));
 		exchange.getIn().setBody(obsResource);
+		mockConvertToConceptUuidEndpoint.expectedMessageCount(1);
+		mockConvertToConceptUuidEndpoint.expectedBodiesReceived(VALIDATION_CONCEPT_UUID);
+		mockConvertToConceptUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(VALIDATION_CONCEPT_UUID));
 		mockFetchResourceEndpoint.expectedMessageCount(1);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
 		mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "encounter");

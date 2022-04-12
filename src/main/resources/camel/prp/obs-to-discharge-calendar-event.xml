@@ -195,7 +195,7 @@
                             <spel>#{T(java.time.LocalDateTime).now(T(java.time.ZoneId).of('UTC'))}</spel>
                         </setProperty>
                         <setProperty name="description">
-                            <simple>Dear Dormitory Manager, episode of Service for ${exchangeProperty.${routeId}-patient.get('person').get('display')} ${exchangeProperty.${routeId}-hsuId} been closed</simple>
+                            <simple>Dear Dormitory Manager, episode of Service for ${exchangeProperty.${routeId}-patient.get('person').get('display')} ${exchangeProperty.${routeId}-hsuId} has been closed</simple>
                         </setProperty>
 
                         <log message="Adding a discharge calendar event in odoo" />

@@ -404,7 +404,7 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 		mockSaveCalendarEventEndpoint.expectedMessageCount(1);
 		mockSaveCalendarEventEndpoint.expectedPropertyReceived(EX_PROP_SUBJECT, fullName + "/Discharge");
 		final String expectedDescription = "Dear Dormitory Manager, episode of Service for " + fullName + " " + hsuId
-		        + " been closed";
+		        + " has been closed";
 		mockSaveCalendarEventEndpoint.expectedPropertyReceived(EX_PROP_DESCRIPTION, expectedDescription);
 		LocalDateTime timestamp = LocalDateTime.now(ZoneId.of("UTC"));
 		mockSaveCalendarEventEndpoint.expectedPropertyReceived(EX_PROP_DURATION, 1440);

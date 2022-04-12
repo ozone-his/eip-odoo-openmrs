@@ -25,6 +25,8 @@ import org.apache.camel.support.DefaultExchange;
 import org.junit.Before;
 import org.junit.Test;
 
+import ch.qos.logback.classic.Level;
+
 public class GetObsByQnOnFormInVisitRouteTest extends BaseOdooRouteTest {
 	
 	public static final String PARAM_CONCEPT_UUID = "conceptUuid";
@@ -36,15 +38,21 @@ public class GetObsByQnOnFormInVisitRouteTest extends BaseOdooRouteTest {
 	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
 	private MockEndpoint mockGetEntityByUuidEndpoint;
 	
+	@EndpointInject("mock:is-obs-form-validated-rule")
+	private MockEndpoint mockFormValidatedRuleEndpoint;
+	
 	@Before
 	public void setup() throws Exception {
 		mockGetEntityByUuidEndpoint.reset();
+		mockFormValidatedRuleEndpoint.reset();
 		
 		advise(ROUTE_ID_GET_OBS_BY_QN_FORM_VISIT, new AdviceWithRouteBuilder() {
 			
 			@Override
 			public void configure() {
 				interceptSendToEndpoint(URI_GET_ENTITY_BY_UUID).skipSendToOriginalEndpoint().to(mockGetEntityByUuidEndpoint);
+				interceptSendToEndpoint("direct:is-obs-form-validated-rule").skipSendToOriginalEndpoint()
+				        .to(mockFormValidatedRuleEndpoint);
 			}
 			
 		});
@@ -118,34 +126,54 @@ public class GetObsByQnOnFormInVisitRouteTest extends BaseOdooRouteTest {
 		final String visitUuid = "visit-uuid";
 		final String formUuid = "form-uuid";
 		final String conceptUuid = "concept-uuid";
+		final String encUuid2 = "enc-uuid-2";
+		final String encUuid3 = "enc-uuid-3";
 		Exchange exchange = new DefaultExchange(camelContext);
 		Map params = new HashMap();
 		params.put(PARAM_VISIT_UUID, visitUuid);
 		params.put(PARAM_FORM_UUID, formUuid);
 		params.put(PARAM_CONCEPT_UUID, conceptUuid);
 		exchange.getIn().setBody(params);
-		mockGetEntityByUuidEndpoint.expectedMessageCount(1);
-		mockGetEntityByUuidEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
-		mockGetEntityByUuidEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "visit");
-		mockGetEntityByUuidEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, visitUuid);
-		mockGetEntityByUuidEndpoint.expectedPropertyReceived(EX_PROP_RES_REP, "full");
-		Map expectObs = singletonMap("concept", singletonMap("uuid", conceptUuid));
+		mockGetEntityByUuidEndpoint.expectedMessageCount(3);
+		mockGetEntityByUuidEndpoint.expectedPropertyValuesReceivedInAnyOrder(EX_PROP_IS_SUBRESOURCE, false, false, false);
+		mockGetEntityByUuidEndpoint.expectedPropertyValuesReceivedInAnyOrder(EX_PROP_RESOURCE_NAME, "visit", "encounter",
+		    "encounter");
+		mockGetEntityByUuidEndpoint.expectedPropertyValuesReceivedInAnyOrder(EX_PROP_RESOURCE_ID, visitUuid, encUuid2,
+		    encUuid3);
+		mockGetEntityByUuidEndpoint.expectedPropertyValuesReceivedInAnyOrder(EX_PROP_RES_REP, "full", "full", "full");
+		Map expectedObsConcept = singletonMap("uuid", conceptUuid);
+		final String obsUuid1 = "obs-1";
+		Map obsForEnc2 = new HashMap();
+		obsForEnc2.put("uuid", obsUuid1);
+		obsForEnc2.put("concept", expectedObsConcept);
+		Map obsForEnc3 = new HashMap();
+		obsForEnc3.put("uuid", "obs-3");
+		obsForEnc3.put("concept", expectedObsConcept);
 		Map enc1 = new HashMap();
 		enc1.put("form", singletonMap("uuid", "form-uuid1"));
-		enc1.put("obs", asList(singletonMap("concept", singletonMap("uuid", conceptUuid))));
 		Map enc2 = new HashMap();
+		enc2.put("uuid", encUuid2);
 		enc2.put("form", singletonMap("uuid", formUuid));
-		enc2.put("obs", asList(expectObs));
 		Map enc3 = new HashMap();
-		enc3.put("form", singletonMap("uuid", "form-uuid2"));
-		enc3.put("obs", asList(singletonMap("concept", singletonMap("uuid", conceptUuid))));
+		enc3.put("uuid", encUuid3);
+		enc3.put("form", singletonMap("uuid", formUuid));
 		String visitJson = mapper.writeValueAsString(singletonMap("encounters", asList(enc1, enc2, enc3)));
-		mockGetEntityByUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(visitJson));
+		mockGetEntityByUuidEndpoint.whenExchangeReceived(1, e -> e.getIn().setBody(visitJson));
+		String enc2Json = mapper.writeValueAsString(singletonMap("obs", asList(obsForEnc2)));
+		mockGetEntityByUuidEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody(enc2Json));
+		String enc3Json = mapper.writeValueAsString(singletonMap("obs", asList(obsForEnc3)));
+		mockGetEntityByUuidEndpoint.whenExchangeReceived(3, e -> e.getIn().setBody(enc3Json));
+		
+		mockFormValidatedRuleEndpoint.expectedMessageCount(2);
+		mockFormValidatedRuleEndpoint.expectedBodiesReceived(obsForEnc2, obsForEnc3);
+		mockFormValidatedRuleEndpoint.whenExchangeReceived(1, e -> e.getIn().setBody(false));
+		mockFormValidatedRuleEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody(true));
 		
 		producerTemplate.send(URI_GET_OBS_BY_QN_FORM_VISIT, exchange);
 		
 		mockGetEntityByUuidEndpoint.assertIsSatisfied();
-		assertEquals(expectObs, exchange.getIn().getBody());
+		assertEquals(obsForEnc3, exchange.getIn().getBody());
+		assertMessageLogged(Level.INFO, "Ignoring obs with uuid " + obsUuid1 + " recorded on a form that was not validated");
 	}
 	
 }

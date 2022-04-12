@@ -2,8 +2,8 @@
 
     <!--
         Gets a non-voided observation that has a question concept with a uuid matching the specified concept uuid
-        belonging to an encounter in the visit matching the specified visit uuid and the encounter was captured on a
-        form matching the specified form uuid.
+        belonging to a validated encounter in the visit matching the specified visit uuid and the encounter was captured
+        on a form matching the specified form uuid.
 
         @param visitUuid (Map) - The visit uuid to match
         @param formUuid (String) - The form uuid to match
@@ -84,8 +84,30 @@
 
                 <when>
                     <simple>${exchangeProperty.${routeId}-formUuid} == ${exchangeProperty.${routeId}-currentItem.get('form').get('uuid')}</simple>
+                    <setProperty name="isSubResource">
+                        <simple>false</simple>
+                    </setProperty>
+                    <setProperty name="resourceName">
+                        <simple>encounter</simple>
+                    </setProperty>
+                    <setProperty name="resourceId">
+                        <simple>${exchangeProperty.${routeId}-currentItem.get('uuid')}</simple>
+                    </setProperty>
+                    <setProperty name="resourceRepresentation">
+                        <simple>full</simple>
+                    </setProperty>
+
+                    <to uri="direct:get-entity-by-uuid-from-openmrs" />
+
+                    <when>
+                        <simple>${body} == null</simple>
+                        <throwException exceptionType="org.openmrs.eip.EIPException" message="No encounter found in OpenMRS with uuid: ${exchangeProperty.${routeId}-currentItem.get('uuid')}" />
+                    </when>
+
+                    <log loggingLevel="DEBUG" message="Fetched encounter -> ${body}" />
+
                     <setProperty name="encounter">
-                        <simple>${exchangeProperty.${routeId}-currentItem}</simple>
+                        <jsonpath>$</jsonpath>
                     </setProperty>
                     <setProperty name="questionConceptUuid">
                         <simple>${exchangeProperty.${routeId}-conceptUuid}</simple>
@@ -95,12 +117,29 @@
 
                     <when>
                         <simple>${body} != null</simple>
-                        <setProperty name="${routeId}-match">
+                        <setProperty name="${routeId}-candidate">
                             <simple>${body}</simple>
                         </setProperty>
-                        <setProperty name="${routeId}-endLoop">
-                            <simple>true</simple>
-                        </setProperty>
+                        <setBody>
+                            <exchangeProperty>${routeId}-candidate</exchangeProperty>
+                        </setBody>
+
+                        <to uri="direct:is-obs-form-validated-rule" />
+
+                        <choice>
+                            <when>
+                                <simple>${body} == true</simple>
+                                <setProperty name="${routeId}-match">
+                                    <exchangeProperty>${routeId}-candidate</exchangeProperty>
+                                </setProperty>
+                                <setProperty name="${routeId}-endLoop">
+                                    <simple>true</simple>
+                                </setProperty>
+                            </when>
+                            <otherwise>
+                                <log message="Ignoring obs with uuid ${exchangeProperty.${routeId}-candidate.get('uuid')} recorded on a form that was not validated" />
+                            </otherwise>
+                        </choice>
                     </when>
                 </when>
 

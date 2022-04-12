@@ -34,6 +34,16 @@
                         <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.encounter}" />
                         <log message="Checking if the obs encounter contains the validation obs" />
 
+                        <setBody>
+                            <simple>{{validation.concept}}</simple>
+                        </setBody>
+
+                        <to uri="direct:convert-to-concept-uuid-if-is-mapping" />
+
+                        <setProperty name="${routeId}-validatedConceptUuid">
+                            <simple>${body}</simple>
+                        </setProperty>
+
                         <setProperty name="encObs">
                             <simple>${exchangeProperty.encounter.get('obs')}</simple>
                         </setProperty>
@@ -48,7 +58,7 @@
                             </setProperty>
 
                             <when>
-                                <simple>${exchangeProperty.obsConceptUuid} == '{{validation.concept}}'</simple>
+                                <simple>${exchangeProperty.obsConceptUuid} == ${exchangeProperty.${routeId}-validatedConceptUuid}</simple>
                                 <setProperty name="isValidated">
                                     <simple>true</simple>
                                 </setProperty>
