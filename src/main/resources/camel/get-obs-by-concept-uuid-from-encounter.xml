@@ -15,7 +15,7 @@
 
         <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
 
-        <log message="Looking up an obs from the encounter that has a question concept with uuid: ${exchangeProperty.questionConceptUuid}" />
+        <log loggingLevel="DEBUG" message="Looking up an obs from the encounter that has a question concept with uuid: ${exchangeProperty.questionConceptUuid}" />
 
         <setProperty name="${routeId}-encObs">
             <simple>${exchangeProperty.encounter.get('obs')}</simple>
