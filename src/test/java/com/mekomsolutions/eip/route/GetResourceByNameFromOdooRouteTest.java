@@ -1,5 +1,6 @@
 package com.mekomsolutions.eip.route;
 
+import static com.mekomsolutions.eip.route.OdooTestConstants.MODEL_NAME_GROUPS;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_OP_SEARCH_READ;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_RPC_METHOD;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_RES_BY_NAME_FROM_ODOO;
@@ -15,8 +16,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class GetResourceByNameFromOdooRouteTest extends BaseOdooApiRouteTest {
-	
-	public static final String MODEL_NAME_GROUPS = "res.groups";
 	
 	public static final String EX_PROP_NAME = "name";
 	

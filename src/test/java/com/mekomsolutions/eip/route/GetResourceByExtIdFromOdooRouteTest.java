@@ -62,8 +62,8 @@ public class GetResourceByExtIdFromOdooRouteTest extends BaseOdooRouteTest {
 		mockGetExtIdMapEndpoint.expectedMessageCount(1);
 		mockGetExtIdMapEndpoint.expectedPropertyReceived(PARAM_EXT_ID, extId);
 		mockGetExtIdMapEndpoint.expectedPropertyReceived(PARAM_MODEL_NAME, modelName);
-		Map[] expectedExtMap = new Map[] { singletonMap("res_id", resId) };
-		mockGetExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedExtMap));
+		Map[] expectedExtMaps = new Map[] { singletonMap("res_id", resId) };
+		mockGetExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedExtMaps));
 		Map getResByIdParams = new HashMap();
 		getResByIdParams.put(PARAM_ID, resId);
 		getResByIdParams.put(PARAM_MODEL_NAME, modelName);
@@ -99,6 +99,31 @@ public class GetResourceByExtIdFromOdooRouteTest extends BaseOdooRouteTest {
 		assertNull(exchange.getIn().getBody());
 		mockGetExtIdMapEndpoint.assertIsSatisfied();
 		mockGetResByIdEndpoint.assertIsSatisfied();
+	}
+	
+	@Test
+	public void shouldFailIfMultipleResourceAreFoundMatchingTheExternalId() throws Exception {
+		Exchange exchange = new DefaultExchange(camelContext);
+		final String extId = "test id";
+		final String modelName = "res.test";
+		Map params = new HashMap();
+		params.put(PARAM_EXT_ID, extId);
+		params.put(PARAM_MODEL_NAME, modelName);
+		exchange.getIn().setBody(params);
+		mockGetExtIdMapEndpoint.expectedMessageCount(1);
+		mockGetExtIdMapEndpoint.expectedPropertyReceived(PARAM_EXT_ID, extId);
+		mockGetExtIdMapEndpoint.expectedPropertyReceived(PARAM_MODEL_NAME, modelName);
+		Map[] expectedExtMaps = new Map[] { singletonMap("res_id", 1), singletonMap("res_id", 2) };
+		mockGetExtIdMapEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(expectedExtMaps));
+		mockGetResByIdEndpoint.expectedMessageCount(0);
+		
+		producerTemplate.send(URI_GET_RES_BY_EXT_ID_FROM_ODOO, exchange);
+		
+		mockGetExtIdMapEndpoint.assertIsSatisfied();
+		mockGetResByIdEndpoint.assertIsSatisfied();
+		assertEquals(
+		    "Found " + expectedExtMaps.length + " resources(" + modelName + ") in odoo mapped to external id: " + extId,
+		    getErrorMessage(exchange));
 	}
 	
 }

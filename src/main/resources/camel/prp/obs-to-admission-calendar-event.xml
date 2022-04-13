@@ -3,7 +3,7 @@
     <!--
         Processes an event for a validation obs recorded on the basic service plan form and creates an admission
         calendar event to all users that belong the group specified by application property named
-        odoo.dormitory.notification.group.name
+        odoo.dormitory.notification.group.ext.id
     -->
 
     <route id="obs-to-admission-calendar-event" errorHandlerRef="watcherErrorHandler">
@@ -103,14 +103,22 @@
 
                     <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.${routeId}-patient}" />
 
-                    <setProperty name="name">
-                        <simple>{{odoo.dormitory.notification.group.name}}</simple>
-                    </setProperty>
-                    <setProperty name="modelName">
-                        <simple>res.groups</simple>
-                    </setProperty>
+                    <setBody>
+                        <spel>#{new java.util.HashMap()}</spel>
+                    </setBody>
+                    <script>
+                        <spel>
+                            #{body.put('externalId', '{{odoo.dormitory.notification.group.ext.id}}')}
+                            #{body.put('modelName', 'res.groups')}
+                        </spel>
+                    </script>
 
-                    <to uri="direct:get-resource-by-name-from-odoo" />
+                    <to uri="direct:get-resource-by-ext-id-from-odoo" />
+
+                    <when>
+                        <simple>${body} == null</simple>
+                        <throwException exceptionType="org.openmrs.eip.EIPException" message="No group found in odoo with external id: {{odoo.dormitory.notification.group.ext.id}}" />
+                    </when>
 
                     <setBody>
                         <spel>#{T(java.util.Collections).singletonMap('userIds', body.get('users'))}</spel>

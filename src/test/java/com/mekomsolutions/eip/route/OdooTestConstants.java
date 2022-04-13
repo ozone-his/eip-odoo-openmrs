@@ -210,4 +210,6 @@ public class OdooTestConstants {
 	
 	public static final String PARAM_MODEL_NAME = "modelName";
 	
+	public static final String MODEL_NAME_GROUPS = "res.groups";
+	
 }

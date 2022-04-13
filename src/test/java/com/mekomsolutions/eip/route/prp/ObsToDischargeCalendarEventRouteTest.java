@@ -1,10 +1,8 @@
 package com.mekomsolutions.eip.route.prp;
 
-import static com.mekomsolutions.eip.route.GetResourceByNameFromOdooRouteTest.EX_PROP_MODEL_NAME;
-import static com.mekomsolutions.eip.route.GetResourceByNameFromOdooRouteTest.EX_PROP_NAME;
-import static com.mekomsolutions.eip.route.GetResourceByNameFromOdooRouteTest.MODEL_NAME_GROUPS;
+import static com.mekomsolutions.eip.route.GetResourceByExtIdFromOdooRouteTest.PARAM_EXT_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_BASIC_SERVICE_PLAN_FORM_UUID;
-import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_GRP_NAME;
+import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_GRP_EXT_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_ID_TYPE_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.BASIC_SERVICE_PLAN_FORM_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.CONCEPT_UUID_PATIENT_TYPE;
@@ -14,16 +12,18 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOU
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RES_REP;
+import static com.mekomsolutions.eip.route.OdooTestConstants.MODEL_NAME_GROUPS;
+import static com.mekomsolutions.eip.route.OdooTestConstants.PARAM_MODEL_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_OBS_BY_QN_FORM_VISIT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_PARTNERS_BY_USERS;
-import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_RES_BY_EXT_ID_FROM_ODOO;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_OBS_TO_DISCHARGE_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_SAVE_CALENDAR_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_OBS_BY_QN_FORM_VISIT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_PARTNERS_BY_USERS;
-import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_RES_BY_NAME_FROM_ODOO;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_RES_BY_EXT_ID_FROM_ODOO;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY_BY_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_CAPTURED_ON_FORM;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_DISCHARGE_EVENT;
@@ -53,7 +53,6 @@ import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
@@ -61,10 +60,12 @@ import org.springframework.test.context.TestPropertySource;
 import com.mekomsolutions.eip.route.GetObsByQnOnFormInVisitRouteTest;
 import com.mekomsolutions.eip.route.ObsCapturedOnFormRuleRouteTest;
 
-@TestPropertySource(properties = APP_PROP_NAME_GRP_NAME + "=" + ObsToDischargeCalendarEventRouteTest.GROUP_NAME)
+@TestPropertySource(properties = APP_PROP_NAME_GRP_EXT_ID + "=" + ObsToDischargeCalendarEventRouteTest.GROUP_EXT_ID)
 @TestPropertySource(properties = APP_PROP_NAME_ID_TYPE_UUID + "=" + ObsToDischargeCalendarEventRouteTest.ID_TYPE_UUID)
 @TestPropertySource(properties = APP_PROP_NAME_BASIC_SERVICE_PLAN_FORM_UUID + "=" + BASIC_SERVICE_PLAN_FORM_UUID)
 public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
+	
+	protected static final String GROUP_EXT_ID = "Test ext id";
 	
 	protected static final String GROUP_NAME = "TEST GROUP NAME";
 	
@@ -82,8 +83,8 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
 	private MockEndpoint mockGetEntityByUuidEndpoint;
 	
-	@EndpointInject("mock:" + ROUTE_ID_GET_RES_BY_NAME_FROM_ODOO)
-	private MockEndpoint mockGetResByNameEndpoint;
+	@EndpointInject("mock:" + ROUTE_ID_GET_RES_BY_EXT_ID_FROM_ODOO)
+	private MockEndpoint mockGetResByExtIdEndpoint;
 	
 	@EndpointInject("mock:" + ROUTE_ID_GET_PARTNERS_BY_USERS)
 	private MockEndpoint mockGetPartnersByUsersEndpoint;
@@ -100,7 +101,7 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 	public void setup() throws Exception {
 		mockObsCapturedOnFormEndpoint.reset();
 		mockGetEntityByUuidEndpoint.reset();
-		mockGetResByNameEndpoint.reset();
+		mockGetResByExtIdEndpoint.reset();
 		mockGetPartnersByUsersEndpoint.reset();
 		mockSaveCalendarEventEndpoint.reset();
 		mockGetObsByQnFormVisitEndpoint.reset();
@@ -117,8 +118,8 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 			public void configure() {
 				interceptSendToEndpoint(URI_OBS_CAPTURED_ON_FORM).skipSendToOriginalEndpoint()
 				        .to(mockObsCapturedOnFormEndpoint);
-				interceptSendToEndpoint(URI_GET_RES_BY_NAME_FROM_ODOO).skipSendToOriginalEndpoint()
-				        .to(mockGetResByNameEndpoint);
+				interceptSendToEndpoint(URI_GET_RES_BY_EXT_ID_FROM_ODOO).skipSendToOriginalEndpoint()
+				        .to(mockGetResByExtIdEndpoint);
 				interceptSendToEndpoint(URI_GET_PARTNERS_BY_USERS).skipSendToOriginalEndpoint()
 				        .to(mockGetPartnersByUsersEndpoint);
 				interceptSendToEndpoint(URI_SAVE_CALENDAR_EVENT).skipSendToOriginalEndpoint()
@@ -333,12 +334,87 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 	}
 	
 	@Test
+	public void shouldFailIfNoDormitoryGroupIsFoundMatchingTheSpecifiedExternalId() throws Exception {
+		final String visitUuid = "visit-uuid";
+		final String encUuid = "enc-uuid";
+		final String patientUuid = "patient-uuid";
+		final String hsuId = "Test Id";
+		final String fullName = "Horatio Hornblower";
+		Map assmtDecObsRes = new HashMap();
+		assmtDecObsRes.put("concept", singletonMap("uuid", CONCEPT_UUID_ASSMT_DECISION));
+		assmtDecObsRes.put("value", singletonMap("uuid", CONCEPT_UUID_CLOSE_EOS));
+		Map encRes = new HashMap();
+		encRes.put("uuid", encUuid);
+		encRes.put("obs", asList(assmtDecObsRes));
+		encRes.put("visit", singletonMap("uuid", visitUuid));
+		Map obsRes = new HashMap();
+		obsRes.put("concept", singletonMap("uuid", CONCEPT_UUID_VALIDATED));
+		obsRes.put("encounter", encRes);
+		Map patientRes = new HashMap();
+		patientRes.put("uuid", patientUuid);
+		patientRes.put("person", singletonMap("display", fullName));
+		Map hsuIdRes = new HashMap();
+		hsuIdRes.put("identifier", hsuId);
+		hsuIdRes.put("identifierType", singletonMap("uuid", ID_TYPE_UUID));
+		Map otherIdRes = new HashMap();
+		otherIdRes.put("identifier", "some Id");
+		otherIdRes.put("identifierType", singletonMap("uuid", "some-id-type-uuid"));
+		patientRes.put("identifiers", asList(hsuIdRes, otherIdRes));
+		obsRes.put("person", singletonMap("uuid", patientUuid));
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(EX_PROP_ENTITY, obsRes);
+		mockObsCapturedOnFormEndpoint.expectedMessageCount(1);
+		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_OBS, obsRes);
+		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID, FORM_UUID);
+		mockObsCapturedOnFormEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
+		
+		mockGetEntityByUuidEndpoint.expectedMessageCount(2);
+		mockGetEntityByUuidEndpoint.expectedPropertyValuesReceivedInAnyOrder(EX_PROP_IS_SUBRESOURCE, asList(false, false));
+		mockGetEntityByUuidEndpoint.expectedPropertyValuesReceivedInAnyOrder(EX_PROP_RESOURCE_NAME,
+		    asList("encounter", "patient"));
+		mockGetEntityByUuidEndpoint.expectedPropertyValuesReceivedInAnyOrder(EX_PROP_RESOURCE_ID,
+		    asList(encUuid, patientUuid));
+		mockGetEntityByUuidEndpoint.expectedPropertyValuesReceivedInAnyOrder(EX_PROP_RES_REP, asList("full", "full"));
+		mockGetEntityByUuidEndpoint.whenExchangeReceived(1, e -> e.getIn().setBody(mapper.writeValueAsString(encRes)));
+		mockGetEntityByUuidEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody(mapper.writeValueAsString(patientRes)));
+		
+		mockGetObsByQnFormVisitEndpoint.expectedMessageCount(1);
+		Map params = new HashMap();
+		params.put(GetObsByQnOnFormInVisitRouteTest.PARAM_CONCEPT_UUID, CONCEPT_UUID_PATIENT_TYPE);
+		params.put(GetObsByQnOnFormInVisitRouteTest.PARAM_FORM_UUID, BASIC_SERVICE_PLAN_FORM_UUID);
+		params.put(GetObsByQnOnFormInVisitRouteTest.PARAM_VISIT_UUID, visitUuid);
+		mockGetObsByQnFormVisitEndpoint.expectedBodiesReceived(params);
+		mockGetEntityByUuidEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody(mapper.writeValueAsString(patientRes)));
+		
+		mockGetResByExtIdEndpoint.expectedMessageCount(1);
+		Map getResByExtParams = new HashMap();
+		getResByExtParams.put(PARAM_EXT_ID, GROUP_EXT_ID);
+		getResByExtParams.put(PARAM_MODEL_NAME, MODEL_NAME_GROUPS);
+		mockGetResByExtIdEndpoint.expectedBodiesReceived(getResByExtParams);
+		mockGetResByExtIdEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(null));
+		
+		mockGetPartnersByUsersEndpoint.expectedMessageCount(0);
+		mockSaveCalendarEventEndpoint.expectedMessageCount(0);
+		
+		producerTemplate.send(URI_OBS_TO_DISCHARGE_EVENT, exchange);
+		
+		mockObsCapturedOnFormEndpoint.assertIsSatisfied();
+		mockGetEntityByUuidEndpoint.assertIsSatisfied();
+		mockGetEntityByUuidEndpoint.assertExchangeReceived(0);
+		mockGetEntityByUuidEndpoint.assertExchangeReceived(1);
+		mockGetResByExtIdEndpoint.assertIsSatisfied();
+		mockGetPartnersByUsersEndpoint.assertIsSatisfied();
+		mockSaveCalendarEventEndpoint.assertIsSatisfied();
+		assertEquals("No group found in odoo with external id: " + GROUP_EXT_ID, getErrorMessage(exchange));
+	}
+	
+	@Test
 	public void shouldCreateTheCalendarEventInOdoo() throws Exception {
 		final String visitUuid = "visit-uuid";
 		final String encUuid = "enc-uuid";
 		final String patientUuid = "patient-uuid";
 		final String hsuId = "Test Id";
-		final String fullName = "Horation Hornblower";
+		final String fullName = "Horatio Hornblower";
 		final Integer userId1 = 11;
 		final Integer userId2 = 17;
 		final Integer partnerId1 = 31;
@@ -390,10 +466,12 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody(mapper.writeValueAsString(patientRes)));
 		
 		List<Integer> userIds = asList(userId1, userId2);
-		mockGetResByNameEndpoint.expectedMessageCount(1);
-		mockGetResByNameEndpoint.expectedPropertyReceived(EX_PROP_NAME, GROUP_NAME);
-		mockGetResByNameEndpoint.expectedPropertyReceived(EX_PROP_MODEL_NAME, MODEL_NAME_GROUPS);
-		mockGetResByNameEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(singletonMap("users", userIds)));
+		mockGetResByExtIdEndpoint.expectedMessageCount(1);
+		Map getResByExtParams = new HashMap();
+		getResByExtParams.put(PARAM_EXT_ID, GROUP_EXT_ID);
+		getResByExtParams.put(PARAM_MODEL_NAME, MODEL_NAME_GROUPS);
+		mockGetResByExtIdEndpoint.expectedBodiesReceived(getResByExtParams);
+		mockGetResByExtIdEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(singletonMap("users", userIds)));
 		
 		mockGetPartnersByUsersEndpoint.expectedMessageCount(1);
 		mockGetPartnersByUsersEndpoint.expectedBodiesReceived(singletonMap(PARAM_USER_IDS, userIds));
@@ -417,7 +495,7 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.assertIsSatisfied();
 		mockGetEntityByUuidEndpoint.assertExchangeReceived(0);
 		mockGetEntityByUuidEndpoint.assertExchangeReceived(1);
-		mockGetResByNameEndpoint.assertIsSatisfied();
+		mockGetResByExtIdEndpoint.assertIsSatisfied();
 		mockGetPartnersByUsersEndpoint.assertIsSatisfied();
 		mockSaveCalendarEventEndpoint.assertIsSatisfied();
 		LocalDateTime eventStart = exchange.getProperty(EX_PROP_START, LocalDateTime.class);
