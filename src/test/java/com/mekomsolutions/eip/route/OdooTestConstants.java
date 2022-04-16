@@ -196,7 +196,13 @@ public class OdooTestConstants {
 	
 	public static final String APP_PROP_NAME_GRP_EXT_ID = "odoo.dormitory.notification.group.ext.id";
 	
+	public static final String APP_PROP_NAME_INVOICE_GRP_EXT_ID = "odoo.invoicing.notification.group.ext.id";
+	
 	public static final String APP_PROP_NAME_BASIC_SERVICE_PLAN_FORM_UUID = "basic.service.plan.form.uuid";
+	
+	public static final String APP_PROP_NAME_FINAL_ASSMT_FORM_UUID = "final.assessment.outcome.form.uuid";
+	
+	public static final String APP_PROP_NAME_FINAL_ASSMT_CONCEPT = "final.assmt.decision.question.concept";
 	
 	public static final String CONCEPT_UUID_VALIDATED = "1382a47a-3e63-11e9-b210-d663bd873d93";
 	
@@ -206,7 +212,11 @@ public class OdooTestConstants {
 	
 	public static final String CONCEPT_UUID_INPATIENT = "a0b86497-cb21-46ad-9a9b-c99db8db9528";
 	
+	public static final String CONCEPT_UUID_ASSMT_DECISION = "675b4e02-1a96-4eda-af84-b6ebe0d715a4";
+	
 	public static final String BASIC_SERVICE_PLAN_FORM_UUID = "3b07b00c-1623-4380-af4a-4bb68244eff5";
+	
+	public static final String FINAL_ASSMT_FORM_UUID = "5fa318a9-eade-ea79-a96e-d91754135a5c";
 	
 	public static final String PARAM_MODEL_NAME = "modelName";
 	

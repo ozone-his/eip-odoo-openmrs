@@ -1,0 +1,261 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <!--
+        Processes an event for a final assessment decision obs recorded on the Final Assessment outcome and GS form and
+        Close EoS was decision, creates an invoicing calendar event to all users that belong the group specified by
+        application property named odoo.invoicing.notification.group.ext.id
+    -->
+
+    <route id="obs-to-invoicing-calendar-event" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:obs-to-invoicing-calendar-event" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+
+        <!-- Process final assessment decision obs and Close EoS was decision -->
+        <when>
+            <simple>${exchangeProperty.entity-instance.get('concept').get('uuid')} == '{{final.assmt.decision.question.concept}}' &amp;&amp; ${exchangeProperty.entity-instance.get('value').get('uuid')} == '9bc5c6f2-7c82-11e9-8f9e-2a86e4085a59'</simple>
+            <log message="Episode of service closed for patient" />
+
+            <!-- Only process if obs was recorded on the final assessment decision checked form -->
+            <setProperty name="obs">
+                <exchangeProperty>entity-instance</exchangeProperty>
+            </setProperty>
+            <setProperty name="formUuid">
+                <simple>{{final.assessment.outcome.form.uuid}}</simple>
+            </setProperty>
+
+            <to uri="direct:obs-captured-on-form-rule" />
+
+            <setProperty name="${routeId}-isExpectedForm">
+                <simple>${body}</simple>
+            </setProperty>
+
+            <!-- Only process if this was recorded on the Final Assessment outcome and GS form -->
+            <when>
+                <simple>${exchangeProperty.obs-to-invoicing-calendar-event-isExpectedForm} == true</simple>
+                <log loggingLevel="DEBUG" message="Obs was recorded on the Final Assessment outcome and GS form" />
+
+                <setProperty name="isSubResource">
+                    <simple>false</simple>
+                </setProperty>
+                <setProperty name="resourceName">
+                    <simple>encounter</simple>
+                </setProperty>
+                <setProperty name="resourceId">
+                    <simple>${exchangeProperty.entity-instance.get('encounter').get('uuid')}</simple>
+                </setProperty>
+                <setProperty name="resourceRepresentation">
+                    <simple>full</simple>
+                </setProperty>
+
+                <to uri="direct:get-entity-by-uuid-from-openmrs" />
+
+                <when>
+                    <simple>${body} == null</simple>
+                    <throwException exceptionType="org.openmrs.eip.EIPException" message="No encounter found in OpenMRS with uuid: ${exchangeProperty.entity-instance.get('encounter').get('uuid')}" />
+                </when>
+
+                <setProperty name="${routeId}-encounter">
+                    <jsonpath>$</jsonpath>
+                </setProperty>
+                <setProperty name="encounter">
+                    <exchangeProperty>${routeId}-encounter</exchangeProperty>
+                </setProperty>
+
+                <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
+
+                <setBody>
+                    <exchangeProperty>entity-instance</exchangeProperty>
+                </setBody>
+
+                <to uri="direct:is-obs-form-validated-rule" />
+
+                <!-- Only process if the form was validated -->
+                <when>
+                    <simple>${body} == true</simple>
+                    <log loggingLevel="DEBUG" message="The form was validated" />
+
+                    <setProperty name="${routeId}-invoicingConceptMaps">
+                        <method beanType="org.openmrs.eip.AppContext" method="get(${exchangeProperty.obs-to-invoicing-calendar-events-invoicingConceptMaps})" />
+                    </setProperty>
+                    <when>
+                        <simple>${exchangeProperty.obs-to-invoicing-calendar-event-invoicingConceptMaps} == null</simple>
+                        <log message="Initializing the mappings between service concepts on the final assessment outcome form and session record concepts on the Physio session record form" />
+                        <setProperty name="${routeId}-invoicingConceptMaps">
+                            <spel>#{new java.util.HashMap)}</spel>
+                        </setProperty>
+
+                        <!--
+                            Mapping between service concepts on the Final Assessment outcome and GS form and session record
+                            concepts on the Physio treatment session record form
+
+                            Individual Pres Fitting -> Individual AT Related
+                            Individual Post Fitting -> Individual AT Related
+                            Group Pre Fitting -> Group Pre Fitting (AT Related)
+                            Group Post Fitting -> Group Post Fitting (AT Related)
+                            Individual Non AT Related -> Individual Non AT Related
+                            Group Other -> Group Other (Non AT Related)
+                        -->
+                        <script>
+                            <simple>
+                                ${exchangeProperty.${routeId}-invoicingConceptMaps.put('5bfc19cb-be53-4dfd-a182-b722282f97aa', '2be9c9a4-afd4-448e-a10b-eeb1e7436fff')}
+                                ${exchangeProperty.${routeId}-invoicingConceptMaps.put('ba39d381-2e95-4749-b106-03ab1b8dd8a5', '2be9c9a4-afd4-448e-a10b-eeb1e7436fff')}
+                                ${exchangeProperty.${routeId}-invoicingConceptMaps.put('3fc9d7e3-5328-42fa-943d-59e5a0742177', '34aeea30-eff2-4c24-ae25-a16dbd051c88')}
+                                ${exchangeProperty.${routeId}-invoicingConceptMaps.put('d7d97492-ce31-4c6f-be38-46d66f75199a', '55c42975-2d0a-4e31-b07b-d9fcc032ac05')}
+                                ${exchangeProperty.${routeId}-invoicingConceptMaps.put('4d13460e-4fef-4501-9309-cde5c3fc588b', '6f99160c-33ce-4726-b2bf-a167bea31249')}
+                                ${exchangeProperty.${routeId}-invoicingConceptMaps.put('c9a058a8-4c8e-41e0-b20b-ec6cd8ad71e6', '6350915f-8694-49d8-82df-688ac523b895')}
+                            </simple>
+                        </script>
+
+                        <script>
+                            <method beanType="org.openmrs.eip.AppContext" method="add(${routeId}-invoicingConceptMaps}, ${exchangeProperty.${routeId}-invoicingConceptMaps})" />
+                        </script>
+                    </when>
+
+                    <!-- Get all selected physio services obs -->
+                    <setProperty name="${routeId}-physioServicesObsCountMap">
+                        <spel>#{new java.util.HashMap()}</spel>
+                    </setProperty>
+                    <setProperty name="${routeId}-encObs">
+                        <simple>${exchangeProperty.encounter.get('obs')}</simple>
+                    </setProperty>
+                    <loop doWhile="true">
+                        <simple>${exchangeProperty.${routeId}-endLoop} != true</simple>
+                        <setProperty name="${routeId}-currentItem">
+                            <simple>${exchangeProperty.${routeId}-encObs.get(${exchangeProperty.CamelLoopIndex})}</simple>
+                        </setProperty>
+
+                        <when>
+                            <simple>${exchangeProperty.obs-to-invoicing-calendar-event-encObs.containsKey(${exchangeProperty.obs-to-invoicing-calendar-event-currentItem.get('concept').get('uuid')})} == true</simple>
+                            <when>
+                                <simple>${exchangeProperty.${routeId}-mostRecentPhysioEnc} == null</simple>
+                                <!-- TODO Get most recent physio record encounter in the visit if null -->
+                                <setProperty name="${routeId}-mostRecentPhysioEnc">
+                                    <simple>${body}</simple>
+                                </setProperty>
+                            </when>
+                            <setProperty name="encounter">
+                                <exchangeProperty>${routeId}-mostRecentPhysioEnc</exchangeProperty>
+                            </setProperty>
+                            <setProperty name="questionConceptUuid">
+                                <simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${exchangeProperty.${routeId}-currentItem.get('concept').get('uuid')})}</simple>
+                            </setProperty>
+
+                            <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
+
+                            <when>
+                                <simple>${body} != null</simple>
+                                <log loggingLevel="DEBUG" message="Physio session obs -> ${body}" />
+
+                                <script>
+                                    <simple>${exchangeProperty.${routeId}-physioServicesObsCountMap.put(${exchangeProperty.${routeId}-currentItem}, ${body.get('value')})}</simple>
+                                </script>
+                            </when>
+                        </when>
+
+                        <when>
+                            <simple>${exchangeProperty.CamelLoopIndex} == ${exchangeProperty.${routeId}-lastIndex}</simple>
+                            <setProperty name="${routeId}-endLoop">
+                                <simple>true</simple>
+                            </setProperty>
+                        </when>
+                    </loop>
+
+                    <!-- Only process if the patient had any physio sessions services -->
+                    <when>
+                        <simple>${exchangeProperty.${routeId}-physioServicesObsCountMap.size()} > 0</simple>
+                        <log message="The patient had physio sessions in the visit preparing invoicing notification" />
+                        <setProperty name="isSubResource">
+                            <simple>false</simple>
+                        </setProperty>
+                        <setProperty name="resourceName">
+                            <simple>patient</simple>
+                        </setProperty>
+                        <setProperty name="resourceId">
+                            <simple>${exchangeProperty.entity-instance.get('person').get('uuid')}</simple>
+                        </setProperty>
+                        <setProperty name="resourceRepresentation">
+                            <simple>full</simple>
+                        </setProperty>
+
+                        <to uri="direct:get-entity-by-uuid-from-openmrs" />
+
+                        <when>
+                            <simple>${body} == null</simple>
+                            <throwException exceptionType="org.openmrs.eip.EIPException" message="No patient found in OpenMRS with uuid: ${exchangeProperty.entity-instance.get('person').get('uuid')}" />
+                        </when>
+
+                        <setProperty name="${routeId}-patient">
+                            <jsonpath>$</jsonpath>
+                        </setProperty>
+
+                        <log loggingLevel="DEBUG" message="Fetched patient -> ${exchangeProperty.${routeId}-patient}" />
+
+                        <setBody>
+                            <spel>#{new java.util.HashMap()}</spel>
+                        </setBody>
+                        <script>
+                            <spel>
+                                #{body.put('externalId', '{{odoo.invoicing.notification.group.ext.id}}')}
+                                #{body.put('modelName', 'res.groups')}
+                            </spel>
+                        </script>
+
+                        <to uri="direct:get-resource-by-ext-id-from-odoo" />
+
+                        <when>
+                            <simple>${body} == null</simple>
+                            <throwException exceptionType="org.openmrs.eip.EIPException" message="No group found in odoo with external id: {{odoo.invoicing.notification.group.ext.id}}" />
+                        </when>
+
+                        <setBody>
+                            <spel>#{T(java.util.Collections).singletonMap('userIds', body.get('users'))}</spel>
+                        </setBody>
+
+                        <to uri="direct:get-partner-ids-by-user-ids" />
+
+                        <setProperty name="${routeId}-partnerIdsAndNames">
+                            <simple>${body}</simple>
+                        </setProperty>
+                        <setProperty name="attendeePartnerIds">
+                            <spel>#{new java.util.ArrayList()}</spel>
+                        </setProperty>
+
+                        <split parallelProcessing="false" stopOnException="true">
+                            <simple>${exchangeProperty.${routeId}-partnerIdsAndNames}</simple>
+                            <script><spel>#{getProperty('attendeePartnerIds').add(body.get('partner_id')[0])}</spel></script>
+                        </split>
+
+                        <setBody>
+                            <simple>${exchangeProperty.${routeId}-patient}</simple>
+                        </setBody>
+                        
+                        <to uri="direct:get-hsu-id" />
+
+                        <setProperty name="subject">
+                            <simple>${exchangeProperty.${routeId}-patient.get('person').get('display')}/Invoicing</simple>
+                        </setProperty>
+                        <setProperty name="duration">
+                            <simple>1440</simple>
+                        </setProperty>
+                        <setProperty name="startDateTime">
+                            <spel>#{T(java.time.LocalDateTime).now(T(java.time.ZoneId).of('UTC'))}</spel>
+                        </setProperty>
+                        <setProperty name="description">
+                            <simple>Dear billing manager, prepare invoice for ${exchangeProperty.${routeId}-patient.get('person').get('display')} ${exchangeProperty.${routeId}-hsuId}</simple>
+                        </setProperty>
+
+                        <log message="Adding a invoicing calendar event in odoo" />
+
+                        <to uri="direct:save-calendar-event-in-odoo" />
+
+                        <log message="Successfully added a invoicing calendar event in odoo" />
+                    </when>
+                </when>
+            </when>
+        </when>
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+
+</routes>
