@@ -16,6 +16,8 @@
 
         <to uri="direct:obs-to-discharge-calendar-event" />
 
+        <to uri="direct:obs-to-invoicing-calendar-event" />
+
         <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
     </route>
 

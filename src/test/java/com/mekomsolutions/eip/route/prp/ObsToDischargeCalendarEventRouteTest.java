@@ -2,9 +2,12 @@ package com.mekomsolutions.eip.route.prp;
 
 import static com.mekomsolutions.eip.route.GetResourceByExtIdFromOdooRouteTest.PARAM_EXT_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_BASIC_SERVICE_PLAN_FORM_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_FINAL_ASSMT_CONCEPT;
+import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_FINAL_ASSMT_FORM_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_GRP_EXT_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_ID_TYPE_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.BASIC_SERVICE_PLAN_FORM_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.CONCEPT_UUID_ASSMT_DECISION;
 import static com.mekomsolutions.eip.route.OdooTestConstants.CONCEPT_UUID_PATIENT_TYPE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.CONCEPT_UUID_VALIDATED;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
@@ -12,6 +15,7 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_IS_SUBRESOU
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RESOURCE_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_RES_REP;
+import static com.mekomsolutions.eip.route.OdooTestConstants.FINAL_ASSMT_FORM_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.MODEL_NAME_GROUPS;
 import static com.mekomsolutions.eip.route.OdooTestConstants.PARAM_MODEL_NAME;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC;
@@ -63,6 +67,8 @@ import com.mekomsolutions.eip.route.ObsCapturedOnFormRuleRouteTest;
 @TestPropertySource(properties = APP_PROP_NAME_GRP_EXT_ID + "=" + ObsToDischargeCalendarEventRouteTest.GROUP_EXT_ID)
 @TestPropertySource(properties = APP_PROP_NAME_ID_TYPE_UUID + "=" + ObsToDischargeCalendarEventRouteTest.ID_TYPE_UUID)
 @TestPropertySource(properties = APP_PROP_NAME_BASIC_SERVICE_PLAN_FORM_UUID + "=" + BASIC_SERVICE_PLAN_FORM_UUID)
+@TestPropertySource(properties = APP_PROP_NAME_FINAL_ASSMT_FORM_UUID + "=" + FINAL_ASSMT_FORM_UUID)
+@TestPropertySource(properties = APP_PROP_NAME_FINAL_ASSMT_CONCEPT + "=" + CONCEPT_UUID_ASSMT_DECISION)
 public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 	
 	protected static final String GROUP_EXT_ID = "Test ext id";
@@ -70,10 +76,6 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 	protected static final String GROUP_NAME = "TEST GROUP NAME";
 	
 	protected static final String ID_TYPE_UUID = "test-id-type-uuid";
-	
-	private static final String FORM_UUID = "5fa318a9-eade-ea79-a96e-d91754135a5c";
-	
-	private static final String CONCEPT_UUID_ASSMT_DECISION = "675b4e02-1a96-4eda-af84-b6ebe0d715a4";
 	
 	private static final String CONCEPT_UUID_CLOSE_EOS = "9bc5c6f2-7c82-11e9-8f9e-2a86e4085a59";
 	
@@ -155,7 +157,8 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 		
 		mockObsCapturedOnFormEndpoint.expectedMessageCount(1);
 		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_OBS, obsRes);
-		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID, FORM_UUID);
+		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID,
+		    FINAL_ASSMT_FORM_UUID);
 		mockObsCapturedOnFormEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(false));
 		
 		producerTemplate.send(URI_OBS_TO_DISCHARGE_EVENT, exchange);
@@ -178,7 +181,8 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 		
 		mockObsCapturedOnFormEndpoint.expectedMessageCount(1);
 		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_OBS, obsRes);
-		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID, FORM_UUID);
+		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID,
+		    FINAL_ASSMT_FORM_UUID);
 		mockObsCapturedOnFormEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetEntityByUuidEndpoint.expectedMessageCount(1);
@@ -215,7 +219,8 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 		mockSaveCalendarEventEndpoint.expectedMessageCount(0);
 		mockObsCapturedOnFormEndpoint.expectedMessageCount(1);
 		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_OBS, obsRes);
-		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID, FORM_UUID);
+		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID,
+		    FINAL_ASSMT_FORM_UUID);
 		mockObsCapturedOnFormEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetEntityByUuidEndpoint.expectedMessageCount(1);
@@ -255,7 +260,8 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 		
 		mockObsCapturedOnFormEndpoint.expectedMessageCount(1);
 		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_OBS, obsRes);
-		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID, FORM_UUID);
+		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID,
+		    FINAL_ASSMT_FORM_UUID);
 		mockObsCapturedOnFormEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetEntityByUuidEndpoint.expectedMessageCount(1);
@@ -302,7 +308,8 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 		mockSaveCalendarEventEndpoint.expectedMessageCount(0);
 		mockObsCapturedOnFormEndpoint.expectedMessageCount(1);
 		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_OBS, obsRes);
-		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID, FORM_UUID);
+		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID,
+		    FINAL_ASSMT_FORM_UUID);
 		mockObsCapturedOnFormEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetEntityByUuidEndpoint.expectedMessageCount(2);
@@ -365,7 +372,8 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 		exchange.setProperty(EX_PROP_ENTITY, obsRes);
 		mockObsCapturedOnFormEndpoint.expectedMessageCount(1);
 		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_OBS, obsRes);
-		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID, FORM_UUID);
+		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID,
+		    FINAL_ASSMT_FORM_UUID);
 		mockObsCapturedOnFormEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetEntityByUuidEndpoint.expectedMessageCount(2);
@@ -444,7 +452,8 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 		exchange.setProperty(EX_PROP_ENTITY, obsRes);
 		mockObsCapturedOnFormEndpoint.expectedMessageCount(1);
 		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_OBS, obsRes);
-		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID, FORM_UUID);
+		mockObsCapturedOnFormEndpoint.expectedPropertyReceived(ObsCapturedOnFormRuleRouteTest.EX_PROP_FORM_UUID,
+		    FINAL_ASSMT_FORM_UUID);
 		mockObsCapturedOnFormEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetEntityByUuidEndpoint.expectedMessageCount(2);

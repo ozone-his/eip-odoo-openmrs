@@ -232,6 +232,9 @@
                         
                         <to uri="direct:get-hsu-id" />
 
+                        <setProperty name="${routeId}-hsuId">
+                            <simple>${body}</simple>
+                        </setProperty>
                         <setProperty name="subject">
                             <simple>${exchangeProperty.${routeId}-patient.get('person').get('display')}/Invoicing</simple>
                         </setProperty>

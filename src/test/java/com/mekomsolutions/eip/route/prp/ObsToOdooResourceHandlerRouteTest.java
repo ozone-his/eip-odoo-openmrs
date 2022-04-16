@@ -4,10 +4,12 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_OBS_T
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_OBS_TO_ADMISSION_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_OBS_TO_CUSTOMER;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_OBS_TO_DISCHARGE_EVENT;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_OBS_TO_INVOICE_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_OBS_TO_RES_HANDLER;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_ADMISSION_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_CUSTOMER;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_DISCHARGE_EVENT;
+import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_INVOICE_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_OBS_TO_RES_HANDLER;
 
 import org.apache.camel.EndpointInject;
@@ -30,6 +32,9 @@ public class ObsToOdooResourceHandlerRouteTest extends BasePrpRouteTest {
 	@EndpointInject("mock:" + ROUTE_ID_OBS_TO_DISCHARGE_EVENT)
 	private MockEndpoint mockDischargeEndpoint;
 	
+	@EndpointInject("mock:" + ROUTE_ID_OBS_TO_INVOICE_EVENT)
+	private MockEndpoint mockInvoiceEndpoint;
+	
 	@Before
 	public void setup() throws Exception {
 		mockObsToCustomerEndpoint.reset();
@@ -43,6 +48,7 @@ public class ObsToOdooResourceHandlerRouteTest extends BasePrpRouteTest {
 				interceptSendToEndpoint(URI_OBS_TO_CUSTOMER).skipSendToOriginalEndpoint().to(mockObsToCustomerEndpoint);
 				interceptSendToEndpoint(URI_OBS_TO_ADMISSION_EVENT).skipSendToOriginalEndpoint().to(mockAdmissionEndpoint);
 				interceptSendToEndpoint(URI_OBS_TO_DISCHARGE_EVENT).skipSendToOriginalEndpoint().to(mockDischargeEndpoint);
+				interceptSendToEndpoint(URI_OBS_TO_INVOICE_EVENT).skipSendToOriginalEndpoint().to(mockInvoiceEndpoint);
 			}
 			
 		});
@@ -53,12 +59,14 @@ public class ObsToOdooResourceHandlerRouteTest extends BasePrpRouteTest {
 		mockObsToCustomerEndpoint.expectedMessageCount(1);
 		mockAdmissionEndpoint.expectedMessageCount(1);
 		mockDischargeEndpoint.expectedMessageCount(1);
+		mockInvoiceEndpoint.expectedMessageCount(1);
 		
 		producerTemplate.send(URI_OBS_TO_RES_HANDLER, new DefaultExchange(camelContext));
 		
 		mockObsToCustomerEndpoint.assertIsSatisfied();
 		mockAdmissionEndpoint.assertIsSatisfied();
 		mockDischargeEndpoint.assertIsSatisfied();
+		mockInvoiceEndpoint.assertIsSatisfied();
 	}
 	
 }

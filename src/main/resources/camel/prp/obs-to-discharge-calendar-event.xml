@@ -20,7 +20,7 @@
                 <exchangeProperty>entity-instance</exchangeProperty>
             </setProperty>
             <setProperty name="formUuid">
-                <simple>5fa318a9-eade-ea79-a96e-d91754135a5c</simple>
+                <simple>{{final.assessment.outcome.form.uuid}}</simple>
             </setProperty>
 
             <to uri="direct:obs-captured-on-form-rule" />
@@ -64,7 +64,7 @@
                 <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
 
                 <setProperty name="questionConceptUuid">
-                    <simple>675b4e02-1a96-4eda-af84-b6ebe0d715a4</simple>
+                    <simple>{{final.assmt.decision.question.concept}}</simple>
                 </setProperty>
 
                 <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
@@ -153,7 +153,7 @@
                             <spel>#{new java.util.ArrayList()}</spel>
                         </setProperty>
 
-                        <split parallelProcessing="false">
+                        <split parallelProcessing="false" stopOnException="true">
                             <simple>${exchangeProperty.${routeId}-partnerIdsAndNames}</simple>
                             <script><spel>#{getProperty('attendeePartnerIds').add(body.get('partner_id')[0])}</spel></script>
                         </split>

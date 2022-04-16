@@ -133,7 +133,7 @@
                         <spel>#{new java.util.ArrayList()}</spel>
                     </setProperty>
 
-                    <split parallelProcessing="false">
+                    <split parallelProcessing="false" stopOnException="true">
                         <simple>${exchangeProperty.${routeId}-partnerIdsAndNames}</simple>
                         <script><spel>#{getProperty('attendeePartnerIds').add(body.get('partner_id')[0])}</spel></script>
                     </split>
