@@ -1,0 +1,135 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <!--
+        Gets the most recent encounter in the visit matching the specified visit uuid and the encounter was captured
+        on a form matching the specified form uuid, the most recent encounter is one with the latest encounter Datetime.
+
+        @param visitUuid (Map) - The visit uuid to match
+        @param formUuid (String) - The form uuid to match
+
+        @bodyOut (Map) - The encounter resource if found otherwise null
+    -->
+
+    <route id="get-most-recent-enc-by-form-in-visit" errorHandlerRef="watcherErrorHandler">
+        <from uri="direct:get-most-recent-enc-by-form-in-visit" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+
+        <setProperty name="${routeId}-visitUuid">
+            <simple>${body.get('visitUuid')}</simple>
+        </setProperty>
+
+        <setProperty name="${routeId}-formUuid">
+            <simple>${body.get('formUuid')}</simple>
+        </setProperty>
+
+        <setProperty name="isSubResource">
+            <simple>false</simple>
+        </setProperty>
+        <setProperty name="resourceName">
+            <simple>visit</simple>
+        </setProperty>
+        <setProperty name="resourceId">
+            <simple>${body.get('visitUuid')}</simple>
+        </setProperty>
+        <setProperty name="resourceRepresentation">
+            <simple>full</simple>
+        </setProperty>
+
+        <to uri="direct:get-entity-by-uuid-from-openmrs" />
+
+        <when>
+            <simple>${body} == null</simple>
+            <throwException exceptionType="org.openmrs.eip.EIPException" message="No visit found in OpenMRS with uuid: ${exchangeProperty.${routeId}-visitUuid}" />
+        </when>
+        
+        <setBody>
+            <jsonpath>$</jsonpath>
+        </setBody>
+
+        <log loggingLevel="DEBUG" message="Fetched Visit -> ${body}"  />
+        
+        <setProperty name="${routeId}-encounters">
+            <simple>${body.get('encounters')}</simple>
+        </setProperty>
+        <setBody>
+            <exchangeProperty>${routeId}-encounters</exchangeProperty>
+        </setBody>
+        <setProperty name="${routeId}-lastIndex">
+            <spel>#{body.size() - 1}</spel>
+        </setProperty>
+        <setProperty name="${routeId}-endLoop">
+            <simple>${null}</simple>
+        </setProperty>
+        <setProperty name="${routeId}-currentItem">
+            <simple>${null}</simple>
+        </setProperty>
+        <setProperty name="${routeId}-match">
+            <simple>${null}</simple>
+        </setProperty>
+
+        <when>
+            <simple>${body.size()} > 0</simple>
+            <setProperty name="${routeId}-mostRecentEncDate">
+                <simple>${null}</simple>
+            </setProperty>
+            <setProperty name="${routeId}-df">
+                <spel>#{new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")}</spel>
+            </setProperty>
+            
+            <loop doWhile="true">
+                <simple>${exchangeProperty.${routeId}-endLoop} != true</simple>
+                <setProperty name="${routeId}-currentItem">
+                    <simple>${exchangeProperty.${routeId}-encounters.get(${exchangeProperty.CamelLoopIndex})}</simple>
+                </setProperty>
+
+                <when>
+                    <simple>${exchangeProperty.${routeId}-formUuid} == ${exchangeProperty.${routeId}-currentItem.get('form').get('uuid')}</simple>
+                    <setBody>
+                        <exchangeProperty>${routeId}-currentItem.get('uuid')</exchangeProperty>
+                    </setBody>
+
+                    <to uri="direct:is-encounter-validated" />
+
+                    <choice>
+                        <when>
+                            <simple>${body} == true</simple>
+                            <setProperty name="${routeId}-encDate">
+                                <spel>
+                                    #{getProperty('get-most-recent-enc-by-form-in-visit-df').parse(getProperty('get-most-recent-enc-by-form-in-visit-currentItem').get('encounterDatetime'))}
+                                </spel>
+                            </setProperty>
+
+                            <when>
+                                <spel>#{getProperty('get-most-recent-enc-by-form-in-visit-match') == null || getProperty('get-most-recent-enc-by-form-in-visit-encDate').after(getProperty('get-most-recent-enc-by-form-in-visit-mostRecentEncDate'))}</spel>
+                                <setProperty name="${routeId}-match">
+                                    <simple>${exchangeProperty.${routeId}-currentItem}</simple>
+                                </setProperty>
+                                <setProperty name="${routeId}-mostRecentEncDate">
+                                    <simple>${routeId}-encDate</simple>
+                                </setProperty>
+                            </when>
+                        </when>
+                        <otherwise>
+                            <log message="Ignoring encounter with uuid ${exchangeProperty.${routeId}-currentItem.get('uuid')} recorded on a form that was not validated" />
+                        </otherwise>
+                    </choice>
+                </when>
+
+                <when>
+                    <simple>${exchangeProperty.CamelLoopIndex} == ${exchangeProperty.${routeId}-lastIndex}</simple>
+                    <setProperty name="${routeId}-endLoop">
+                        <simple>true</simple>
+                    </setProperty>
+                </when>
+            </loop>
+        </when>
+
+        <setBody>
+            <exchangeProperty>${routeId}-match</exchangeProperty>
+        </setBody>
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+
+</routes>
