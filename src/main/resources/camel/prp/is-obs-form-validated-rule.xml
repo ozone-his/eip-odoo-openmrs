@@ -1,97 +1,31 @@
 <routes xmlns="http://camel.apache.org/schema/spring">
+
+    <!--
+        Utility route that checks if the encounter associated to the specified observation has a validation concept with
+        the value set to true concept.
+
+        @bodyIn (Map) - The obs resource
+
+        @bodyOut (boolean) - True if the obs encounter has the validation obs otherwise false
+    -->
+
     <route id="is-obs-form-validated-rule" errorHandlerRef="watcherErrorHandler">
         <from uri="direct:is-obs-form-validated-rule" />
 
         <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
-        
-        <log message="Fetching the Obs encounter from OpenMRS..." />
 
         <choice>
             <when>
                 <simple>${body.get('encounter')} != null</simple>
-                <setProperty name="isSubResource">
-                    <simple>false</simple>
-                </setProperty>
-                <setProperty name="resourceName">
-                    <simple>encounter</simple>
-                </setProperty>
-                <setProperty name="resourceId">
+                <setBody>
                     <simple>${body.get('encounter').get('uuid')}</simple>
-                </setProperty>
-                <setProperty name="resourceRepresentation">
-                    <simple>full</simple>
-                </setProperty>
+                </setBody>
 
-                <to uri="direct:get-entity-by-uuid-from-openmrs" />
-
-                <choice>
-                    <when>
-                        <simple>${body} != null</simple>
-                        <setProperty name="encounter">
-                            <jsonpath>$</jsonpath>
-                        </setProperty>
-
-                        <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.encounter}" />
-                        <log message="Checking if the obs encounter contains the validation obs" />
-
-                        <setBody>
-                            <simple>{{validation.concept}}</simple>
-                        </setBody>
-
-                        <to uri="direct:convert-to-concept-uuid-if-is-mapping" />
-
-                        <setProperty name="${routeId}-validatedConceptUuid">
-                            <simple>${body}</simple>
-                        </setProperty>
-
-                        <setProperty name="encObs">
-                            <simple>${exchangeProperty.encounter.get('obs')}</simple>
-                        </setProperty>
-                        <setBody>
-                            <simple>${exchangeProperty.encObs}</simple>
-                        </setBody>
-
-                        <loop doWhile="true">
-                            <simple>${exchangeProperty.isValidated} == null</simple>
-                            <setProperty name="obsConceptUuid">
-                                <spel>#{getProperty('encObs').get(getProperty('CamelLoopIndex')).get('concept').get('uuid')}</spel>
-                            </setProperty>
-
-                            <when>
-                                <simple>${exchangeProperty.obsConceptUuid} == ${exchangeProperty.${routeId}-validatedConceptUuid}</simple>
-                                <setProperty name="isValidated">
-                                    <simple>true</simple>
-                                </setProperty>
-
-                                <log message="Obs encounter is validated" />
-                            </when>
-
-                            <when>
-                                <spel>#{getProperty('isValidated') == null &amp;&amp; getProperty('CamelLoopIndex') == getProperty('encObs').size() - 1}</spel>
-                                <setProperty name="isValidated">
-                                    <simple>false</simple>
-                                </setProperty>
-                            </when>
-                        </loop>
-                    </when>
-                    <otherwise>
-                        <log message="No associated encounter found with uuid: ${exchangeProperty.resourceId}" />
-                    </otherwise>
-                </choice>
+                <to uri="direct:is-encounter-validated" />
             </when>
             <otherwise>
                 <log message="Obs has no encounter" />
-            </otherwise>
-        </choice>
-
-        <choice>
-            <when>
-                <simple>${exchangeProperty.isValidated} == true</simple>
-                <setBody>
-                    <simple>true</simple>
-                </setBody>
-            </when>
-            <otherwise>
+                
                 <setBody>
                     <simple>false</simple>
                 </setBody>

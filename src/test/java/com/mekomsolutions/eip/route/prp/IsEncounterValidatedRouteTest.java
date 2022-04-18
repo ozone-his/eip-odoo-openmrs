@@ -153,8 +153,7 @@ public class IsEncounterValidatedRouteTest extends BasePrpRouteTest {
 		validationObs.put("value", singletonMap("uuid", CONCEPT_UUID_YES));
 		Map encResource = new HashMap();
 		encResource.put("uuid", encounterUuid);
-		encResource.put("obs", asList(singletonMap("concept", singletonMap("uuid", "test-1")), validationObs,
-		    singletonMap("concept", singletonMap("uuid", "test-2"))));
+		encResource.put("obs", asList(validationObs));
 		exchange.getIn().setBody(encounterUuid);
 		mockConvertToConceptUuidEndpoint.expectedMessageCount(1);
 		mockConvertToConceptUuidEndpoint.expectedBodiesReceived(VALIDATION_CONCEPT_UUID);

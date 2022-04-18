@@ -10,7 +10,7 @@
         @bodyOut (boolean) - True if the encounter has the validation obs otherwise false
     -->
 
-    <route id="is-encounter-validated">
+    <route id="is-encounter-validated" errorHandlerRef="watcherErrorHandler">
         <from uri="direct:is-encounter-validated" />
 
         <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
