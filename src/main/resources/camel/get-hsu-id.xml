@@ -5,7 +5,7 @@
 
         @bodyIn patient (Map) - The patient resource
 
-        @bodyOut (String) - The preferred HSU id if a match is found otherwise null
+        @bodyOut (String) - The HSU id if found otherwise null
     -->
 
     <route id="get-hsu-id" errorHandlerRef="watcherErrorHandler">

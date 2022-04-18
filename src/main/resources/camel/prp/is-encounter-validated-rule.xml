@@ -1,0 +1,112 @@
+<routes xmlns="http://camel.apache.org/schema/spring">
+
+    <!--
+        Utility route that checks if the encounter with the specified uuid contains a validation concept with the value
+        set to true concept.
+
+
+        @bodyIn (String) - The encounter uuid
+
+        @bodyOut (boolean) - True if the encounter has the validation obs otherwise false
+    -->
+
+    <route id="is-encounter-validated">
+        <from uri="direct:is-encounter-validated" />
+
+        <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
+        
+        <log message="Fetching the encounter from OpenMRS..." />
+
+        <setProperty name="${routeId}-encUuid">
+            <simple>${body}</simple>
+        </setProperty>
+
+        <setProperty name="isSubResource">
+            <simple>false</simple>
+        </setProperty>
+        <setProperty name="resourceName">
+            <simple>encounter</simple>
+        </setProperty>
+        <setProperty name="resourceId">
+            <exchangeProperty>${routeId}-encUuid</exchangeProperty>
+        </setProperty>
+        <setProperty name="resourceRepresentation">
+            <simple>full</simple>
+        </setProperty>
+
+        <to uri="direct:get-entity-by-uuid-from-openmrs" />
+
+        <choice>
+            <when>
+                <simple>${body} != null</simple>
+                <setProperty name="${routeId}-encounter">
+                    <jsonpath>$</jsonpath>
+                </setProperty>
+
+                <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
+                <log message="Checking if the encounter form is validated" />
+
+                <setBody>
+                    <simple>{{validation.concept}}</simple>
+                </setBody>
+
+                <to uri="direct:convert-to-concept-uuid-if-is-mapping" />
+
+                <setProperty name="${routeId}-validatedConceptUuid">
+                    <simple>${body}</simple>
+                </setProperty>
+
+                <setProperty name="${routeId}-encObs">
+                    <simple>${exchangeProperty.${routeId}-encounter.get('obs')}</simple>
+                </setProperty>
+
+                <loop doWhile="true">
+                    <simple>${exchangeProperty.${routeId}-valid} == null</simple>
+                    <setProperty name="${routeId}-obsConceptUuid">
+                        <spel>#{getProperty('is-encounter-validated-encObs').get(getProperty('CamelLoopIndex')).get('concept').get('uuid')}</spel>
+                    </setProperty>
+
+                    <when>
+                        <simple>${exchangeProperty.${routeId}-obsConceptUuid} == ${exchangeProperty.${routeId}-validatedConceptUuid}</simple>
+                        <setProperty name="${routeId}-answerConceptUuid">
+                            <spel>#{getProperty('is-encounter-validated-encObs').get(getProperty('CamelLoopIndex')).get('value').get('uuid')}</spel>
+                        </setProperty>
+
+                        <when>
+                            <simple>${exchangeProperty.${routeId}-answerConceptUuid} == '1065AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'</simple>
+                            <setProperty name="${routeId}-valid">
+                                <simple>true</simple>
+                            </setProperty>
+                        </when>
+                    </when>
+
+                    <when>
+                        <spel>#{getProperty('is-encounter-validated-valid') == null &amp;&amp; getProperty('CamelLoopIndex') == getProperty('is-encounter-validated-encObs').size() - 1}</spel>
+                        <setProperty name="${routeId}-valid">
+                            <simple>false</simple>
+                        </setProperty>
+                    </when>
+                </loop>
+            </when>
+            <otherwise>
+                <log loggingLevel="WARN" message="No encounter found with uuid: ${exchangeProperty.${routeId}-encUuid}" />
+            </otherwise>
+        </choice>
+
+        <choice>
+            <when>
+                <simple>${exchangeProperty.${routeId}-valid} == true</simple>
+                <setBody>
+                    <simple>true</simple>
+                </setBody>
+            </when>
+            <otherwise>
+                <setBody>
+                    <simple>false</simple>
+                </setBody>
+            </otherwise>
+        </choice>
+
+        <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
+    </route>
+</routes>
