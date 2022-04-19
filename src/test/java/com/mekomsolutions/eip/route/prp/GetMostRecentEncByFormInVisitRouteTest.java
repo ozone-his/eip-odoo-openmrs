@@ -98,29 +98,6 @@ public class GetMostRecentEncByFormInVisitRouteTest extends BasePrpRouteTest {
 	}
 	
 	@Test
-	public void shouldReturnNullIfTheVisitHasNoEncounterCapturedOnTheSpecifiedForm() throws Exception {
-		final String visitUuid = "visit-uuid";
-		Exchange exchange = new DefaultExchange(camelContext);
-		Map params = new HashMap();
-		params.put(PARAM_VISIT_UUID, visitUuid);
-		params.put(PARAM_FORM_UUID, "form-uuid");
-		exchange.getIn().setBody(params);
-		mockGetEntityByUuidEndpoint.expectedMessageCount(1);
-		mockGetEntityByUuidEndpoint.expectedPropertyReceived(EX_PROP_IS_SUBRESOURCE, false);
-		mockGetEntityByUuidEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_NAME, "visit");
-		mockGetEntityByUuidEndpoint.expectedPropertyReceived(EX_PROP_RESOURCE_ID, visitUuid);
-		mockGetEntityByUuidEndpoint.expectedPropertyReceived(EX_PROP_RES_REP, "full");
-		String visitJson = mapper.writeValueAsString(
-		    singletonMap("encounters", asList(singletonMap("form", singletonMap("uuid", "some-form-uuid")))));
-		mockGetEntityByUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(visitJson));
-		
-		producerTemplate.send(URI_GET_MOST_RECENT_ENC_BY_FORM_AND_VISIT, exchange);
-		
-		mockGetEntityByUuidEndpoint.assertIsSatisfied();
-		assertNull(exchange.getIn().getBody());
-	}
-	
-	@Test
 	public void shouldReturnTheObsInTheVisitWithAMatchingTheConceptRecordedOnTheSpecifiedForm() throws Exception {
 		final String visitUuid = "visit-uuid";
 		final String formUuid = "form-uuid";
@@ -134,14 +111,17 @@ public class GetMostRecentEncByFormInVisitRouteTest extends BasePrpRouteTest {
 		params.put(PARAM_VISIT_UUID, visitUuid);
 		params.put(PARAM_FORM_UUID, formUuid);
 		exchange.getIn().setBody(params);
+		//Encounter recorded on a different form
 		Map enc1 = new HashMap();
 		enc1.put("uuid", encUuid1);
 		enc1.put("encounterDatetime", "2022-04-15T15:00:04.000+0000");
 		enc1.put("form", singletonMap("uuid", "form-uuid1"));
+		//Encounter recorded on a non validated form
 		Map enc2 = new HashMap();
 		enc2.put("encounterDatetime", "2022-04-15T15:00:03.000+0000");
 		enc2.put("uuid", encUuid2);
 		enc2.put("form", singletonMap("uuid", formUuid));
+		//Encounter with an earlier encounter date
 		Map enc3 = new HashMap();
 		enc3.put("encounterDatetime", "2022-04-15T15:00:00.000+0000");
 		enc3.put("uuid", encUuid3);

@@ -25,9 +25,11 @@ import org.apache.camel.support.DefaultExchange;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.mekomsolutions.eip.route.prp.BasePrpRouteTest;
+
 import ch.qos.logback.classic.Level;
 
-public class GetObsByQnOnFormInVisitRouteTest extends BaseOdooRouteTest {
+public class GetObsByQnOnFormInVisitRouteTest extends BasePrpRouteTest {
 	
 	public static final String PARAM_CONCEPT_UUID = "conceptUuid";
 	

@@ -110,7 +110,6 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 		
 		if (!loadedExtraRoutes) {
 			loadXmlRoutesInCamelDirectory(ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC + ".xml");
-			loadXmlRoutesInCamelDirectory(ROUTE_ID_GET_OBS_BY_QN_FORM_VISIT + ".xml");
 			loadedExtraRoutes = true;
 		}
 		
