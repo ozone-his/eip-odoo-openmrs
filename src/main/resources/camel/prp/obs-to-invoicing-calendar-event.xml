@@ -117,7 +117,7 @@
                         <spel>#{new java.util.HashMap()}</spel>
                     </setProperty>
                     <setProperty name="${routeId}-encObs">
-                        <simple>${exchangeProperty.encounter.get('obs')}</simple>
+                        <simple>${exchangeProperty.${routeId}-encounter.get('obs')}</simple>
                     </setProperty>
                     <loop doWhile="true">
                         <simple>${exchangeProperty.${routeId}-endLoop} != true</simple>
@@ -129,22 +129,35 @@
                             <simple>${exchangeProperty.obs-to-invoicing-calendar-event-encObs.containsKey(${exchangeProperty.obs-to-invoicing-calendar-event-currentItem.get('concept').get('uuid')})} == true</simple>
                             <when>
                                 <simple>${exchangeProperty.${routeId}-mostRecentPhysioEnc} == null</simple>
-                                <!-- TODO Get most recent physio record encounter in the visit if null -->
+                                <setBody>
+                                    <spel>#{new java.util.HashMap()}</spel>
+                                </setBody>
+                                <script>
+                                    <spel>
+                                        #{body.put('formUuid', '3c07n00f-1623-4380-af4a-4cn68244ptt3')}
+                                        #{body.put('visitUuid', getProperty('obs-to-invoicing-calendar-event-encounter').get('visit').get('uuid'))}
+                                    </spel>
+                                </script>
+
+                                <to uri="direct:get-most-recent-enc-by-form-in-visit" />
+
                                 <setProperty name="${routeId}-mostRecentPhysioEnc">
                                     <simple>${body}</simple>
                                 </setProperty>
                             </when>
+                            
                             <setProperty name="encounter">
                                 <exchangeProperty>${routeId}-mostRecentPhysioEnc</exchangeProperty>
                             </setProperty>
                             <setProperty name="questionConceptUuid">
-                                <simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${exchangeProperty.${routeId}-currentItem.get('concept').get('uuid')})}</simple>
+                                <!--<simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${exchangeProperty.${routeId}-currentItem.get('concept').get('uuid')})}</simple>-->
+                                <spel>#{getProperty('obs-to-invoicing-calendar-event-invoicingConceptMaps').get(getProperty('obs-to-invoicing-calendar-event-currentItem').get('concept').get('uuid'))}</spel>
                             </setProperty>
 
                             <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
 
                             <when>
-                                <simple>${body} != null</simple>
+                                <simple>${body} != null &amp;&amp; ${body.get('value')} != 0</simple>
                                 <log loggingLevel="DEBUG" message="Physio session obs -> ${body}" />
 
                                 <script>
@@ -236,7 +249,7 @@
                             <simple>${body}</simple>
                         </setProperty>
                         <setProperty name="subject">
-                            <simple>${exchangeProperty.${routeId}-patient.get('person').get('display')}/Invoicing</simple>
+                            <simple>${exchangeProperty.${routeId}-patient.get('person').get('display')}/Final Assessment</simple>
                         </setProperty>
                         <setProperty name="duration">
                             <simple>1440</simple>
@@ -245,8 +258,22 @@
                             <spel>#{T(java.time.LocalDateTime).now(T(java.time.ZoneId).of('UTC'))}</spel>
                         </setProperty>
                         <setProperty name="description">
-                            <simple>Dear billing manager, prepare invoice for ${exchangeProperty.${routeId}-patient.get('person').get('display')} ${exchangeProperty.${routeId}-hsuId}</simple>
+                            <simple>Physiotherapy sessions for ${exchangeProperty.${routeId}-patient.get('person').get('display')} ${exchangeProperty.${routeId}-hsuId} - </simple>
                         </setProperty>
+
+                        <when>
+                            <simple>${exchangeProperty.indSessionCount} > 0</simple>
+                            <setProperty name="description">
+                                <simple>${exchangeProperty.description} Individual(${exchangeProperty.indSessionCount})</simple>
+                            </setProperty>
+                        </when>
+
+                        <when>
+                            <simple>${exchangeProperty.grpSessionCount} > 0</simple>
+                            <setProperty name="description">
+                                <simple>${exchangeProperty.description} Group(${exchangeProperty.grpSessionCount})</simple>
+                            </setProperty>
+                        </when>
 
                         <log message="Adding a invoicing calendar event in odoo" />
 

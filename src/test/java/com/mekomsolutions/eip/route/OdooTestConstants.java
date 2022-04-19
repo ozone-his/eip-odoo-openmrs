@@ -89,8 +89,10 @@ public class OdooTestConstants {
 	public static final String ROUTE_ID_GET_MOST_RECENT_ENC_BY_FORM_AND_VISIT = "get-most-recent-enc-by-form-in-visit";
 	
 	public static final String ROUTE_ID_FORM_VALIDATED_RULE = "is-obs-form-validated-rule";
-
-    public static final String ROUTE_ID_IS_ENC_VALIDATED = "is-encounter-validated";
+	
+	public static final String ROUTE_ID_IS_ENC_VALIDATED = "is-encounter-validated";
+	
+	public static final String ROUTE_ID_OBS_CAPTURED_ON_FORM = "obs-captured-on-form-rule";
 	
 	public static final String URI_ODOO_AUTH = "direct:odoo-authentication";
 	
@@ -142,7 +144,7 @@ public class OdooTestConstants {
 	
 	public static final String URI_MANAGE_ORDER_LINE = "direct:odoo-manage-order-line";
 	
-	public static final String URI_OBS_CAPTURED_ON_FORM = "direct:obs-captured-on-form-rule";
+	public static final String URI_OBS_CAPTURED_ON_FORM = "direct:" + ROUTE_ID_OBS_CAPTURED_ON_FORM;
 	
 	public static final String URI_SAVE_CALENDAR_EVENT = "direct:" + ROUTE_ID_SAVE_CALENDAR_EVENT;
 	
@@ -172,8 +174,8 @@ public class OdooTestConstants {
 	        + ROUTE_ID_GET_MOST_RECENT_ENC_BY_FORM_AND_VISIT;
 	
 	public static final String URI_GET_HSU_ID = "direct:" + ROUTE_ID_GET_HSU_ID;
-
-	public static final String URI_IS_ENC_VALIDATED = "direct:"+ROUTE_ID_IS_ENC_VALIDATED;
+	
+	public static final String URI_IS_ENC_VALIDATED = "direct:" + ROUTE_ID_IS_ENC_VALIDATED;
 	
 	public static final String ODOO_BASE_URL = "http://test.odoo.test";
 	

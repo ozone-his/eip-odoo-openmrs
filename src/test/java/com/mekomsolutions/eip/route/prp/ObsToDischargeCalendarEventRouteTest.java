@@ -22,6 +22,7 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_CONCEP
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_OBS_BY_QN_FORM_VISIT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_PARTNERS_BY_USERS;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_GET_RES_BY_EXT_ID_FROM_ODOO;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_OBS_CAPTURED_ON_FORM;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_OBS_TO_DISCHARGE_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ROUTE_ID_SAVE_CALENDAR_EVENT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.URI_GET_ENTITY_BY_UUID;
@@ -73,13 +74,11 @@ public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 	
 	protected static final String GROUP_EXT_ID = "Test ext id";
 	
-	protected static final String GROUP_NAME = "TEST GROUP NAME";
-	
 	protected static final String ID_TYPE_UUID = "test-id-type-uuid";
 	
 	private static final String CONCEPT_UUID_CLOSE_EOS = "9bc5c6f2-7c82-11e9-8f9e-2a86e4085a59";
 	
-	@EndpointInject("mock:obs-captured-on-form-rule")
+	@EndpointInject("mock:" + ROUTE_ID_OBS_CAPTURED_ON_FORM)
 	private MockEndpoint mockObsCapturedOnFormEndpoint;
 	
 	@EndpointInject(URI_MOCK_GET_ENTITY_BY_UUID)
