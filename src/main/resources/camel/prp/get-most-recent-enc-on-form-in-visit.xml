@@ -103,10 +103,10 @@
                             <when>
                                 <spel>#{getProperty('get-most-recent-enc-by-form-in-visit-match') == null || getProperty('get-most-recent-enc-by-form-in-visit-encDate').after(getProperty('get-most-recent-enc-by-form-in-visit-mostRecentEncDate'))}</spel>
                                 <setProperty name="${routeId}-match">
-                                    <simple>${exchangeProperty.${routeId}-currentItem}</simple>
+                                    <exchangeProperty>${routeId}-currentItem</exchangeProperty>
                                 </setProperty>
                                 <setProperty name="${routeId}-mostRecentEncDate">
-                                    <simple>${routeId}-encDate</simple>
+                                    <exchangeProperty>${routeId}-encDate</exchangeProperty>
                                 </setProperty>
                             </when>
                         </when>
