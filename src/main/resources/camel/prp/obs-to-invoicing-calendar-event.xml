@@ -65,10 +65,10 @@
                 <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
 
                 <setBody>
-                    <exchangeProperty>entity-instance</exchangeProperty>
+                    <exchangeProperty>${routeId}-encounter</exchangeProperty>
                 </setBody>
 
-                <to uri="direct:is-obs-form-validated-rule" />
+                <to uri="direct:is-encounter-validated" />
 
                 <!-- Only process if the form was validated -->
                 <when>
@@ -76,13 +76,13 @@
                     <log loggingLevel="DEBUG" message="The form was validated" />
 
                     <setProperty name="${routeId}-invoicingConceptMaps">
-                        <method beanType="org.openmrs.eip.AppContext" method="get(${exchangeProperty.obs-to-invoicing-calendar-events-invoicingConceptMaps})" />
+                        <method beanType="org.openmrs.eip.AppContext" method="get('obs-to-invoicing-calendar-event-invoicingConceptMapsKey')" />
                     </setProperty>
                     <when>
                         <simple>${exchangeProperty.obs-to-invoicing-calendar-event-invoicingConceptMaps} == null</simple>
-                        <log message="Initializing the mappings between service concepts on the final assessment outcome form and session record concepts on the Physio session record form" />
+                        <log message="Initializing the mappings between service concepts on the final assessment outcome form and session record concepts on the physio session record form" />
                         <setProperty name="${routeId}-invoicingConceptMaps">
-                            <spel>#{new java.util.HashMap)}</spel>
+                            <spel>#{new java.util.HashMap()}</spel>
                         </setProperty>
 
                         <!--
@@ -108,19 +108,9 @@
                         </script>
 
                         <script>
-                            <method beanType="org.openmrs.eip.AppContext" method="add(${routeId}-invoicingConceptMaps}, ${exchangeProperty.${routeId}-invoicingConceptMaps})" />
+                            <method beanType="org.openmrs.eip.AppContext" method="add('obs-to-invoicing-calendar-event-invoicingConceptMapsKey', ${exchangeProperty.${routeId}-invoicingConceptMaps})" />
                         </script>
                     </when>
-
-                    <!-- Get all selected physio services obs -->
-                    <setProperty name="${routeId}-physioServicesObsCountMap">
-                        <spel>#{new java.util.HashMap()}</spel>
-                    </setProperty>
-                    <setProperty name="${routeId}-encObs">
-                        <simple>${exchangeProperty.${routeId}-encounter.get('obs')}</simple>
-                    </setProperty>
-
-                    <log message="Fetching most recent pyhsio session encounter in the visit" />
 
                     <setBody>
                         <spel>#{new java.util.HashMap()}</spel>
@@ -132,29 +122,52 @@
                         </spel>
                     </script>
 
+                    <log message="Fetching most recent physio session encounter in the visit" />
+
                     <to uri="direct:get-most-recent-enc-by-form-in-visit" />
 
                     <setProperty name="${routeId}-mostRecentPhysioEnc">
                         <simple>${body}</simple>
                     </setProperty>
-
-                    <!-- If the patient had a physio sessions encounter, this is the most recent, get the session count -->
+                    
+                    <!--
+                        If the patient had any physio sessions encounters, this is the most recent, get all selected
+                        physio services obs their associated session counts from the most recent physio encounter
+                    -->
+                    <setProperty name="${routeId}-physioServicesObsCountMap">
+                        <spel>#{new java.util.HashMap()}</spel>
+                    </setProperty>
+                    
                     <when>
                         <simple>${exchangeProperty.${routeId}-mostRecentPhysioEnc} != null</simple>
+                        <setProperty name="${routeId}-encObs">
+                            <simple>${exchangeProperty.${routeId}-encounter.get('obs')}</simple>
+                        </setProperty>
+                        <setProperty name="${routeId}-lastIndex">
+                            <spel>#{getProperty('obs-to-invoicing-calendar-event-encObs').size() - 1}</spel>
+                        </setProperty>
+                        <setProperty name="${routeId}-endLoop">
+                            <simple>${null}</simple>
+                        </setProperty>
+                        <setProperty name="${routeId}-currentItem">
+                            <simple>${null}</simple>
+                        </setProperty>
+                        
                         <loop doWhile="true">
                             <simple>${exchangeProperty.${routeId}-endLoop} != true</simple>
                             <setProperty name="${routeId}-currentItem">
                                 <simple>${exchangeProperty.${routeId}-encObs.get(${exchangeProperty.CamelLoopIndex})}</simple>
                             </setProperty>
 
+                            <setProperty name="questionConceptUuid">
+                                <!--<simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${exchangeProperty.${routeId}-currentItem.get('concept').get('uuid')})}</simple>-->
+                                <spel>#{getProperty('obs-to-invoicing-calendar-event-invoicingConceptMaps').get(getProperty('obs-to-invoicing-calendar-event-currentItem').get('concept').get('uuid'))}</spel>
+                            </setProperty>
+                            
                             <when>
-                                <simple>${exchangeProperty.obs-to-invoicing-calendar-event-encObs.containsKey(${exchangeProperty.obs-to-invoicing-calendar-event-currentItem.get('concept').get('uuid')})} == true</simple>
+                                <simple>${exchangeProperty.questionConceptUuid} != null</simple>
                                 <setProperty name="encounter">
                                     <exchangeProperty>${routeId}-mostRecentPhysioEnc</exchangeProperty>
-                                </setProperty>
-                                <setProperty name="questionConceptUuid">
-                                    <!--<simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${exchangeProperty.${routeId}-currentItem.get('concept').get('uuid')})}</simple>-->
-                                    <spel>#{getProperty('obs-to-invoicing-calendar-event-invoicingConceptMaps').get(getProperty('obs-to-invoicing-calendar-event-currentItem').get('concept').get('uuid'))}</spel>
                                 </setProperty>
 
                                 <to uri="direct:get-obs-by-concept-uuid-from-encounter" />

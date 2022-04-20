@@ -2,12 +2,14 @@ package com.mekomsolutions.eip.route.prp;
 
 import static com.mekomsolutions.eip.route.GetResourceByExtIdFromOdooRouteTest.PARAM_EXT_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_BASIC_SERVICE_PLAN_FORM_UUID;
+import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_CLOSE_EOS_CONCEPT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_FINAL_ASSMT_CONCEPT;
 import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_FINAL_ASSMT_FORM_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_GRP_EXT_ID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.APP_PROP_NAME_ID_TYPE_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.BASIC_SERVICE_PLAN_FORM_UUID;
 import static com.mekomsolutions.eip.route.OdooTestConstants.CONCEPT_UUID_ASSMT_DECISION;
+import static com.mekomsolutions.eip.route.OdooTestConstants.CONCEPT_UUID_CLOSE_EOS;
 import static com.mekomsolutions.eip.route.OdooTestConstants.CONCEPT_UUID_PATIENT_TYPE;
 import static com.mekomsolutions.eip.route.OdooTestConstants.CONCEPT_UUID_VALIDATED;
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ENTITY;
@@ -70,13 +72,12 @@ import com.mekomsolutions.eip.route.ObsCapturedOnFormRuleRouteTest;
 @TestPropertySource(properties = APP_PROP_NAME_BASIC_SERVICE_PLAN_FORM_UUID + "=" + BASIC_SERVICE_PLAN_FORM_UUID)
 @TestPropertySource(properties = APP_PROP_NAME_FINAL_ASSMT_FORM_UUID + "=" + FINAL_ASSMT_FORM_UUID)
 @TestPropertySource(properties = APP_PROP_NAME_FINAL_ASSMT_CONCEPT + "=" + CONCEPT_UUID_ASSMT_DECISION)
+@TestPropertySource(properties = APP_PROP_NAME_CLOSE_EOS_CONCEPT + "=" + CONCEPT_UUID_CLOSE_EOS)
 public class ObsToDischargeCalendarEventRouteTest extends BasePrpRouteTest {
 	
 	protected static final String GROUP_EXT_ID = "Test ext id";
 	
 	protected static final String ID_TYPE_UUID = "test-id-type-uuid";
-	
-	private static final String CONCEPT_UUID_CLOSE_EOS = "9bc5c6f2-7c82-11e9-8f9e-2a86e4085a59";
 	
 	@EndpointInject("mock:" + ROUTE_ID_OBS_CAPTURED_ON_FORM)
 	private MockEndpoint mockObsCapturedOnFormEndpoint;
