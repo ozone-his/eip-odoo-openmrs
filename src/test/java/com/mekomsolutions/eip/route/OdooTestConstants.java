@@ -217,13 +217,15 @@ public class OdooTestConstants {
 	
 	public static final String APP_PROP_NAME_GRP_EXT_ID = "odoo.dormitory.notification.group.ext.id";
 	
-	public static final String APP_PROP_NAME_INVOICE_GRP_EXT_ID = "odoo.invoicing.notification.group.ext.id";
+	public static final String APP_PROP_NAME_INVOICE_GRP_EXT_ID = "odoo.final.assmt.notification.group.ext.id";
 	
 	public static final String APP_PROP_NAME_BASIC_SERVICE_PLAN_FORM_UUID = "basic.service.plan.form.uuid";
 	
 	public static final String APP_PROP_NAME_FINAL_ASSMT_FORM_UUID = "final.assessment.outcome.form.uuid";
 	
 	public static final String APP_PROP_NAME_FINAL_ASSMT_CONCEPT = "final.assmt.decision.question.concept";
+	
+	public static final String APP_PROP_NAME_CLOSE_EOS_CONCEPT = "close.eos.concept";
 	
 	public static final String CONCEPT_UUID_VALIDATED = "1382a47a-3e63-11e9-b210-d663bd873d93";
 	
@@ -234,6 +236,30 @@ public class OdooTestConstants {
 	public static final String CONCEPT_UUID_INPATIENT = "a0b86497-cb21-46ad-9a9b-c99db8db9528";
 	
 	public static final String CONCEPT_UUID_ASSMT_DECISION = "675b4e02-1a96-4eda-af84-b6ebe0d715a4";
+	
+	public static final String CONCEPT_UUID_CLOSE_EOS = "9bc5c6f2-7c82-11e9-8f9e-2a86e4085a59";
+	
+	public static final String CONCEPT_UUID_SERVICE_IND_PRE = "5bfc19cb-be53-4dfd-a182-b722282f97aa";
+	
+	public static final String CONCEPT_UUID_SERVICE_IND_POST = "ba39d381-2e95-4749-b106-03ab1b8dd8a5";
+	
+	public static final String CONCEPT_UUID_SERVICE_GRP_PRE = "3fc9d7e3-5328-42fa-943d-59e5a0742177";
+	
+	public static final String CONCEPT_UUID_SERVICE_GRP_POST = "d7d97492-ce31-4c6f-be38-46d66f75199a";
+	
+	public static final String CONCEPT_UUID_SERVICE_IND_NON_AT = "4d13460e-4fef-4501-9309-cde5c3fc588b";
+	
+	public static final String CONCEPT_UUID_SERVICE_GRP_OTHER = "c9a058a8-4c8e-41e0-b20b-ec6cd8ad71e6";
+	
+	public static final String CONCEPT_UUID_PHYSIO_IND_AT = "2be9c9a4-afd4-448e-a10b-eeb1e7436fff";
+	
+	public static final String CONCEPT_UUID_PHYSIO_GRP_PRE_AT = "34aeea30-eff2-4c24-ae25-a16dbd051c88";
+	
+	public static final String CONCEPT_UUID_PHYSIO_GRP_POST_AT = "55c42975-2d0a-4e31-b07b-d9fcc032ac05";
+	
+	public static final String CONCEPT_UUID_PHYSIO_IND_NON_AT = "6f99160c-33ce-4726-b2bf-a167bea31249";
+	
+	public static final String CONCEPT_UUID_PHYSIO_GRP_OTHER = "6350915f-8694-49d8-82df-688ac523b895";
 	
 	public static final String BASIC_SERVICE_PLAN_FORM_UUID = "3b07b00c-1623-4380-af4a-4bb68244eff5";
 	

@@ -3,7 +3,7 @@
     <!--
         Processes an event for a final assessment decision obs recorded on the Final Assessment outcome and GS form and
         Close EoS was decision, creates an invoicing calendar event to all users that belong the group specified by
-        application property named odoo.invoicing.notification.group.ext.id
+        application property named odoo.final.assmt.notification.group.ext.id
     -->
 
     <route id="obs-to-invoicing-calendar-event" errorHandlerRef="watcherErrorHandler">
@@ -129,7 +129,7 @@
                     <setProperty name="${routeId}-mostRecentPhysioEnc">
                         <simple>${body}</simple>
                     </setProperty>
-                    
+
                     <!--
                         If the patient had any physio sessions encounters, this is the most recent, get all selected
                         physio services obs their associated session counts from the most recent physio encounter
@@ -152,7 +152,7 @@
                         <setProperty name="${routeId}-currentItem">
                             <simple>${null}</simple>
                         </setProperty>
-                        
+
                         <loop doWhile="true">
                             <simple>${exchangeProperty.${routeId}-endLoop} != true</simple>
                             <setProperty name="${routeId}-currentItem">
@@ -163,7 +163,7 @@
                                 <!--<simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${exchangeProperty.${routeId}-currentItem.get('concept').get('uuid')})}</simple>-->
                                 <spel>#{getProperty('obs-to-invoicing-calendar-event-invoicingConceptMaps').get(getProperty('obs-to-invoicing-calendar-event-currentItem').get('concept').get('uuid'))}</spel>
                             </setProperty>
-                            
+
                             <when>
                                 <simple>${exchangeProperty.questionConceptUuid} != null</simple>
                                 <setProperty name="encounter">
@@ -173,7 +173,7 @@
                                 <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
 
                                 <when>
-                                    <simple>${body} != null &amp;&amp; ${body.get('value')} != 0</simple>
+                                    <simple>${body} != null &amp;&amp; ${body.get('value')} > 0</simple>
                                     <log loggingLevel="DEBUG" message="Physio session obs -> ${body}" />
 
                                     <script>
@@ -191,10 +191,10 @@
                         </loop>
                     </when>
 
-                    <!-- Only process if the patient had any physio sessions services -->
+                    <!-- Only process if the patient had any physio session services -->
                     <when>
                         <simple>${exchangeProperty.${routeId}-physioServicesObsCountMap.size()} > 0</simple>
-                        <log message="The patient had physio sessions in the visit preparing invoicing notification" />
+                        <log message="The patient had physio sessions in the visit, preparing invoicing notification" />
                         <setProperty name="isSubResource">
                             <simple>false</simple>
                         </setProperty>
@@ -226,7 +226,7 @@
                         </setBody>
                         <script>
                             <spel>
-                                #{body.put('externalId', '{{odoo.invoicing.notification.group.ext.id}}')}
+                                #{body.put('externalId', '{{odoo.final.assmt.notification.group.ext.id}}')}
                                 #{body.put('modelName', 'res.groups')}
                             </spel>
                         </script>
@@ -235,7 +235,7 @@
 
                         <when>
                             <simple>${body} == null</simple>
-                            <throwException exceptionType="org.openmrs.eip.EIPException" message="No group found in odoo with external id: {{odoo.invoicing.notification.group.ext.id}}" />
+                            <throwException exceptionType="org.openmrs.eip.EIPException" message="No group found in odoo with external id: {{odoo.final.assmt.notification.group.ext.id}}" />
                         </when>
 
                         <setBody>
