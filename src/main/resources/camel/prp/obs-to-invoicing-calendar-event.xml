@@ -65,7 +65,7 @@
                 <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
 
                 <setBody>
-                    <exchangeProperty>${routeId}-encounter</exchangeProperty>
+                    <simple>${exchangeProperty.${routeId}-encounter.get('uuid')}</simple>
                 </setBody>
 
                 <to uri="direct:is-encounter-validated" />

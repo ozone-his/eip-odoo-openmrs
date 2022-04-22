@@ -86,7 +86,7 @@
                 <when>
                     <simple>${exchangeProperty.${routeId}-formUuid} == ${exchangeProperty.${routeId}-currentItem.get('form').get('uuid')}</simple>
                     <setBody>
-                        <exchangeProperty>${routeId}-currentItem.get('uuid')</exchangeProperty>
+                        <simple>${exchangeProperty.${routeId}-currentItem.get('uuid')}</simple>
                     </setBody>
 
                     <to uri="direct:is-encounter-validated" />

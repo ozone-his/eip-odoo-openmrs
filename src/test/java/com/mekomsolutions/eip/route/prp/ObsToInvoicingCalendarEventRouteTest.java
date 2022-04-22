@@ -293,6 +293,7 @@ public class ObsToInvoicingCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(mapper.writeValueAsString(encRes)));
 		
 		mockEncValidatedEndpoint.expectedMessageCount(1);
+		mockEncValidatedEndpoint.expectedBodiesReceived(encUuid);
 		mockEncValidatedEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(false));
 		
 		producerTemplate.send(URI_OBS_TO_INVOICE_EVENT, exchange);
@@ -338,6 +339,7 @@ public class ObsToInvoicingCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(mapper.writeValueAsString(encRes)));
 		
 		mockEncValidatedEndpoint.expectedMessageCount(1);
+		mockEncValidatedEndpoint.expectedBodiesReceived(encUuid);
 		mockEncValidatedEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetMostRecentEncEndpoint.expectedMessageCount(1);
@@ -387,6 +389,7 @@ public class ObsToInvoicingCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(mapper.writeValueAsString(encRes)));
 		
 		mockEncValidatedEndpoint.expectedMessageCount(1);
+		mockEncValidatedEndpoint.expectedBodiesReceived(encUuid);
 		mockEncValidatedEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetMostRecentEncEndpoint.expectedMessageCount(1);
@@ -445,6 +448,7 @@ public class ObsToInvoicingCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(mapper.writeValueAsString(encRes)));
 		
 		mockEncValidatedEndpoint.expectedMessageCount(1);
+		mockEncValidatedEndpoint.expectedBodiesReceived(encUuid);
 		mockEncValidatedEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetMostRecentEncEndpoint.expectedMessageCount(1);
@@ -506,6 +510,7 @@ public class ObsToInvoicingCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody(null));
 		
 		mockEncValidatedEndpoint.expectedMessageCount(1);
+		mockEncValidatedEndpoint.expectedBodiesReceived(encUuid);
 		mockEncValidatedEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetMostRecentEncEndpoint.expectedMessageCount(1);
@@ -567,6 +572,7 @@ public class ObsToInvoicingCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody("{}"));
 		
 		mockEncValidatedEndpoint.expectedMessageCount(1);
+		mockEncValidatedEndpoint.expectedBodiesReceived(encUuid);
 		mockEncValidatedEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetMostRecentEncEndpoint.expectedMessageCount(1);
@@ -693,6 +699,7 @@ public class ObsToInvoicingCalendarEventRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody(mapper.writeValueAsString(patientRes)));
 		
 		mockEncValidatedEndpoint.expectedMessageCount(1);
+		mockEncValidatedEndpoint.expectedBodiesReceived(encUuid);
 		mockEncValidatedEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(true));
 		
 		mockGetMostRecentEncEndpoint.expectedMessageCount(1);

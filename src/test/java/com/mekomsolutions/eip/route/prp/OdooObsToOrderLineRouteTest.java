@@ -26,6 +26,7 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openmrs.eip.AppContext;
 import org.openmrs.eip.mysql.watcher.Event;
@@ -33,6 +34,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import ch.qos.logback.classic.Level;
 
+@Ignore
 @TestPropertySource(properties = "odoo.physio.session.concept.uuids=" + OdooObsToOrderLineRouteTest.CONCEPT_UUID_1 + ","
         + OdooObsToOrderLineRouteTest.CONCEPT_UUID_2)
 public class OdooObsToOrderLineRouteTest extends BasePrpRouteTest {

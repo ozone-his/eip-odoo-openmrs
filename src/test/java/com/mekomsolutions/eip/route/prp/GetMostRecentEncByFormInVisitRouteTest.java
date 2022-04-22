@@ -145,7 +145,7 @@ public class GetMostRecentEncByFormInVisitRouteTest extends BasePrpRouteTest {
 		mockGetEntityByUuidEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(visitJson));
 		
 		mockEncValidatedRuleEndpoint.expectedMessageCount(4);
-		mockEncValidatedRuleEndpoint.expectedBodiesReceived(enc2, enc3, enc4, enc5);
+		mockEncValidatedRuleEndpoint.expectedBodiesReceived(encUuid2, encUuid3, encUuid4, encUuid5);
 		mockEncValidatedRuleEndpoint.whenExchangeReceived(1, e -> e.getIn().setBody(false));
 		mockEncValidatedRuleEndpoint.whenExchangeReceived(2, e -> e.getIn().setBody(true));
 		mockEncValidatedRuleEndpoint.whenExchangeReceived(3, e -> e.getIn().setBody(true));
@@ -154,6 +154,7 @@ public class GetMostRecentEncByFormInVisitRouteTest extends BasePrpRouteTest {
 		producerTemplate.send(URI_GET_MOST_RECENT_ENC_BY_FORM_AND_VISIT, exchange);
 		
 		mockGetEntityByUuidEndpoint.assertIsSatisfied();
+        mockEncValidatedRuleEndpoint.assertIsSatisfied();
 		assertEquals(enc4, exchange.getIn().getBody());
 		assertMessageLogged(Level.INFO,
 		    "Ignoring encounter with uuid " + encUuid2 + " recorded on a form that was not validated");

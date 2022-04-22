@@ -14,8 +14,10 @@ import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class VoidedObsToOrderLineProcessorRouteTest extends BasePrpRouteTest {
 	
 	private static final String ROUTE_ID = "voided-obs-to-order-line-processor";
