@@ -53,7 +53,7 @@
             <jsonpath>$</jsonpath>
         </setBody>
 
-        <log loggingLevel="DEBUG" message="Fetched Visit -> ${body}"  />
+        <log loggingLevel="TRACE" message="Fetched Visit -> ${body}"  />
         
         <setProperty name="${routeId}-encounters">
             <simple>${body.get('encounters')}</simple>
@@ -104,7 +104,7 @@
                         <throwException exceptionType="org.openmrs.eip.EIPException" message="No encounter found in OpenMRS with uuid: ${exchangeProperty.${routeId}-currentItem.get('uuid')}" />
                     </when>
 
-                    <log loggingLevel="DEBUG" message="Fetched encounter -> ${body}" />
+                    <log loggingLevel="TRACE" message="Fetched encounter -> ${body}" />
 
                     <setProperty name="encounter">
                         <jsonpath>$</jsonpath>

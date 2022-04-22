@@ -12,6 +12,7 @@ import static com.mekomsolutions.eip.route.OdooTestConstants.URI_MOCK_GET_ENTITY
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -22,11 +23,10 @@ import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
-
-import ch.qos.logback.classic.Level;
 
 @TestPropertySource(properties = "validation.concept=" + IsEncounterValidatedRouteTest.VALIDATION_CONCEPT_UUID)
 public class IsEncounterValidatedRouteTest extends BasePrpRouteTest {
@@ -84,6 +84,7 @@ public class IsEncounterValidatedRouteTest extends BasePrpRouteTest {
 		
 		mockFetchResourceEndpoint.assertIsSatisfied();
 		assertTrue(exchange.getIn().getBody(Boolean.class));
+		assertNull(getException(exchange));
 	}
 	
 	@Test
@@ -113,6 +114,7 @@ public class IsEncounterValidatedRouteTest extends BasePrpRouteTest {
 		
 		mockFetchResourceEndpoint.assertIsSatisfied();
 		assertTrue(exchange.getIn().getBody(Boolean.class));
+		assertNull(getException(exchange));
 	}
 	
 	@Test
@@ -142,6 +144,7 @@ public class IsEncounterValidatedRouteTest extends BasePrpRouteTest {
 		
 		mockFetchResourceEndpoint.assertIsSatisfied();
 		assertFalse(exchange.getIn().getBody(Boolean.class));
+		assertNull(getException(exchange));
 	}
 	
 	@Test
@@ -170,11 +173,12 @@ public class IsEncounterValidatedRouteTest extends BasePrpRouteTest {
 		
 		mockFetchResourceEndpoint.assertIsSatisfied();
 		assertFalse(exchange.getIn().getBody(Boolean.class));
+		assertNull(getException(exchange));
 		
 	}
 	
 	@Test
-	public void shouldSetBodyToFalseIfNoEncounterIsFound() throws Exception {
+	public void shouldFailIfNoEncounterIsFoundMatchingTheUuid() throws Exception {
 		final String encounterUuid = "enc-uuid";
 		Exchange exchange = new DefaultExchange(camelContext);
 		exchange.getIn().setBody(encounterUuid);
@@ -187,9 +191,7 @@ public class IsEncounterValidatedRouteTest extends BasePrpRouteTest {
 		producerTemplate.send(URI_IS_ENC_VALIDATED, exchange);
 		
 		mockFetchResourceEndpoint.assertIsSatisfied();
-		assertMessageLogged(Level.WARN, "No encounter found with uuid: " + encounterUuid);
-		assertFalse(exchange.getIn().getBody(Boolean.class));
-		
+		Assert.assertEquals("No encounter found with uuid: " + encounterUuid, getErrorMessage(exchange));
 	}
 	
 }

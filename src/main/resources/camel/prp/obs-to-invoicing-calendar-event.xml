@@ -62,7 +62,7 @@
                     <exchangeProperty>${routeId}-encounter</exchangeProperty>
                 </setProperty>
 
-                <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
+                <log loggingLevel="TRACE" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
 
                 <setBody>
                     <simple>${exchangeProperty.${routeId}-encounter.get('uuid')}</simple>
@@ -140,35 +140,67 @@
                     <setProperty name="${routeId}-sessionQnConceptUuids">
                         <spel>#{new java.util.HashSet()}</spel>
                     </setProperty>
+                    <setProperty name="${routeId}-serviceCategoryQnUuid">
+                        <simple>0c04b4c6-5576-40f7-aca0-d48196982b9d</simple>
+                    </setProperty>
 
                     <when>
                         <simple>${exchangeProperty.${routeId}-mostRecentPhysioEnc} != null</simple>
                         <split parallelProcessing="false" stopOnException="true">
                             <simple>${exchangeProperty.${routeId}-encounter.get('obs')}</simple>
-                            <setProperty name="${routeId}-currentItem">
-                                <simple>${body}</simple>
-                            </setProperty>
                             <when>
-                                <simple>${body.get('concept').get('uuid')} == 'db7d6df3-2a53-4fa1-8498-ae26811f16c3'</simple>
-                                <setProperty name="questionConceptUuid">
-                                    <simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${body.get('value').get('uuid')})}</simple>
-                                </setProperty>
-                                <setProperty name="encounter">
-                                    <exchangeProperty>${routeId}-mostRecentPhysioEnc</exchangeProperty>
-                                </setProperty>
-
-                                <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
-
+                                <simple>${body.get('groupMembers')} != null &amp;&amp; ${body.get('groupMembers').size()} == 2</simple>
+                                <!-- If one of the group members is service category obs -->
                                 <when>
-                                    <simple>${body} != null &amp;&amp; ${body.get('value')} > 0 &amp;&amp; ${exchangeProperty.obs-to-invoicing-calendar-event-sessionQnConceptUuids.contains(${exchangeProperty.questionConceptUuid})} == false</simple>
-                                    <log loggingLevel="DEBUG" message="Physio session obs -> ${body}" />
+                                    <simple>${body.get('groupMembers')[0].get('concept').get('uuid')} == ${exchangeProperty.${routeId}-serviceCategoryQnUuid} || ${body.get('groupMembers')[1].get('concept').get('uuid')} == ${exchangeProperty.${routeId}-serviceCategoryQnUuid}</simple>
+                                    <choice>
+                                        <when>
+                                            <simple>${body.get('groupMembers')[0].get('concept').get('uuid')} == ${exchangeProperty.${routeId}-serviceCategoryQnUuid}</simple>
+                                            <setProperty name="${routeId}-serviceCategoryUuid">
+                                                <simple>${body.get('groupMembers')[0].get('value').get('uuid')}</simple>
+                                            </setProperty>
+                                            <setProperty name="${routeId}-serviceObs">
+                                                <simple>${body.get('groupMembers')[1]}</simple>
+                                            </setProperty>
+                                        </when>
+                                        <otherwise>
+                                            <setProperty name="${routeId}-serviceCategoryUuid">
+                                                <simple>${body.get('groupMembers')[1].get('value').get('uuid')}</simple>
+                                            </setProperty>
+                                            <setProperty name="${routeId}-serviceObs">
+                                                <simple>${body.get('groupMembers')[0]}</simple>
+                                            </setProperty>
+                                        </otherwise>
+                                    </choice>
 
-                                    <script>
-                                        <simple>
-                                            ${exchangeProperty.${routeId}-physioServiceCount.add(${exchangeProperty.${routeId}-currentItem.get('value').get('display')}(${body.get('value')}))}
-                                            ${exchangeProperty.${routeId}-sessionQnConceptUuids.add(${exchangeProperty.questionConceptUuid})}
-                                        </simple>
-                                    </script>
+                                    <!-- If the other group member is a service obs, then this is service delivered obs group -->
+                                    <when>
+                                        <simple>${exchangeProperty.${routeId}-serviceObs.get('concept').get('uuid')} == 'db7d6df3-2a53-4fa1-8498-ae26811f16c3'</simple>
+                                        <!-- If the service category is Physio AT Related or Physio AT Non Related -->
+                                        <when>
+                                            <simple>${exchangeProperty.${routeId}-serviceCategoryUuid} == 'ea311fa0-494b-4d7f-87d7-0a2b6b3ae347' || ${exchangeProperty.${routeId}-serviceCategoryUuid} == '09bb157f-129d-4cb4-88fb-bc662d5b0633'</simple>
+                                            <setProperty name="questionConceptUuid">
+                                                <simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${exchangeProperty.${routeId}-serviceObs.get('value').get('uuid')})}</simple>
+                                            </setProperty>
+                                            <setProperty name="encounter">
+                                                <exchangeProperty>${routeId}-mostRecentPhysioEnc</exchangeProperty>
+                                            </setProperty>
+
+                                            <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
+
+                                            <when>
+                                                <simple>${body} != null &amp;&amp; ${body.get('value')} > 0 &amp;&amp; ${exchangeProperty.obs-to-invoicing-calendar-event-sessionQnConceptUuids.contains(${exchangeProperty.questionConceptUuid})} == false</simple>
+                                                <log loggingLevel="DEBUG" message="Physio session obs -> ${body}" />
+
+                                                <script>
+                                                    <simple>
+                                                        ${exchangeProperty.${routeId}-physioServiceCount.add(${exchangeProperty.${routeId}-serviceObs.get('value').get('display')}(${body.get('value')}))}
+                                                        ${exchangeProperty.${routeId}-sessionQnConceptUuids.add(${exchangeProperty.questionConceptUuid})}
+                                                    </simple>
+                                                </script>
+                                            </when>
+                                        </when>
+                                    </when>
                                 </when>
                             </when>
                         </split>

@@ -61,7 +61,7 @@
                     <exchangeProperty>${routeId}-encounter</exchangeProperty>
                 </setProperty>
 
-                <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
+                <log loggingLevel="TRACE" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
 
                 <setProperty name="questionConceptUuid">
                     <simple>{{final.assmt.decision.question.concept}}</simple>

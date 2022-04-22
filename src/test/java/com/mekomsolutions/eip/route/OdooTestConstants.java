@@ -238,8 +238,14 @@ public class OdooTestConstants {
 	public static final String CONCEPT_UUID_ASSMT_DECISION = "675b4e02-1a96-4eda-af84-b6ebe0d715a4";
 	
 	public static final String CONCEPT_UUID_CLOSE_EOS = "9bc5c6f2-7c82-11e9-8f9e-2a86e4085a59";
-
-	public static final String CONCEPT_UUID_SERVICE= "db7d6df3-2a53-4fa1-8498-ae26811f16c3";
+	
+	public static final String CONCEPT_UUID_SERVICE_CAT = "0c04b4c6-5576-40f7-aca0-d48196982b9d";
+	
+	public static final String CONCEPT_UUID_SERVICE_CAT_AT = "ea311fa0-494b-4d7f-87d7-0a2b6b3ae347";
+	
+	public static final String CONCEPT_UUID_SERVICE_CAT_NON_AT = "09bb157f-129d-4cb4-88fb-bc662d5b0633";
+	
+	public static final String CONCEPT_UUID_SERVICE = "db7d6df3-2a53-4fa1-8498-ae26811f16c3";
 	
 	public static final String CONCEPT_UUID_SERVICE_IND_PRE = "5bfc19cb-be53-4dfd-a182-b722282f97aa";
 	

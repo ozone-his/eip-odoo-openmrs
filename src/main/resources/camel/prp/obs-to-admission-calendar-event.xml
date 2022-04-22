@@ -58,7 +58,7 @@
                     <jsonpath>$</jsonpath>
                 </setProperty>
 
-                <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.encounter}" />
+                <log loggingLevel="TRACE" message="Fetched encounter -> ${exchangeProperty.encounter}" />
 
                 <setProperty name="questionConceptUuid">
                     <simple>5b2efd02-be26-4789-b5ec-7c5ceb428725</simple>

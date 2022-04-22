@@ -47,7 +47,7 @@
             <jsonpath>$</jsonpath>
         </setBody>
 
-        <log loggingLevel="DEBUG" message="Fetched Visit -> ${body}"  />
+        <log loggingLevel="TRACE" message="Fetched Visit -> ${body}"  />
         
         <setProperty name="${routeId}-encounters">
             <simple>${body.get('encounters')}</simple>

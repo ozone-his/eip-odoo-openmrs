@@ -43,7 +43,7 @@
                     <jsonpath>$</jsonpath>
                 </setProperty>
 
-                <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
+                <log loggingLevel="TRACE" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
                 <log message="Checking if the encounter form is validated" />
 
                 <setBody>
@@ -55,57 +55,38 @@
                 <setProperty name="${routeId}-validatedConceptUuid">
                     <simple>${body}</simple>
                 </setProperty>
-
                 <setProperty name="${routeId}-encObs">
                     <simple>${exchangeProperty.${routeId}-encounter.get('obs')}</simple>
                 </setProperty>
+                <setProperty name="${routeId}-valueHolder">
+                    <spel>#{new Object[]{false}}</spel>
+                </setProperty>
 
-                <loop doWhile="true">
-                    <simple>${exchangeProperty.${routeId}-valid} == null</simple>
-                    <setProperty name="${routeId}-obsConceptUuid">
-                        <spel>#{getProperty('is-encounter-validated-encObs').get(getProperty('CamelLoopIndex')).get('concept').get('uuid')}</spel>
-                    </setProperty>
-
+                <split parallelProcessing="false" stopOnException="true">
+                    <simple>${exchangeProperty.${routeId}-encObs}</simple>
                     <when>
-                        <simple>${exchangeProperty.${routeId}-obsConceptUuid} == ${exchangeProperty.${routeId}-validatedConceptUuid}</simple>
+                        <simple>${body.get('concept').get('uuid')} == ${exchangeProperty.${routeId}-validatedConceptUuid}</simple>
                         <setProperty name="${routeId}-answerConceptUuid">
-                            <spel>#{getProperty('is-encounter-validated-encObs').get(getProperty('CamelLoopIndex')).get('value').get('uuid')}</spel>
+                            <simple>${body.get('value').get('uuid')}</simple>
                         </setProperty>
 
                         <when>
                             <simple>${exchangeProperty.${routeId}-answerConceptUuid} == '1065AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'</simple>
-                            <setProperty name="${routeId}-valid">
-                                <simple>true</simple>
-                            </setProperty>
+                            <script>
+                                <spel>#{getProperty('is-encounter-validated-valueHolder')[0] = true}</spel>
+                            </script>
                         </when>
                     </when>
-
-                    <when>
-                        <spel>#{getProperty('is-encounter-validated-valid') == null &amp;&amp; getProperty('CamelLoopIndex') == getProperty('is-encounter-validated-encObs').size() - 1}</spel>
-                        <setProperty name="${routeId}-valid">
-                            <simple>false</simple>
-                        </setProperty>
-                    </when>
-                </loop>
+                </split>
             </when>
             <otherwise>
-                <log loggingLevel="WARN" message="No encounter found with uuid: ${exchangeProperty.${routeId}-encUuid}" />
+                <throwException exceptionType="org.openmrs.eip.EIPException" message="No encounter found with uuid: ${exchangeProperty.${routeId}-encUuid}" />
             </otherwise>
         </choice>
 
-        <choice>
-            <when>
-                <simple>${exchangeProperty.${routeId}-valid} == true</simple>
-                <setBody>
-                    <simple>true</simple>
-                </setBody>
-            </when>
-            <otherwise>
-                <setBody>
-                    <simple>false</simple>
-                </setBody>
-            </otherwise>
-        </choice>
+        <setBody>
+            <simple>${exchangeProperty.${routeId}-valueHolder[0]}</simple>
+        </setBody>
 
         <log loggingLevel="DEBUG" message="End: route with id ${routeId}" />
     </route>

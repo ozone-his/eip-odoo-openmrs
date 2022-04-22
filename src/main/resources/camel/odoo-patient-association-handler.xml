@@ -46,12 +46,12 @@
                     <jsonpath>$</jsonpath>
                 </setProperty>
 
-                <log message="Fetched patient -> ${exchangeProperty.patient}" loggingLevel="DEBUG" />
+                <log loggingLevel="TRACE" message="Fetched patient -> ${exchangeProperty.patient}" />
 
                 <to uri="direct:odoo-patient-handler" />
             </when>
             <otherwise>
-                <log message="No associated patient found with uuid: ${exchangeProperty.resourceId}" loggingLevel="WARN" />
+                <log loggingLevel="WARN" message="No associated patient found with uuid: ${exchangeProperty.resourceId}" />
             </otherwise>
         </choice>
 

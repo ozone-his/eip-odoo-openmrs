@@ -45,7 +45,8 @@
                             <jsonpath>$</jsonpath>
                         </setProperty>
 
-                        <log loggingLevel="DEBUG" message="Fetched encounter -> ${exchangeProperty.encounter}, checking if it was recorded on the form with uuid: ${exchangeProperty.formUuid}" />
+                        <log loggingLevel="TRACE" message="Fetched encounter -> ${exchangeProperty.encounter}" />
+                        <log loggingLevel="DEBUG" message="Checking if the obs encounter was recorded on the form with uuid: ${exchangeProperty.formUuid}" />
 
                         <choice>
                             <when>

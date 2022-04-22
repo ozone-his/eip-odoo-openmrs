@@ -30,7 +30,7 @@
             <jsonpath>$</jsonpath>
         </setProperty>
 
-        <log message="Fetched address: ${exchangeProperty.personAddress}" />
+        <log message="Fetched address: ${exchangeProperty.personAddress.get('uuid')}" />
 
         <when>
             <simple>${exchangeProperty.personAddress.get('stateProvince')} != null</simple>
