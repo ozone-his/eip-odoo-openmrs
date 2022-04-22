@@ -134,8 +134,8 @@
                         If the patient had any physio sessions encounters, this is the most recent, get all selected
                         physio services obs their associated session counts from the most recent physio encounter
                     -->
-                    <setProperty name="${routeId}-physioServicesObsCountMap">
-                        <spel>#{new java.util.HashMap()}</spel>
+                    <setProperty name="${routeId}-physioServiceCount">
+                        <spel>#{new java.util.ArrayList()}</spel>
                     </setProperty>
                     
                     <when>
@@ -145,12 +145,11 @@
                             <setProperty name="${routeId}-currentItem">
                                 <simple>${body}</simple>
                             </setProperty>
-                            <setProperty name="questionConceptUuid">
-                                <simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${body.get('concept').get('uuid')})}</simple>
-                            </setProperty>
-
                             <when>
-                                <simple>${exchangeProperty.questionConceptUuid} != null</simple>
+                                <simple>${body.get('concept').get('uuid')} == 'db7d6df3-2a53-4fa1-8498-ae26811f16c3'</simple>
+                                <setProperty name="questionConceptUuid">
+                                    <simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${body.get('value').get('uuid')})}</simple>
+                                </setProperty>
                                 <setProperty name="encounter">
                                     <exchangeProperty>${routeId}-mostRecentPhysioEnc</exchangeProperty>
                                 </setProperty>
@@ -162,7 +161,7 @@
                                     <log loggingLevel="DEBUG" message="Physio session obs -> ${body}" />
 
                                     <script>
-                                        <simple>${exchangeProperty.${routeId}-physioServicesObsCountMap.put(${exchangeProperty.${routeId}-currentItem}, ${body.get('value')})}</simple>
+                                        <simple>${exchangeProperty.${routeId}-physioServiceCount.add(${exchangeProperty.${routeId}-currentItem.get('value').get('display')}(${body.get('value')}))}</simple>
                                     </script>
                                 </when>
                             </when>
@@ -171,7 +170,7 @@
 
                     <!-- Only process if the patient had any physio session services -->
                     <when>
-                        <simple>${exchangeProperty.${routeId}-physioServicesObsCountMap.size()} > 0</simple>
+                        <simple>${exchangeProperty.${routeId}-physioServiceCount.size()} > 0</simple>
                         <log message="The patient had physio sessions in the visit, preparing invoicing notification" />
                         <setProperty name="isSubResource">
                             <simple>false</simple>
@@ -253,22 +252,11 @@
                             <spel>#{T(java.time.LocalDateTime).now(T(java.time.ZoneId).of('UTC'))}</spel>
                         </setProperty>
                         <setProperty name="description">
-                            <simple>Physiotherapy sessions for ${exchangeProperty.${routeId}-patient.get('person').get('display')} ${exchangeProperty.${routeId}-hsuId} - </simple>
+                            <simple>Physiotherapy sessions for ${exchangeProperty.${routeId}-patient.get('person').get('display')} ${exchangeProperty.${routeId}-hsuId}</simple>
                         </setProperty>
-
-                        <when>
-                            <simple>${exchangeProperty.indSessionCount} > 0</simple>
-                            <setProperty name="description">
-                                <simple>${exchangeProperty.description} Individual(${exchangeProperty.indSessionCount})</simple>
-                            </setProperty>
-                        </when>
-
-                        <when>
-                            <simple>${exchangeProperty.grpSessionCount} > 0</simple>
-                            <setProperty name="description">
-                                <simple>${exchangeProperty.description} Group(${exchangeProperty.grpSessionCount})</simple>
-                            </setProperty>
-                        </when>
+                        <setProperty name="description">
+                            <spel>#{getProperty('description')+' - '+T(org.apache.commons.lang3.StringUtils).join(getProperty('obs-to-invoicing-calendar-event-physioServiceCount'), ' ')}</spel>
+                        </setProperty>
 
                         <log message="Adding a invoicing calendar event in odoo" />
 
