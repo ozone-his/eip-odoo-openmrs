@@ -137,7 +137,10 @@
                     <setProperty name="${routeId}-physioServiceCount">
                         <spel>#{new java.util.ArrayList()}</spel>
                     </setProperty>
-                    
+                    <setProperty name="${routeId}-sessionQnConceptUuids">
+                        <spel>#{new java.util.HashSet()}</spel>
+                    </setProperty>
+
                     <when>
                         <simple>${exchangeProperty.${routeId}-mostRecentPhysioEnc} != null</simple>
                         <split parallelProcessing="false" stopOnException="true">
@@ -157,11 +160,14 @@
                                 <to uri="direct:get-obs-by-concept-uuid-from-encounter" />
 
                                 <when>
-                                    <simple>${body} != null &amp;&amp; ${body.get('value')} > 0</simple>
+                                    <simple>${body} != null &amp;&amp; ${body.get('value')} > 0 &amp;&amp; ${exchangeProperty.obs-to-invoicing-calendar-event-sessionQnConceptUuids.contains(${exchangeProperty.questionConceptUuid})} == false</simple>
                                     <log loggingLevel="DEBUG" message="Physio session obs -> ${body}" />
 
                                     <script>
-                                        <simple>${exchangeProperty.${routeId}-physioServiceCount.add(${exchangeProperty.${routeId}-currentItem.get('value').get('display')}(${body.get('value')}))}</simple>
+                                        <simple>
+                                            ${exchangeProperty.${routeId}-physioServiceCount.add(${exchangeProperty.${routeId}-currentItem.get('value').get('display')}(${body.get('value')}))}
+                                            ${exchangeProperty.${routeId}-sessionQnConceptUuids.add(${exchangeProperty.questionConceptUuid})}
+                                        </simple>
                                     </script>
                                 </when>
                             </when>
