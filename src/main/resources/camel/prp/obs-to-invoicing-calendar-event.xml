@@ -126,9 +126,36 @@
 
                     <to uri="direct:get-most-recent-enc-by-form-in-visit" />
 
-                    <setProperty name="${routeId}-mostRecentPhysioEnc">
-                        <simple>${body}</simple>
-                    </setProperty>
+                    <when>
+                        <simple>${body} != null</simple>
+                        <!-- Get the full representation that includes the details about each obs -->
+                        <setProperty name="${routeId}-mostRecentEncUuid">
+                            <simple>${body.get('uuid')}</simple>
+                        </setProperty>
+                        <setProperty name="isSubResource">
+                            <simple>false</simple>
+                        </setProperty>
+                        <setProperty name="resourceName">
+                            <simple>encounter</simple>
+                        </setProperty>
+                        <setProperty name="resourceId">
+                            <exchangeProperty>${routeId}-mostRecentEncUuid</exchangeProperty>
+                        </setProperty>
+                        <setProperty name="resourceRepresentation">
+                            <simple>full</simple>
+                        </setProperty>
+
+                        <to uri="direct:get-entity-by-uuid-from-openmrs" />
+
+                        <when>
+                            <simple>${body} == null</simple>
+                            <throwException exceptionType="org.openmrs.eip.EIPException" message="No encounter found in OpenMRS with uuid: ${exchangeProperty.${routeId}-mostRecentEncUuid}" />
+                        </when>
+
+                        <setProperty name="${routeId}-mostRecentPhysioEnc">
+                            <jsonpath>$</jsonpath>
+                        </setProperty>
+                    </when>
 
                     <!--
                         If the patient had any physio sessions encounters, this is the most recent, get all selected
