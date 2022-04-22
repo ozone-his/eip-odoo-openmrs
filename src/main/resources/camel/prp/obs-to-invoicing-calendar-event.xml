@@ -140,28 +140,13 @@
                     
                     <when>
                         <simple>${exchangeProperty.${routeId}-mostRecentPhysioEnc} != null</simple>
-                        <setProperty name="${routeId}-encObs">
+                        <split parallelProcessing="false" stopOnException="true">
                             <simple>${exchangeProperty.${routeId}-encounter.get('obs')}</simple>
-                        </setProperty>
-                        <setProperty name="${routeId}-lastIndex">
-                            <spel>#{getProperty('obs-to-invoicing-calendar-event-encObs').size() - 1}</spel>
-                        </setProperty>
-                        <setProperty name="${routeId}-endLoop">
-                            <simple>${null}</simple>
-                        </setProperty>
-                        <setProperty name="${routeId}-currentItem">
-                            <simple>${null}</simple>
-                        </setProperty>
-
-                        <loop doWhile="true">
-                            <simple>${exchangeProperty.${routeId}-endLoop} != true</simple>
                             <setProperty name="${routeId}-currentItem">
-                                <simple>${exchangeProperty.${routeId}-encObs.get(${exchangeProperty.CamelLoopIndex})}</simple>
+                                <simple>${body}</simple>
                             </setProperty>
-
                             <setProperty name="questionConceptUuid">
-                                <!--<simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${exchangeProperty.${routeId}-currentItem.get('concept').get('uuid')})}</simple>-->
-                                <spel>#{getProperty('obs-to-invoicing-calendar-event-invoicingConceptMaps').get(getProperty('obs-to-invoicing-calendar-event-currentItem').get('concept').get('uuid'))}</spel>
+                                <simple>${exchangeProperty.${routeId}-invoicingConceptMaps.get(${body.get('concept').get('uuid')})}</simple>
                             </setProperty>
 
                             <when>
@@ -181,14 +166,7 @@
                                     </script>
                                 </when>
                             </when>
-
-                            <when>
-                                <simple>${exchangeProperty.CamelLoopIndex} == ${exchangeProperty.${routeId}-lastIndex}</simple>
-                                <setProperty name="${routeId}-endLoop">
-                                    <simple>true</simple>
-                                </setProperty>
-                            </when>
-                        </loop>
+                        </split>
                     </when>
 
                     <!-- Only process if the patient had any physio session services -->
