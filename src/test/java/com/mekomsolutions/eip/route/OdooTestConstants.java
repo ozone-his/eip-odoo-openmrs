@@ -273,6 +273,8 @@ public class OdooTestConstants {
 	
 	public static final String FINAL_ASSMT_FORM_UUID = "5fa318a9-eade-ea79-a96e-d91754135a5c";
 	
+	public static final String PHYSIO_FORM_UUID = "3c07n00f-1623-4380-af4a-4cn68244ptt3";
+	
 	public static final String PARAM_MODEL_NAME = "modelName";
 	
 	public static final String MODEL_NAME_GROUPS = "res.groups";

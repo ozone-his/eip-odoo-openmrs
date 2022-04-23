@@ -14,7 +14,7 @@
 
         <log loggingLevel="DEBUG" message="Start: route with id ${routeId}" />
         
-        <log message="Fetching the Obs encounter from OpenMRS..." />
+        <log loggingLevel="DEBUG" message="Fetching the Obs encounter from OpenMRS..." />
 
         <setProperty name="rulePassed">
             <simple>false</simple>
@@ -57,7 +57,7 @@
                                         <simple>true</simple>
                                     </setProperty>
 
-                                    <log message="Obs was recorded on the form with uuid: ${exchangeProperty.formUuid}" />
+                                    <log loggingLevel="DEBUG" message="Obs was recorded on the form with uuid: ${exchangeProperty.formUuid}" />
                                 </when>
                             </when>
                             <otherwise>

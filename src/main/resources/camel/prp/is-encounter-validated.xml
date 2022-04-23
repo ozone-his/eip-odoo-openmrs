@@ -44,7 +44,7 @@
                 </setProperty>
 
                 <log loggingLevel="TRACE" message="Fetched encounter -> ${exchangeProperty.${routeId}-encounter}" />
-                <log message="Checking if the encounter form is validated" />
+                <log loggingLevel="DEBUG" message="Checking if the encounter form was validated, encounter uuid -> ${exchangeProperty.${routeId}-encounter.get('uuid')}" />
 
                 <setBody>
                     <simple>{{validation.concept}}</simple>
