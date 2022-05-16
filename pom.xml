@@ -6,7 +6,7 @@
     <groupId>net.mekomsolutions.eip</groupId>
     <artifactId>openmrs-odoo</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-beta1</version>
 
     <name>OpenMRS Odoo Integration Application</name>
     <description>Contains integration logic between an OpenMRS and Odoo system</description>
