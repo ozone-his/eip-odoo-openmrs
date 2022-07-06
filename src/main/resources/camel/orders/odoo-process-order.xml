@@ -212,6 +212,19 @@
                                     <simple>${exchangeProperty.description} Orderer: ${exchangeProperty.entity-instance.get('orderer').get('display')}</simple>
                                 </setProperty>
                             </when>
+
+                            <when>
+                                <simple>${exchangeProperty.entity-instance.get('commentToFulfiller')} != null</simple>
+                                <when>
+                                    <simple>${exchangeProperty.includeComma} == true</simple>
+                                    <setProperty name="description">
+                                        <spel>#{getProperty('description')+','}</spel>
+                                    </setProperty>
+                                </when>
+                                <setProperty name="description">
+                                    <simple>${exchangeProperty.description} Notes: ${exchangeProperty.entity-instance.get('commentToFulfiller')}</simple>
+                                </setProperty>
+                            </when>
                         </when>
 
                         <choice>
