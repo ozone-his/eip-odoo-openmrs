@@ -116,6 +116,7 @@
                 <choice>
                     <when>
                         <simple>${exchangeProperty.is-new} == true || ${exchangeProperty.entity-instance.get('action')} == 'REVISE'</simple>
+
                         <when>
                             <simple>${exchangeProperty.is-drug-order} == true</simple>
 
@@ -164,6 +165,12 @@
                                         <spel>#{getProperty('description')+','}</spel>
                                     </setProperty>
                                 </when>
+                                <otherwise>
+                                    <setProperty name="includeComma">
+                                        <simple>true</simple>
+                                    </setProperty>
+                                </otherwise>
+
                                 <setProperty name="description">
                                     <simple>${exchangeProperty.description} ${exchangeProperty.entity-instance.get('duration')} ${exchangeProperty.entity-instance.get('durationUnits').get('display')}</simple>
                                 </setProperty>
@@ -200,31 +207,43 @@
                                 <log message="Odoo units of measure id: ${exchangeProperty.unitsId}" loggingLevel="DEBUG" />
                             </when>
 
-                            <when>
-                                <simple>${exchangeProperty.entity-instance.get('orderer')} != null</simple>
-                                <when>
-                                    <simple>${exchangeProperty.includeComma} == true</simple>
-                                    <setProperty name="description">
-                                        <spel>#{getProperty('description')+','}</spel>
-                                    </setProperty>
-                                </when>
-                                <setProperty name="description">
-                                    <simple>${exchangeProperty.description} Orderer: ${exchangeProperty.entity-instance.get('orderer').get('display')}</simple>
-                                </setProperty>
-                            </when>
+                        </when>
 
+                        <when>
+                            <simple>${exchangeProperty.entity-instance.get('type')} == 'testorder' || ${exchangeProperty.entity-instance.get('type')} == 'order'</simple>
+                            <setProperty name="description">
+                                <simple>${exchangeProperty.entity-instance.get('display')}</simple>
+                            </setProperty>
+                        </when>
+
+                        <setProperty name="includeComma">
+                            <simple>true</simple>
+                        </setProperty>
+
+                        <when>
+                            <simple>${exchangeProperty.entity-instance.get('commentToFulfiller')} != null</simple>
                             <when>
-                                <simple>${exchangeProperty.entity-instance.get('commentToFulfiller')} != null</simple>
-                                <when>
-                                    <simple>${exchangeProperty.includeComma} == true</simple>
-                                    <setProperty name="description">
-                                        <spel>#{getProperty('description')+','}</spel>
-                                    </setProperty>
-                                </when>
+                                <simple>${exchangeProperty.includeComma} == true</simple>
                                 <setProperty name="description">
-                                    <simple>${exchangeProperty.description} Notes: ${exchangeProperty.entity-instance.get('commentToFulfiller')}</simple>
+                                    <spel>#{getProperty('description')+','}</spel>
                                 </setProperty>
                             </when>
+                            <setProperty name="description">
+                                <simple>${exchangeProperty.description} Notes: ${exchangeProperty.entity-instance.get('commentToFulfiller')}</simple>
+                            </setProperty>
+                        </when>
+                    
+                        <when>
+                            <simple>${exchangeProperty.entity-instance.get('orderer')} != null</simple>
+                            <when>
+                                <simple>${exchangeProperty.includeComma} == true</simple>
+                                <setProperty name="description">
+                                    <spel>#{getProperty('description')+','}</spel>
+                                </setProperty>
+                            </when>
+                            <setProperty name="description">
+                                <simple>${exchangeProperty.description} Orderer: ${exchangeProperty.entity-instance.get('orderer').get('display')}</simple>
+                            </setProperty>
                         </when>
 
                         <choice>
