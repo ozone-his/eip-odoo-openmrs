@@ -207,6 +207,19 @@
                                 <log message="Odoo units of measure id: ${exchangeProperty.unitsId}" loggingLevel="DEBUG" />
                             </when>
 
+                            <when>
+                                <simple>${exchangeProperty.entity-instance.get('dosingInstructions')} != null</simple>
+                                <when>
+                                    <simple>${exchangeProperty.includeComma} == true</simple>
+                                    <setProperty name="description">
+                                        <spel>#{getProperty('description')+','}</spel>
+                                    </setProperty>
+                                </when>
+                                <setProperty name="description">
+                                    <simple>${exchangeProperty.description} Additional Instructions: ${exchangeProperty.entity-instance.get('dosingInstructions')}</simple>
+                                </setProperty>
+                            </when>
+
                         </when>
 
                         <when>
