@@ -16,7 +16,7 @@
 		    <to uri="direct:odoo-manage-order-line" />
         </when>
 
-        <!-- TODO Cancel the quotation if it was created by user for this application and has no more lines
+        <!-- TODO Cancel the quotation if it was created by user for this application -->
         <when>
             <simple>${exchangeProperty.order-line-count} &lt; 2</simple>
             <log message="Cancelling the quotation because it has no more order lines left" />
@@ -27,7 +27,7 @@
 
             <to uri="direct:odoo-manage-quotation" />
         </when>
-        -->
+       
 
         <log message="End: route with id ${routeId}" loggingLevel="DEBUG" />
     </route>
