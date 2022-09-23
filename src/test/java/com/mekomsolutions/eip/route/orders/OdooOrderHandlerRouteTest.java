@@ -90,10 +90,11 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 		final String op = "c";
 		final Integer expectedProductId = 4;
 		final String conceptUuid = "test-concept-uuid";
-		Event event = createEvent("test_order", "1", ORDER_UUID_1, op);
+		Event event = createEvent("orders", "1", ORDER_UUID_1, op);
 		Map orderResource = new HashMap();
 		orderResource.put("action", "NEW");
 		orderResource.put("concept", singletonMap("uuid", conceptUuid));
+		orderResource.put("type", "testorder");
 		final String orderJson = mapper.writeValueAsString(orderResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(orderJson));
 		Exchange exchange = new DefaultExchange(camelContext);
@@ -120,7 +121,7 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 		final String op = "c";
 		final Integer expectedProductId = 5;
 		final String drugUuid = "drug-uuid";
-		Event event = createEvent("drug_order", "2", ORDER_UUID_2, op);
+		Event event = createEvent("orders", "2", ORDER_UUID_2, op);
 		Map orderResource = new HashMap();
 		orderResource.put("action", "NEW");
 		orderResource.put("type", "drugorder");
@@ -153,7 +154,7 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 		final String op = "c";
 		final Integer expectedProductId = 5;
 		final String drugUuid = "drug-uuid";
-		Event event = createEvent("drug_order", "3", orderUuid, op);
+		Event event = createEvent("orders", "3", orderUuid, op);
 		Map orderResource = new HashMap();
 		orderResource.put("action", "REVISE");
 		orderResource.put("type", "drugorder");
@@ -216,7 +217,7 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 		final String op = "u";
 		final Integer expectedProductId = 6;
 		final String drugUuid = "drug-uuid";
-		Event event = createEvent("drug_order", "2", ORDER_UUID_2, op);
+		Event event = createEvent("orders", "2", ORDER_UUID_2, op);
 		Map orderResource = new HashMap();
 		orderResource.put("action", "REVISE");
 		orderResource.put("type", "drugorder");
@@ -247,10 +248,11 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 	@Test
 	public void shouldFailIfNoProductIsFoundInOdooMatchingTheExternalId() throws Exception {
 		final String op = "c";
-		Event event = createEvent("test_order", "1", ORDER_UUID_1, op);
+		Event event = createEvent("orders", "1", ORDER_UUID_1, op);
 		final String conceptUuid = "test-concept-uuid";
 		Map orderResource = new HashMap();
 		orderResource.put("action", "NEW");
+		orderResource.put("type", "testorder");
 		orderResource.put("concept", singletonMap("uuid", conceptUuid));
 		final String orderJson = mapper.writeValueAsString(orderResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(orderJson));
@@ -273,10 +275,11 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 	@Test
 	public void shouldFailIfMultipleProductsAreFoundInOdooMatchingTheExternalId() throws Exception {
 		final String op = "c";
-		Event event = createEvent("test_order", "1", ORDER_UUID_1, op);
+		Event event = createEvent("orders", "1", ORDER_UUID_1, op);
 		final String conceptUuid = "test-concept-uuid";
 		Map orderResource = new HashMap();
 		orderResource.put("action", "NEW");
+		orderResource.put("type", "testorder");
 		orderResource.put("concept", singletonMap("uuid", conceptUuid));
 		final String orderJson = mapper.writeValueAsString(orderResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(orderJson));
@@ -298,9 +301,11 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 	
 	@Test
 	public void shouldSkipARenewOrderActionThatIsNotSupported() throws Exception {
-		Event event = createEvent("test_order", "1", ORDER_UUID_1, "c");
+		Event event = createEvent("orders", "1", ORDER_UUID_1, "c");
 		final String action = "RENEW";
-		Map orderResource = singletonMap("action", action);
+		Map orderResource = new HashMap();
+		orderResource.put("action", action);
+		orderResource.put("type", "testorder");
 		final String orderJson = mapper.writeValueAsString(orderResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(orderJson));
 		Exchange exchange = new DefaultExchange(camelContext);
@@ -314,9 +319,11 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 	
 	@Test
 	public void shouldSkipAnUnknownOrderAction() throws Exception {
-		Event event = createEvent("test_order", "1", ORDER_UUID_1, "c");
+		Event event = createEvent("orders", "1", ORDER_UUID_1, "c");
 		final String action = "UNKNOWN_ACTION";
-		Map orderResource = singletonMap("action", action);
+		Map orderResource = new HashMap();
+		orderResource.put("action", action);
+		orderResource.put("type", "testorder");
 		final String orderJson = mapper.writeValueAsString(orderResource);
 		mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(orderJson));
 		Exchange exchange = new DefaultExchange(camelContext);
