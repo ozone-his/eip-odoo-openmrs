@@ -9,7 +9,7 @@
 
         <choice>
             <when>
-                <simple>${exchangeProperty.event.operation} == 'c' || ${exchangeProperty.entity-instance.get('voided')} == true</simple>
+                <simple>${exchangeProperty.event.operation} == 'c' &amp;&amp; ${exchangeProperty.event.tableName} == 'orders' || ${exchangeProperty.entity-instance.get('voided')} == true</simple>
                 <setProperty name="orderAction">
                     <simple>${exchangeProperty.entity-instance.get('action')}</simple>
                 </setProperty>

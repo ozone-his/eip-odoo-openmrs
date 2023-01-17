@@ -2,6 +2,7 @@ package com.mekomsolutions.eip.route.orders;
 
 import static com.mekomsolutions.eip.route.OdooTestConstants.EX_PROP_ODOO_OP;
 import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_OP_UNLINK;
+import static com.mekomsolutions.eip.route.OdooTestConstants.ODOO_OP_WRITE;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
@@ -75,6 +76,18 @@ public class OdooProcessDiscontinueOrVoidedOrderRouteTest extends BaseOrderOdooR
 		mockManageOrderLineEndpoint.assertIsSatisfied();
 		mockManageQuotationEndpoint.assertIsSatisfied();
 		assertEquals(ODOO_OP_UNLINK, exchange.getProperty(EX_PROP_ODOO_OP));
+	}
+	
+	@Test
+	public void shouldCancelTheQuotationIfItHasNoMoreOrderLines() throws Exception {
+		Exchange exchange = new DefaultExchange(camelContext);
+		exchange.setProperty(EX_PROP_ORDER_LINE_COUNT, 1);
+		mockManageQuotationEndpoint.expectedMessageCount(1);
+		mockManageQuotationEndpoint.expectedPropertyReceived(EX_PROP_ODOO_OP, ODOO_OP_WRITE);
+
+		producerTemplate.send(URI_PROCESS_DC_OR_REV_ORDER, exchange);
+
+		mockManageQuotationEndpoint.assertIsSatisfied();
 	}
 	
 }
