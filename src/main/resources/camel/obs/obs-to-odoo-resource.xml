@@ -102,9 +102,9 @@
 
                 <choice>
                     <when>
-                        <spel>#{getProperty('obsQnAnsMap').containsKey(getProperty('obsQnUuid'))}</spel>
-
-                        <log loggingLevel="DEBUG" message="Obs has configured question concept" />
+                        <spel>#{getProperty('obsQnAnsMap').containsKey(getProperty('obsQnUuid')) &amp;&amp; getProperty('entity-instance').get('value') != null}</spel>
+                        <!--in case of obsgroup usage the value can be null-->
+                        <log loggingLevel="DEBUG" message="Obs has configured question concept and non null value" />
 
                         <choice>
                             <when>
@@ -120,7 +120,7 @@
                         </choice>
                     </when>
                     <otherwise>
-                        <log loggingLevel="DEBUG" message="Skipping Obs because the question concept doesn't match any configured question" />
+                        <log loggingLevel="DEBUG" message="Skipping Obs because the question concept doesn't match any configured question or is null" />
                     </otherwise>
                 </choice>
             </when>
