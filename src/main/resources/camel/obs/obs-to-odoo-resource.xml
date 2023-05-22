@@ -120,7 +120,16 @@
                         </choice>
                     </when>
                     <otherwise>
-                        <log loggingLevel="DEBUG" message="Skipping Obs because the question concept doesn't match any configured question or is null" />
+                        <choice>
+                            <when>
+                                <spel>#{getProperty('entity-instance').get('value') == null}</spel>
+                                <log loggingLevel="DEBUG" message="Skipping obs because the value is null" />
+                            </when>
+                            <otherwise>
+                                <log loggingLevel="DEBUG" message="Skipping Obs because the question concept doesn't match any configured question" />
+                            </otherwise>
+                        </choice>
+
                     </otherwise>
                 </choice>
             </when>
