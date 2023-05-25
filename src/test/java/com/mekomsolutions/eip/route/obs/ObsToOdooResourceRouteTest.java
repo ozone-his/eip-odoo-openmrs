@@ -148,7 +148,7 @@ public class ObsToOdooResourceRouteTest extends BaseOdooRouteTest {
 		producerTemplate.send(URI_OBS_TO_ODOO_RESOURCE, exchange);
 
 		mockObsToOdooResHandlerEndpoint.assertIsSatisfied();
-		assertMessageLogged(Level.DEBUG, "Skipping obs because the value is null");
+		assertMessageLogged(Level.DEBUG, "Skipping obs because it's value is null");
 	}
 	
 	@Test
