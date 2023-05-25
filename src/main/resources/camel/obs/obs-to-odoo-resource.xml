@@ -103,7 +103,7 @@
                 <choice>
                     <when>
                         <spel>#{getProperty('obsQnAnsMap').containsKey(getProperty('obsQnUuid')) &amp;&amp; getProperty('entity-instance').get('value') != null}</spel>
-                        <!--in case of obsgroup usage the value can be null-->
+                        <!--Skip obs with null value, this could be an obsgroup-->
                         <log loggingLevel="DEBUG" message="Obs has configured question concept and non null value" />
 
                         <choice>
