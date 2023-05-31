@@ -132,6 +132,24 @@ public class ObsToOdooResourceRouteTest extends BaseOdooRouteTest {
 		Assert.assertTrue(obsQnAnsMap.get(CONCEPT_UUID_2).contains(CONCEPT_UUID_B));
 		Assert.assertTrue(obsQnAnsMap.get(CONCEPT_UUID_2).contains(CONCEPT_UUID_C));
 	}
+
+	@Test
+	public void shouldSkipAnObsWithANullValue() throws Exception {
+		Exchange exchange = new DefaultExchange(camelContext);
+		Event event = createEvent(TABLE, "1", OBS_UUID, "c");
+		exchange.setProperty(PROP_EVENT, event);
+		Map obsResource = new HashMap();
+		obsResource.put("uuid", OBS_UUID);
+		obsResource.put("concept", singletonMap("uuid", CONCEPT_UUID_1));
+		obsResource.put("value",null);
+		exchange.setProperty(EX_PROP_ENTITY, obsResource);
+		mockObsToOdooResHandlerEndpoint.expectedMessageCount(0);
+
+		producerTemplate.send(URI_OBS_TO_ODOO_RESOURCE, exchange);
+
+		mockObsToOdooResHandlerEndpoint.assertIsSatisfied();
+		assertMessageLogged(Level.DEBUG, "Skipping obs because it's value is null");
+	}
 	
 	@Test
 	public void shouldProcessAnObsUpdateEvent() throws Exception {
@@ -217,6 +235,7 @@ public class ObsToOdooResourceRouteTest extends BaseOdooRouteTest {
 		exchange.setProperty(PROP_EVENT, event);
 		Map obsResource = new HashMap();
 		obsResource.put("uuid", OBS_UUID);
+		obsResource.put("value", singletonMap("uuid", CONCEPT_UUID_A));
 		obsResource.put("concept", singletonMap("uuid", "some-question-concept-uuid"));
 		exchange.setProperty(EX_PROP_ENTITY, obsResource);
 		mockObsToOdooResHandlerEndpoint.expectedMessageCount(0);
