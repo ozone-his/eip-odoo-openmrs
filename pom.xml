@@ -80,6 +80,18 @@
             <version>${mockitoVersion}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+             <groupId>org.apache.camel</groupId>
+             <artifactId>camel-jackson</artifactId>
+             <version>${camelVersion}</version>
+             <scope>test</scope>
+          </dependency>
+         <dependency>
+             <groupId>org.apache.camel</groupId>
+             <artifactId>camel-jaxb</artifactId>
+             <version>${camelVersion}</version>
+             <scope>test</scope>
+          </dependency> 
     </dependencies>
 
     <build>
