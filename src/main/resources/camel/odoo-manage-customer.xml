@@ -44,6 +44,10 @@
                     <simple>{{odoo.emr.id.field}}</simple>
                 </setProperty>
 
+                <setProperty name="emrIdField">
+                    <simple>{{odoo.emr.id.field}}</simple>
+                </setProperty>
+                
                 <when>
                     <simple>${exchangeProperty.emrIdField} != null &amp;&amp; ${exchangeProperty.emrIdField.trim()} != ''</simple>
                     <script>
@@ -51,6 +55,11 @@
                             #{getProperty('patientData').put(getProperty('emrIdField'), getProperty('patientIdentifier'))}
                         </spel>
                     </script>
+                </when>
+
+                <when>
+                    <simple>${properties:odoo.enable.extra.customer.details.route:null} != null &amp;&amp; ${properties:odoo.enable.extra.customer.details.route:false} == true</simple>
+                    <toD cacheSize="-1" uri="direct:odoo-add-extra-customer-details" />
                 </when>
 
                 <choice>
