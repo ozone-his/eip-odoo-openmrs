@@ -41,11 +41,7 @@
                 </script>
 
                 <setProperty name="emrIdField">
-                    <simple>{{odoo.emr.id.field}}</simple>
-                </setProperty>
-
-                <setProperty name="emrIdField">
-                    <simple>{{odoo.emr.id.field}}</simple>
+                    <simple>${properties:odoo.emr.id.field:null}</simple>
                 </setProperty>
                 
                 <when>
