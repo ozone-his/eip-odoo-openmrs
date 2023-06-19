@@ -28,7 +28,7 @@
                     <when>
                         <jsonpath suppressExceptions="true">$.[?(@.results)]</jsonpath>
                         <setProperty name="weight">
-                            <jsonpath>$.results[0].display</jsonpath>
+                            <jsonpath suppressExceptions="true">$.results[0].display</jsonpath>
                         </setProperty>
                     </when>
                     <otherwise>
