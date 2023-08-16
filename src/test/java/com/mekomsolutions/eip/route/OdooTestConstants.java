@@ -104,6 +104,8 @@ public class OdooTestConstants {
 	
 	public static final String URI_ADD_EXTRA_CUSTOMER_DETAILS = "direct:odoo-add-extra-customer-details";
 	
+	public static final String URI_ADD_EXTRA_QUOTATION_DETAILS = "direct:odoo-add-extra-quotation-details";
+	
 	public static final String URI_GET_EXT_ID = "direct:" + ROUTE_ID_GET_EXT_ID_MAP;
 	
 	public static final String URI_GET_QUOTES = "direct:odoo-get-draft-quotations";
