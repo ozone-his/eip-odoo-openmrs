@@ -11,6 +11,17 @@
     <name>OpenMRS Odoo Integration Application</name>
     <description>Contains integration logic between an OpenMRS and Odoo system</description>
 
+    <organization>
+        <name>Ozone HIS</name>
+        <url>https://www.ozone-his.com</url>
+    </organization>
+    <developers>
+        <developer>
+            <name>Mekom Solutions</name>
+            <url>https://www.mekomsolutions.com</url>
+        </developer>
+    </developers>
+
     <properties>
         <javaCompilerVersion>1.8</javaCompilerVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
