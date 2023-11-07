@@ -8,8 +8,8 @@
     <packaging>jar</packaging>
     <version>1.3.0-SNAPSHOT</version>
 
-    <name>OpenMRS Odoo Integration Application</name>
-    <description>Contains integration logic between an OpenMRS and Odoo system</description>
+    <name>EIP Odoo OpenMRS</name>
+    <description>Contains integration routes between Odoo and OpenMRS system</description>
 
     <organization>
         <name>Ozone HIS</name>
