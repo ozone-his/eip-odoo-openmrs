@@ -1,4 +1,4 @@
-# OpenMRS Odoo Integration
+#  EIP Odoo OpenMRS
 Contains integration logic between an OpenMRS and Odoo system
 
 ## Table of Contents
