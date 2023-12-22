@@ -8,3 +8,13 @@
 *.iml
 *.DS_Store
 .java-version
+
+## IntelliJ IDEA
+*.iws
+.idea
+
+## Visual Studio Code
+.vscode
+
+## Environment
+.env
