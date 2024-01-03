@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.camel.Exchange;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -28,6 +29,11 @@ public class SaveCalendarEventInOdooRouteTest extends BaseOdooApiRouteTest {
     public static final String EX_PROP_START = "startDateTime";
 
     public static final String EX_PROP_DURATION = "duration";
+
+    @BeforeEach
+    public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory("save-calendar-event-in-odoo.xml");
+    }
 
     @Test
     public void shouldCallCreateTheCalendarEventInOdoo() throws Exception {

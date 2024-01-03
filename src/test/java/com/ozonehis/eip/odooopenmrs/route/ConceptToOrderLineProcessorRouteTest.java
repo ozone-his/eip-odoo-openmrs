@@ -41,6 +41,8 @@ public class ConceptToOrderLineProcessorRouteTest extends BaseOdooRouteTest {
         mockGetOrderLineEndpoint.reset();
         mockManageQuoteEndpoint.reset();
 
+        loadXmlRoutesInCamelDirectory("concept-to-order-line-processor.xml");
+
         advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 
             @Override

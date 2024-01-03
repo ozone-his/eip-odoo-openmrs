@@ -31,7 +31,10 @@ public class OdooProcessRevisionOrderRouteTest extends BaseOrderOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory("orders/odoo-process-revision-order.xml");
+
         mockManageOrderLineEndpoint.reset();
+
         advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 
             @Override

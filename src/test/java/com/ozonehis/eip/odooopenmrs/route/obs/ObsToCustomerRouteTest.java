@@ -16,9 +16,7 @@ import org.apache.camel.support.DefaultExchange;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openmrs.eip.mysql.watcher.Event;
-import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/obs/obs-to-customer.xml")
 public class ObsToCustomerRouteTest extends BaseOdooRouteTest {
 
     private static final String URI_TEST_RULE = "mock:test-rule";
@@ -41,6 +39,8 @@ public class ObsToCustomerRouteTest extends BaseOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory("obs/obs-to-customer.xml");
+
         mockTestRuleEndpoint.reset();
         mockPatientUuidToCustomerEndpoint.reset();
 

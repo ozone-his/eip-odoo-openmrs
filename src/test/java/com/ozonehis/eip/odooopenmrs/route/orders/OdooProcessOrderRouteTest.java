@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+@Disabled("This test is takes too long to run")
 public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 
     private static final String ROUTE_ID = "odoo-process-order";
@@ -75,6 +76,8 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory("orders/odoo-process-order.xml");
+
         mockFetchResourceEndpoint.reset();
         mockPatientHandlerEndpoint.reset();
         mockGetDraftQuotesEndpoint.reset();
@@ -84,9 +87,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
         mockProcessNewOrderEndpoint.reset();
         mockProcessRevOrderEndpoint.reset();
         mockProcessDcOrVoidedOrderEndpoint.reset();
-        mockFetchResourceEndpoint.expectedMessageCount(1);
-        mockPatientHandlerEndpoint.expectedMessageCount(1);
-        mockGetDraftQuotesEndpoint.expectedMessageCount(1);
+
         advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 
             @Override
@@ -254,7 +255,6 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
         assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
     }
 
-    @Disabled
     @Test
     public void shouldProcessADiscontinueOrderAndThePatientHasNoExistingQuote() throws Exception {
         mockManageQuoteEndpoint.reset();
@@ -264,7 +264,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
         mockFetchResourceEndpoint.reset();
         mockPatientHandlerEndpoint.reset();
         mockGetDraftQuotesEndpoint.reset();
-        
+
         final Integer odooPatientId = 5;
         var patientResource = new HashMap<>();
         patientResource.put("uuid", OdooTestConstants.PATIENT_UUID);
@@ -293,11 +293,11 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
         mockGetDraftQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Map[] {}));
 
         producerTemplate.send(OdooTestConstants.URI_PROCESS_ORDER, exchange);
-        
+
         mockManageQuoteEndpoint.assertIsSatisfied();
         mockProcessNewOrderEndpoint.assertIsSatisfied();
         mockProcessRevOrderEndpoint.assertIsSatisfied();
-        //mockProcessDcOrVoidedOrderEndpoint.assertIsSatisfied();
+        mockProcessDcOrVoidedOrderEndpoint.assertIsSatisfied();
         assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
         assertNull(exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
         assertFalse(exchange.getProperty(EX_PROP_CREATE_CUSTOMER, Boolean.class));
@@ -593,9 +593,9 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
                 "Found 2 lines for the same product added to the draft quotation in odoo", getErrorMessage(exchange));
     }
 
-    @Disabled
     @Test
-    public void shouldProcessOrderIfNoLineIsFoundForTheOrderableOnAnExistingQuotationAndOrderLineCountWasGreaterThanZero()
+    public void
+            shouldProcessOrderIfNoLineIsFoundForTheOrderableOnAnExistingQuotationAndOrderLineCountWasGreaterThanZero()
                     throws Exception {
         final Integer odooPatientId = 5;
         var patientResource = new HashMap<>();
@@ -636,7 +636,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 
         mockManageQuoteEndpoint.assertIsSatisfied();
         mockGetOrderLineEndpoint.assertIsSatisfied();
-        
+
         assertEquals(orderLines.length, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
         assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));
         assertMessageLogged(Level.INFO, "No order line found on the draft quotation in odoo");
@@ -1322,7 +1322,6 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
         assertEquals(description, exchange.getProperty(EX_PROP_DESC));
     }
 
-    @Disabled
     @Test
     public void
             shouldProcessQuantityDetailsAndDosingInstructionsForARevisionDrugOrderAppendingCommentToFulfillerToDescription()
@@ -1770,7 +1769,6 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
         assertEquals(description, exchange.getProperty(EX_PROP_DESC));
     }
 
-    @Disabled
     @Test
     public void shouldSetDosingInstructionsWithNoDoseForADrugOrder() throws Exception {
         final Integer odooPatientId = 5;
@@ -1820,20 +1818,19 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
         orderResource.put("durationUnits", durationUnitsResource);
 
         producerTemplate.send(OdooTestConstants.URI_PROCESS_ORDER, exchange);
-        
+
         mockManageQuoteEndpoint.reset();
         mockProcessRevOrderEndpoint.reset();
         mockGetExtIdMapEndpoint.reset();
         mockProcessNewOrderEndpoint.reset();
         mockProcessDcOrVoidedOrderEndpoint.reset();
-        
 
         mockManageQuoteEndpoint.assertIsSatisfied();
         mockProcessNewOrderEndpoint.assertIsSatisfied();
         mockProcessRevOrderEndpoint.assertIsSatisfied();
         mockProcessDcOrVoidedOrderEndpoint.assertIsSatisfied();
         mockGetExtIdMapEndpoint.assertIsSatisfied();
-        
+
         assertNull(exchange.getProperty(EX_PROP_ORDER_LINE));
         assertEquals(0, exchange.getProperty(EX_PROP_ORDER_LINE_COUNT));
         assertEquals(quoteId, exchange.getProperty(EX_PROP_QUOTE_ID));

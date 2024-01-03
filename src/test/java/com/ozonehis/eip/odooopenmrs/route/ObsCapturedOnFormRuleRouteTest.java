@@ -29,6 +29,8 @@ public class ObsCapturedOnFormRuleRouteTest extends BaseOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory(ROUTE_ID + ".xml");
+
         mockFetchResourceEndpoint.reset();
 
         advise(ROUTE_ID, new AdviceWithRouteBuilder() {

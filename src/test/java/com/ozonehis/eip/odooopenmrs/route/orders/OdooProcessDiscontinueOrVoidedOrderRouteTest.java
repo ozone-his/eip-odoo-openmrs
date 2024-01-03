@@ -29,8 +29,11 @@ public class OdooProcessDiscontinueOrVoidedOrderRouteTest extends BaseOrderOdooR
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory("orders/odoo-process-dc-or-voided-order.xml");
+
         mockManageOrderLineEndpoint.reset();
         mockManageQuotationEndpoint.reset();
+
         advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 
             @Override

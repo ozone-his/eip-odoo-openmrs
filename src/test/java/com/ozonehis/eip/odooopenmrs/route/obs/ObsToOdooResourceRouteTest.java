@@ -79,6 +79,8 @@ public class ObsToOdooResourceRouteTest extends BaseOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory("obs/obs-to-odoo-resource.xml");
+
         mockObsToOdooResHandlerEndpoint.reset();
         mockConvertToConceptUuidEndpoint.reset();
         AppContext.remove(OBS_QN_ANS_MAP_KEY);

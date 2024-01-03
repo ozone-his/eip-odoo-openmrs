@@ -30,8 +30,11 @@ public class PatientUuidToOdooCustomerRouteTest extends BaseOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory("patient-uuid-to-odoo-customer.xml");
+
         mockPatientHandlerEndpoint.reset();
         mockFetchResourceEndpoint.reset();
+
         advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 
             @Override

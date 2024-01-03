@@ -10,7 +10,6 @@ import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
 
 import ch.qos.logback.classic.Level;
 import java.util.HashMap;
-import java.util.Map;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -60,6 +59,8 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory(ROUTE_ID + ".xml");
+
         AppContext.remove(ID_TYPE_ID_KEY);
         mockGetCustomerEndpoint.reset();
         mockManageCustomerEndpoint.reset();
@@ -68,6 +69,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
         mockCancelQuotesEndpoint.reset();
         mockGetCustomDataEndpoint.reset();
         mockGetCustomerEndpoint.expectedMessageCount(1);
+
         advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 
             @Override
@@ -188,7 +190,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 
         producerTemplate.send(OdooTestConstants.URI_PATIENT_HANDLER, exchange);
 
-        //mockProcessAddressEndpoint.assertIsSatisfied();
+        // mockProcessAddressEndpoint.assertIsSatisfied();
         mockManageCustomerEndpoint.assertIsSatisfied();
         assertEquals(patientId, exchange.getProperty(EX_PROP_ODOO_PATIENT_ID));
         assertFalse(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
@@ -229,7 +231,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 
         // verify
         mockProcessAddressEndpoint.assertIsSatisfied();
-        //mockManageCustomerEndpoint.assertIsSatisfied();
+        // mockManageCustomerEndpoint.assertIsSatisfied();
         mockGetCustomDataEndpoint.assertIsSatisfied();
         assertEquals(patientId, exchange.getProperty(EX_PROP_ODOO_PATIENT_ID));
         assertFalse(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
@@ -266,7 +268,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
         producerTemplate.send(OdooTestConstants.URI_PATIENT_HANDLER, exchange);
 
         mockProcessAddressEndpoint.assertIsSatisfied();
-        //mockManageCustomerEndpoint.assertIsSatisfied();
+        // mockManageCustomerEndpoint.assertIsSatisfied();
         mockGetCustomDataEndpoint.assertIsSatisfied();
         assertEquals(patientId, exchange.getProperty(EX_PROP_ODOO_PATIENT_ID));
         assertFalse(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
@@ -315,7 +317,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
 
         producerTemplate.send(OdooTestConstants.URI_PATIENT_HANDLER, exchange);
 
-        //mockProcessAddressEndpoint.assertIsSatisfied();
+        // mockProcessAddressEndpoint.assertIsSatisfied();
         mockManageCustomerEndpoint.assertIsSatisfied();
         mockGetCustomDataEndpoint.assertIsSatisfied();
         assertEquals(patientId, exchange.getProperty(EX_PROP_ODOO_PATIENT_ID));
@@ -434,7 +436,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
         final Integer patientId = 18;
         Event event = createEvent("patient", "1", OdooTestConstants.PATIENT_UUID, "u");
         final Exchange exchange = new DefaultExchange(camelContext);
-        Map patientResource = singletonMap("patientVoided", true);
+        var patientResource = singletonMap("patientVoided", true);
         exchange.setProperty(EX_PROP_PATIENT, patientResource);
         exchange.setProperty(PROP_EVENT, event);
         mockProcessAddressEndpoint.expectedMessageCount(0);
@@ -473,7 +475,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
         mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {}));
         mockProcessAddressEndpoint.expectedMessageCount(0);
         mockManageCustomerEndpoint.expectedMessageCount(0);
-        
+
         try {
             producerTemplate.send(OdooTestConstants.URI_PATIENT_HANDLER, exchange);
         } catch (Exception e) {

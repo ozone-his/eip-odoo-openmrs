@@ -1,17 +1,17 @@
 package com.ozonehis.eip.odooopenmrs.route;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.support.DefaultExchange;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import org.apache.camel.Exchange;
+import org.apache.camel.support.DefaultExchange;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class GetResourceByNameFromOdooRouteTest extends BaseOdooApiRouteTest {
 
@@ -30,6 +30,11 @@ public class GetResourceByNameFromOdooRouteTest extends BaseOdooApiRouteTest {
     protected static final String APP_PROP_ODOO_PASS = "odoo-pass";
 
     protected static final Integer USER_ID = 5;
+
+    @BeforeEach
+    public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory("get-resource-by-name-from-odoo.xml");
+    }
 
     @Test
     public void shouldGetTheResourceFromOdooMatchingTheNameAndModel() throws Exception {
@@ -92,7 +97,7 @@ public class GetResourceByNameFromOdooRouteTest extends BaseOdooApiRouteTest {
             assertTrue(e.getMessage().contains("Found 2 resources"));
             assertEquals(
                     "Found 2 resources (" + OdooTestConstants.MODEL_NAME_GROUPS + ") in odoo with name: " + groupName,
-                   e.getMessage());
+                    e.getMessage());
         }
     }
 }

@@ -22,6 +22,9 @@ public class ConvertToConceptUuidIfIsMappingRouteTest extends BaseOdooRouteTest 
 
     @BeforeEach
     public void setup() throws Exception {
+
+        loadXmlRoutesInCamelDirectory(ROUTE_ID + ".xml");
+
         mockGetConceptByMapEndpoint.reset();
 
         advise(ROUTE_ID, new AdviceWithRouteBuilder() {

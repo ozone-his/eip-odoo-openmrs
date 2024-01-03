@@ -3,10 +3,10 @@ package com.ozonehis.eip.odooopenmrs.route;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
-import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.support.TestPropertySourceUtils;
@@ -32,6 +32,11 @@ public class OdooAddExtraCustomerDetailsRouteTest extends BaseOdooRouteTest {
     public static final String ID_TYPE_UUID = "8d79403a-c2cc-11de-8d13-0010c6dffd0f";
 
     public static final String ID_TYPE_ID_KEY = "odoo-patient-handler-idTypeId";
+
+    @BeforeEach
+    public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory(ROUTE_ID + ".xml");
+    }
 
     @AfterEach
     public void tearDown() {

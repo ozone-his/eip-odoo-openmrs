@@ -14,7 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 @ActiveProfiles("test")
-@Import({ TestConfig.class })
+@Import({TestConfig.class})
 @TestPropertySource(properties = "odoo.database=" + BaseOdooApiRouteTest.APP_PROP_ODOO_DB)
 @TestPropertySource(properties = "odoo.password=" + BaseOdooApiRouteTest.APP_PROP_ODOO_PASS)
 public abstract class BaseOdooApiRouteTest extends BaseWatcherRouteTest {

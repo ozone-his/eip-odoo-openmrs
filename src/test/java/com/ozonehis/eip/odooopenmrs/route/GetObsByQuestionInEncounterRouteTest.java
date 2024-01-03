@@ -10,9 +10,15 @@ import java.util.List;
 import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class GetObsByQuestionInEncounterRouteTest extends BaseOdooRouteTest {
+
+    @BeforeEach
+    public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory(OdooTestConstants.ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC + ".xml");
+    }
 
     @Test
     public void shouldSetBodyToTheMatchingObsIfTheEncounterHasIt() {

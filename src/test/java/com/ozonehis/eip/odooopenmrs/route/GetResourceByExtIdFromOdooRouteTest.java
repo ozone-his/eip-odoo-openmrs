@@ -26,6 +26,8 @@ public class GetResourceByExtIdFromOdooRouteTest extends BaseOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory(OdooTestConstants.ROUTE_ID_GET_RES_BY_EXT_ID_FROM_ODOO + ".xml");
+
         mockGetExtIdMapEndpoint.reset();
         mockGetResByIdEndpoint.reset();
 

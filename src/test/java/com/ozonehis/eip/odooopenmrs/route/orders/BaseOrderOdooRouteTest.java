@@ -3,7 +3,6 @@ package com.ozonehis.eip.odooopenmrs.route.orders;
 import com.ozonehis.eip.odooopenmrs.route.BaseOdooRouteTest;
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = "camel.springboot.xml-routes=classpath*:camel/orders/*.xml")
 @TestPropertySource(
         properties =
                 "eip.watchedTables=patient,person_name,person_address,patient_identifier,orders,test_order,drug_order")

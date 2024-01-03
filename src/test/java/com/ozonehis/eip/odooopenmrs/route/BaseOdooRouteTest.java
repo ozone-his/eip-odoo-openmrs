@@ -14,17 +14,18 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlConfig;
 
 @ActiveProfiles("test")
-@Import({ TestConfig.class })
-@TestPropertySource(properties = { "camel.springboot.routes-collector-enabled=false" })
+@Import({TestConfig.class})
+@TestPropertySource(properties = {"camel.springboot.routes-collector-enabled=false"})
 @Sql(
         value = {"classpath:sql/test_data.sql"},
-        config = @SqlConfig(dataSource = Constants.OPENMRS_DATASOURCE_NAME, transactionManager = "openmrsTestTxManager"))
+        config =
+                @SqlConfig(dataSource = Constants.OPENMRS_DATASOURCE_NAME, transactionManager = "openmrsTestTxManager"))
 public abstract class BaseOdooRouteTest extends BaseWatcherRouteTest {
 
     protected final ObjectMapper mapper = new ObjectMapper();
-    
+
     static {
-       container.executeLiquibase("liquibase/liquibase-openmrs.xml");
+        container.executeLiquibase("liquibase/liquibase-openmrs.xml");
     }
 
     @Override

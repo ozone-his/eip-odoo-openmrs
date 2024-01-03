@@ -44,16 +44,15 @@ public class OdooAddExtraQuotationDetailsRouteTest extends BaseOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory(ROUTE_ID + ".xml");
+
         AppContext.remove(ID_TYPE_ID_KEY);
-        
+
         advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 
             @Override
             public void configure() {
-                weaveByToString(
-                                ".*/ws/rest/v1/obs\\?concept=\\{\\{emr.weight.concept\\}\\}\\&patient=\\$\\{exchangeProperty.patient.get('uuid')\\}]")
-                        .replace()
-                        .toD("mock:openmrs-patient-weight-endpoint");
+                weaveByToString(".*/ws/rest/v1/obs\\?concept=.*").replace().toD("mock:openmrs-patient-weight-endpoint");
             }
         });
     }

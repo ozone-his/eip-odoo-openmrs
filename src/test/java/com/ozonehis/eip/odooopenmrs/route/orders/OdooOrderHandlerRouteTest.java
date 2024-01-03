@@ -37,9 +37,12 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory("orders/odoo-order-handler.xml");
+
         mockFetchResourceEndpoint.reset();
         mockExtIdMapEndpoint.reset();
         mockProcessOrderEndpoint.reset();
+
         advise(ROUTE_ID, new AdviceWithRouteBuilder() {
 
             @Override

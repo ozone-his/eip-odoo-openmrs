@@ -56,6 +56,8 @@ public class OdooProcessPersonAddressRouteTest extends BaseOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory("odoo-process-person-address.xml");
+
         mockFetchResourceEndpoint.reset();
         mockGetStateEndpoint.reset();
         mockGetCountryEndpoint.reset();
@@ -89,7 +91,7 @@ public class OdooProcessPersonAddressRouteTest extends BaseOdooRouteTest {
         final String state = "TX";
         final String country = "US";
         Exchange exchange = new DefaultExchange(camelContext);
-        Map patientResource = singletonMap("uuid", OdooTestConstants.PATIENT_UUID);
+        var patientResource = singletonMap("uuid", OdooTestConstants.PATIENT_UUID);
         exchange.setProperty(EX_PROP_PATIENT, patientResource);
         exchange.setProperty(EX_PROP_PREF_ADDRESS, singletonMap("uuid", ADDRESS_UUID));
         mockFetchResourceEndpoint.expectedPropertyReceived(EX_PROP_RES_ID, OdooTestConstants.PATIENT_UUID);

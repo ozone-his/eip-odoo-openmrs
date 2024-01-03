@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.List;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultExchange;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class GetObsByConceptUuidFromEncounterRouteTest extends BaseOdooRouteTest {
@@ -18,6 +19,11 @@ public class GetObsByConceptUuidFromEncounterRouteTest extends BaseOdooRouteTest
     public static final String EX_PROP_OBS_QN_CONCEPT_UUID = "questionConceptUuid";
 
     public static final String EX_PROP_ENC = "encounter";
+
+    @BeforeEach
+    public void setup() throws Exception {
+        loadXmlRoutesInCamelDirectory(OdooTestConstants.ROUTE_ID_GET_CONCEPT_BY_UUID_FROM_ENC + ".xml");
+    }
 
     @Test
     public void shouldReturnNullIfTheEncounterHasNoObs() {
