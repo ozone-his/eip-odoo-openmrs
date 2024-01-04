@@ -73,7 +73,7 @@
 
                                 <log message="Looking up id for patient identifier type with uuid: {{openmrs.identifier.type.uuid}}" />
 
-                                <toD uri="sql:SELECT t.patient_identifier_type_id FROM patient_identifier_type t WHERE t.uuid = '{{openmrs.identifier.type.uuid}}'?dataSource=openmrsDataSource" />
+                                <toD uri="sql:SELECT t.patient_identifier_type_id FROM patient_identifier_type t WHERE t.uuid = '{{openmrs.identifier.type.uuid}}'?dataSource=#openmrsDataSource" />
 
                                 <when>
                                     <simple>${body.size()} == 0</simple>
@@ -90,7 +90,7 @@
                                 </script>
                             </when>
 
-                            <toD uri="sql:SELECT i.identifier FROM patient_identifier i WHERE i.patient_id = (SELECT person_id FROM person WHERE uuid='${exchangeProperty.patient.get('uuid')}') AND i.identifier_type = ${exchangeProperty.idTypeId} AND i.voided = 0?dataSource=openmrsDataSource" />
+                            <toD uri="sql:SELECT i.identifier FROM patient_identifier i WHERE i.patient_id = (SELECT person_id FROM person WHERE uuid='${exchangeProperty.patient.get('uuid')}') AND i.identifier_type = ${exchangeProperty.idTypeId} AND i.voided = 0?dataSource=#openmrsDataSource" />
 
                             <setProperty name="patientIdentifier">
                                 <simple>${body[0].get("identifier")}</simple>

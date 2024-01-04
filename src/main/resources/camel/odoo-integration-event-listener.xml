@@ -62,7 +62,7 @@
                         </otherwise>
                     </choice>
 
-                    <toD uri="sql:SELECT uuid FROM person WHERE person_id = (SELECT t.${exchangeProperty.lookUpColumn} FROM ${exchangeProperty.event.tableName} t WHERE t.uuid = '${exchangeProperty.event.identifier}')?dataSource=openmrsDataSource" />
+                    <toD uri="sql:SELECT uuid FROM person WHERE person_id = (SELECT t.${exchangeProperty.lookUpColumn} FROM ${exchangeProperty.event.tableName} t WHERE t.uuid = '${exchangeProperty.event.identifier}')?dataSource=#openmrsDataSource" />
 
                     <!-- TODO Check if no row was found -->
 

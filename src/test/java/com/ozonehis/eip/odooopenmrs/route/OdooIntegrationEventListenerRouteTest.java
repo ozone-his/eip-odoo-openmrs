@@ -18,7 +18,6 @@ import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfig;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openmrs.eip.AppContext;
 import org.openmrs.eip.mysql.watcher.Event;
@@ -160,106 +159,6 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
         mockPatientHandlerEndpoint.assertIsSatisfied();
         mockPatientAssociationEndpoint.assertIsSatisfied();
         assertEquals(patientResource, exchange.getProperty(EX_PROP_ENTITY));
-        assertNotNull(exchange.getProperty(OdooTestConstants.EX_PROP_TABLE_RESOURCE_MAP));
-    }
-
-    @Disabled
-    @Test
-    public void shouldProcessAnEventForAPersonName() throws Exception {
-        Event event = createEvent("person_name", "6", OdooTestConstants.NAME_UUID, "c");
-        Exchange exchange = new DefaultExchange(camelContext);
-        exchange.setProperty(PROP_EVENT, event);
-        mockAuthEndpoint.expectedMessageCount(0);
-        mockPatientAssociationEndpoint.expectedMessageCount(1);
-        mockPatientAssociationEndpoint.expectedPropertyReceived("patientAssociationName", "Person Name");
-        mockPatientHandlerEndpoint.expectedMessageCount(0);
-        mockEntityHandlerEndpoint.expectedMessageCount(0);
-        mockFetchResourceEndpoint.expectedPropertyReceived(OdooTestConstants.EX_PROP_IS_SUBRESOURCE, true);
-        mockFetchResourceEndpoint.expectedPropertyReceived(OdooTestConstants.EX_PROP_RESOURCE_NAME, "person");
-        mockFetchResourceEndpoint.expectedPropertyReceived(
-                OdooTestConstants.EX_PROP_RESOURCE_ID, OdooTestConstants.PATIENT_UUID);
-        mockFetchResourceEndpoint.expectedPropertyReceived(OdooTestConstants.EX_PROP_SUB_RESOURCE_NAME, "name");
-        mockFetchResourceEndpoint.expectedPropertyReceived(
-                OdooTestConstants.EX_PROP_SUB_RESOURCE_ID, OdooTestConstants.NAME_UUID);
-        var nameResource = singletonMap("uuid", OdooTestConstants.NAME_UUID);
-        final String nameJson = mapper.writeValueAsString(nameResource);
-        mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(nameJson));
-
-        producerTemplate.send(OdooTestConstants.LISTENER_URI, exchange);
-
-        mockFetchResourceEndpoint.assertIsSatisfied();
-        mockAuthEndpoint.assertIsSatisfied();
-        mockEntityHandlerEndpoint.assertIsSatisfied();
-        mockPatientHandlerEndpoint.assertIsSatisfied();
-        mockPatientAssociationEndpoint.assertIsSatisfied();
-        assertEquals(nameResource, exchange.getProperty(OdooTestConstants.EX_PROP_ENTITY));
-        assertNotNull(exchange.getProperty(OdooTestConstants.EX_PROP_TABLE_RESOURCE_MAP));
-    }
-
-    @Disabled
-    @Test
-    public void shouldProcessAnEventForAPersonAddress() throws Exception {
-        Event event = createEvent("person_address", "7", OdooTestConstants.ADDRESS_UUID, "c");
-        Exchange exchange = new DefaultExchange(camelContext);
-        exchange.setProperty(PROP_EVENT, event);
-        exchange.setProperty(EX_PROP_ENTITY, singletonMap("uuid", OdooTestConstants.PATIENT_UUID));
-        mockAuthEndpoint.expectedMessageCount(0);
-        mockPatientAssociationEndpoint.expectedMessageCount(1);
-        mockPatientAssociationEndpoint.expectedPropertyReceived("patientAssociationName", "Person Address");
-        mockPatientHandlerEndpoint.expectedMessageCount(0);
-        mockEntityHandlerEndpoint.expectedMessageCount(0);
-        mockFetchResourceEndpoint.expectedPropertyReceived(OdooTestConstants.EX_PROP_IS_SUBRESOURCE, true);
-        mockFetchResourceEndpoint.expectedPropertyReceived(OdooTestConstants.EX_PROP_RESOURCE_NAME, "person");
-        mockFetchResourceEndpoint.expectedPropertyReceived(
-                OdooTestConstants.EX_PROP_RESOURCE_ID, OdooTestConstants.PATIENT_UUID);
-        mockFetchResourceEndpoint.expectedPropertyReceived(OdooTestConstants.EX_PROP_SUB_RESOURCE_NAME, "address");
-        mockFetchResourceEndpoint.expectedPropertyReceived(
-                OdooTestConstants.EX_PROP_SUB_RESOURCE_ID, OdooTestConstants.ADDRESS_UUID);
-        var addressResource = singletonMap("uuid", OdooTestConstants.ADDRESS_UUID);
-        final String addressJson = mapper.writeValueAsString(addressResource);
-        mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(addressJson));
-
-        producerTemplate.send(OdooTestConstants.LISTENER_URI, exchange);
-
-        mockFetchResourceEndpoint.assertIsSatisfied();
-        mockAuthEndpoint.assertIsSatisfied();
-        mockEntityHandlerEndpoint.assertIsSatisfied();
-        mockPatientHandlerEndpoint.assertIsSatisfied();
-        mockPatientAssociationEndpoint.assertIsSatisfied();
-        assertEquals(addressResource, exchange.getProperty(OdooTestConstants.EX_PROP_ENTITY));
-        assertNotNull(exchange.getProperty(OdooTestConstants.EX_PROP_TABLE_RESOURCE_MAP));
-    }
-
-    @Disabled
-    @Test
-    public void shouldProcessAnEventForAPatientIdentifier() throws Exception {
-        Event event = createEvent("patient_identifier", "8", OdooTestConstants.PATIENT_ID_UUID, "c");
-        Exchange exchange = new DefaultExchange(camelContext);
-        exchange.setProperty(PROP_EVENT, event);
-        mockAuthEndpoint.expectedMessageCount(1);
-        mockPatientAssociationEndpoint.expectedMessageCount(1);
-        mockPatientAssociationEndpoint.expectedPropertyReceived("patientAssociationName", "Patient Identifier");
-        mockPatientHandlerEndpoint.expectedMessageCount(0);
-        mockEntityHandlerEndpoint.expectedMessageCount(0);
-        mockFetchResourceEndpoint.expectedPropertyReceived(OdooTestConstants.EX_PROP_IS_SUBRESOURCE, true);
-        mockFetchResourceEndpoint.expectedPropertyReceived(OdooTestConstants.EX_PROP_RESOURCE_NAME, "patient");
-        mockFetchResourceEndpoint.expectedPropertyReceived(
-                OdooTestConstants.EX_PROP_RESOURCE_ID, OdooTestConstants.PATIENT_UUID);
-        mockFetchResourceEndpoint.expectedPropertyReceived(OdooTestConstants.EX_PROP_SUB_RESOURCE_NAME, "identifier");
-        mockFetchResourceEndpoint.expectedPropertyReceived(
-                OdooTestConstants.EX_PROP_SUB_RESOURCE_ID, OdooTestConstants.PATIENT_ID_UUID);
-        var idResource = singletonMap("uuid", OdooTestConstants.PATIENT_ID_UUID);
-        final String idJson = mapper.writeValueAsString(idResource);
-        mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(idJson));
-
-        producerTemplate.send(OdooTestConstants.LISTENER_URI, exchange);
-
-        mockFetchResourceEndpoint.assertIsSatisfied();
-        mockAuthEndpoint.assertIsSatisfied();
-        mockEntityHandlerEndpoint.assertIsSatisfied();
-        mockPatientHandlerEndpoint.assertIsSatisfied();
-        mockPatientAssociationEndpoint.assertIsSatisfied();
-        assertEquals(idResource, exchange.getProperty(OdooTestConstants.EX_PROP_ENTITY));
         assertNotNull(exchange.getProperty(OdooTestConstants.EX_PROP_TABLE_RESOURCE_MAP));
     }
 

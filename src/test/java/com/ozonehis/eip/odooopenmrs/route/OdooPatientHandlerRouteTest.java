@@ -17,7 +17,6 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openmrs.eip.AppContext;
 import org.openmrs.eip.mysql.watcher.Event;
@@ -175,9 +174,9 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
         });
 
         mockGetCustomDataEndpoint.expectedMessageCount(0);
-        mockManageCustomerEndpoint.expectedMessageCount(0);
+        mockManageCustomerEndpoint.expectedMessageCount(1);
         mockManageCustomerEndpoint.expectedPropertyReceived(
-                OdooTestConstants.EX_PROP_ODOO_OP, OdooTestConstants.ODOO_OP_CREATE);
+                OdooTestConstants.EX_PROP_ODOO_OP, OdooTestConstants.ODOO_OP_WRITE);
         mockManageCustomerEndpoint.expectedPropertyReceived("patient-name", name);
         mockManageCustomerEndpoint.expectedPropertyReceived("patient", patientResource);
         mockManageCustomerEndpoint.expectedPropertyReceived("patientIdentifier", "12345");
@@ -304,7 +303,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
             e.setProperty("odooStateId", stateId);
         });
 
-        mockManageCustomerEndpoint.expectedMessageCount(0);
+        mockManageCustomerEndpoint.expectedMessageCount(1);
         mockManageCustomerEndpoint.expectedPropertyReceived(
                 OdooTestConstants.EX_PROP_ODOO_OP, OdooTestConstants.ODOO_OP_WRITE);
         mockManageCustomerEndpoint.expectedPropertyReceived("patient-name", name);
@@ -395,39 +394,6 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
         mockGetQuotesEndpoint.assertIsSatisfied();
         mockCancelQuotesEndpoint.assertIsSatisfied();
         mockGetCustomDataEndpoint.assertIsSatisfied();
-        assertTrue(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
-    }
-
-    @Test
-    @Disabled
-    public void shouldInactiveCustomerAndCancelTheirQuotationsForADeletedPatientThatExistsInOdoo() throws Exception {
-        // TODO support deleted patient
-        final Integer patientId = 18;
-        Event event = createEvent("patient", "1", OdooTestConstants.PATIENT_UUID, "d");
-        final Exchange exchange = new DefaultExchange(camelContext);
-        exchange.setProperty(PROP_EVENT, event);
-        mockProcessAddressEndpoint.expectedMessageCount(0);
-
-        mockGetCustomerEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(new Integer[] {patientId}));
-
-        mockManageCustomerEndpoint.expectedMessageCount(1);
-        mockManageCustomerEndpoint.expectedPropertyReceived(
-                OdooTestConstants.EX_PROP_ODOO_OP, OdooTestConstants.ODOO_OP_WRITE);
-
-        mockGetQuotesEndpoint.expectedMessageCount(1);
-        mockGetQuotesEndpoint.expectedPropertyReceived(EX_PROP_ODOO_PATIENT_ID, patientId);
-        final Integer[] quotationIds = new Integer[] {1, 2};
-        mockGetQuotesEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(quotationIds));
-
-        mockCancelQuotesEndpoint.expectedMessageCount(1);
-        mockCancelQuotesEndpoint.expectedPropertyReceived("quotationIds", quotationIds);
-
-        producerTemplate.send(OdooTestConstants.URI_PATIENT_HANDLER, exchange);
-
-        mockProcessAddressEndpoint.assertIsSatisfied();
-        mockManageCustomerEndpoint.assertIsSatisfied();
-        mockGetQuotesEndpoint.assertIsSatisfied();
-        mockCancelQuotesEndpoint.assertIsSatisfied();
         assertTrue(exchange.getProperty("isPatientVoidedOrDeleted", Boolean.class));
     }
 

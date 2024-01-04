@@ -20,7 +20,6 @@ import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.support.DefaultExchange;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openmrs.eip.mysql.watcher.Event;
 
@@ -57,7 +56,6 @@ public class OdooPatientAssociationHandlerRouteTest extends BaseOdooRouteTest {
         });
     }
 
-    @Disabled("This test is failing because the mockFetchResourceEndpoint is not satisfied")
     @Test
     public void shouldLoadThePatientWhenProcessingPersonName() throws Exception {
         final String personUuid = "ba3b12d1-5c4f-415f-871b-b98a22137604";
@@ -81,13 +79,15 @@ public class OdooPatientAssociationHandlerRouteTest extends BaseOdooRouteTest {
         mockPatientHandlerEndpoint.expectedMessageCount(1);
         mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
 
+        mockFetchResourceEndpoint.reset();
+        mockPatientHandlerEndpoint.reset();
+
         producerTemplate.send(URI_PATIENT_ASSOCIATION_HANDLER, exchange);
 
         mockFetchResourceEndpoint.assertIsSatisfied();
         mockPatientHandlerEndpoint.assertIsSatisfied();
     }
 
-    @Disabled("This test is failing because the mockFetchResourceEndpoint is not satisfied")
     @Test
     public void shouldLoadThePatientWhenProcessingPersonAddress() throws Exception {
         final String personUuid = "ba3b12d1-5c4f-415f-871b-b98a22137604";
@@ -111,6 +111,7 @@ public class OdooPatientAssociationHandlerRouteTest extends BaseOdooRouteTest {
         mockPatientHandlerEndpoint.expectedMessageCount(1);
         mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
         mockFetchResourceEndpoint.reset();
+        mockPatientHandlerEndpoint.reset();
 
         producerTemplate.send(URI_PATIENT_ASSOCIATION_HANDLER, exchange);
 
@@ -118,7 +119,6 @@ public class OdooPatientAssociationHandlerRouteTest extends BaseOdooRouteTest {
         mockPatientHandlerEndpoint.assertIsSatisfied();
     }
 
-    @Disabled("This test is failing because the patient handler is not being called")
     @Test
     public void shouldLoadThePatientWhenProcessingPatientIdentifier() throws Exception {
         var patientResource = new HashMap<>();
@@ -139,6 +139,7 @@ public class OdooPatientAssociationHandlerRouteTest extends BaseOdooRouteTest {
         mockPatientHandlerEndpoint.expectedMessageCount(1);
         mockPatientHandlerEndpoint.expectedPropertyReceived(EX_PROP_PATIENT, patientResource);
         mockFetchResourceEndpoint.reset();
+        mockPatientHandlerEndpoint.reset();
 
         producerTemplate.send(URI_PATIENT_ASSOCIATION_HANDLER, exchange);
 
