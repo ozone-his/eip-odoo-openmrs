@@ -24,3 +24,5 @@ dependency-reduced-pom.xml
 
 ## Environment
 .env
+/dev/.env
+

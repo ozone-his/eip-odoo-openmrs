@@ -189,6 +189,7 @@
                   <include>org.openmrs.eip:*</include>
                   <include>com.ozonehis:eip-commons</include>
                   <include>org.apache.xmlrpc:xmlrpc-client</include>
+                  <include>org.liquibase:*</include>
                 </includes>
               </artifactSet>
             </configuration>
