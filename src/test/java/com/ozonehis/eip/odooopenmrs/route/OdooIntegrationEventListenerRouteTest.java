@@ -118,6 +118,7 @@ public class OdooIntegrationEventListenerRouteTest extends BaseOdooRouteTest {
         mockFetchResourceEndpoint.whenAnyExchangeReceived(e -> e.getIn().setBody(obsJson));
         mockEntityHandlerEndpoint.expectedMessageCount(1);
 
+        mockEntityHandlerEndpoint.reset();
         producerTemplate.send(OdooTestConstants.LISTENER_URI, exchange);
 
         mockFetchResourceEndpoint.assertIsSatisfied();

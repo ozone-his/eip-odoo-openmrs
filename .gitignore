@@ -23,6 +23,6 @@ dependency-reduced-pom.xml
 .vscode
 
 ## Environment
-.env
-/dev/.env
+!/dev/.env
+/dev/dev.env
 

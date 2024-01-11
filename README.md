@@ -1,6 +1,6 @@
 # EIP Odoo OpenMRS
 
-Contains integration logic between an OpenMRS and Odoo system
+Apache camel routes that integrate Odoo and OpenMRS.
 
 ## Table of Contents
 
