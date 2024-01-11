@@ -6,7 +6,7 @@
     <groupId>com.ozonehis</groupId>
     <artifactId>eip-odoo-openmrs</artifactId>
     <packaging>jar</packaging>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.3.0</version>
 
     <name>EIP Odoo OpenMRS</name>
     <description>Contains integration routes between Odoo and OpenMRS system</description>
