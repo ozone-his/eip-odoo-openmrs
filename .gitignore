@@ -1,10 +1,28 @@
 /.classpath
 /.settings
 /.project
-.idea/
-/target
 
 /.idea
 *.iml
 *.DS_Store
 .java-version
+
+## Maven
+log/
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+dependency-reduced-pom.xml
+
+## IntelliJ IDEA
+*.iws
+.idea
+.idea/
+
+## Visual Studio Code
+.vscode
+
+## Environment
+!/dev/.env
+/dev/dev.env
+
