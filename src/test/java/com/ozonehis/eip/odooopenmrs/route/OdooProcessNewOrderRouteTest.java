@@ -1,10 +1,9 @@
-package com.ozonehis.eip.odooopenmrs.route.orders;
+package com.ozonehis.eip.odooopenmrs.route;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
 
 import ch.qos.logback.classic.Level;
-import com.ozonehis.eip.odooopenmrs.route.OdooTestConstants;
 import java.util.Collections;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
@@ -28,7 +27,7 @@ public class OdooProcessNewOrderRouteTest extends BaseOrderOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        loadXmlRoutesInCamelDirectory("orders/odoo-process-new-order.xml");
+        loadXmlRoutesInCamelDirectory("odoo-process-new-order.xml");
 
         mockManageOrderLineEndpoint.reset();
 

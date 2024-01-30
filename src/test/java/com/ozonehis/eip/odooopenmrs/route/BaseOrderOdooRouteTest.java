@@ -1,6 +1,5 @@
-package com.ozonehis.eip.odooopenmrs.route.orders;
+package com.ozonehis.eip.odooopenmrs.route;
 
-import com.ozonehis.eip.odooopenmrs.route.BaseOdooRouteTest;
 import org.springframework.test.context.TestPropertySource;
 
 @TestPropertySource(

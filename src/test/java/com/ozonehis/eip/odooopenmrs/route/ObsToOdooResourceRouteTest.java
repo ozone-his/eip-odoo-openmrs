@@ -1,4 +1,4 @@
-package com.ozonehis.eip.odooopenmrs.route.obs;
+package com.ozonehis.eip.odooopenmrs.route;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
@@ -9,8 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
 
 import ch.qos.logback.classic.Level;
-import com.ozonehis.eip.odooopenmrs.route.BaseOdooRouteTest;
-import com.ozonehis.eip.odooopenmrs.route.OdooTestConstants;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -79,7 +77,7 @@ public class ObsToOdooResourceRouteTest extends BaseOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        loadXmlRoutesInCamelDirectory("obs/obs-to-odoo-resource.xml");
+        loadXmlRoutesInCamelDirectory("obs-to-odoo-resource.xml");
 
         mockObsToOdooResHandlerEndpoint.reset();
         mockConvertToConceptUuidEndpoint.reset();

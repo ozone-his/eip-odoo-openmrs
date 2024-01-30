@@ -1,7 +1,6 @@
-package com.ozonehis.eip.odooopenmrs.route.orders;
+package com.ozonehis.eip.odooopenmrs.route;
 
 import ch.qos.logback.classic.Level;
-import com.ozonehis.eip.odooopenmrs.route.OdooTestConstants;
 import java.util.Collections;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
@@ -31,7 +30,7 @@ public class OdooProcessRevisionOrderRouteTest extends BaseOrderOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        loadXmlRoutesInCamelDirectory("orders/odoo-process-revision-order.xml");
+        loadXmlRoutesInCamelDirectory("odoo-process-revision-order.xml");
 
         mockManageOrderLineEndpoint.reset();
 

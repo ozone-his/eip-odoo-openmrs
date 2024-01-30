@@ -1,12 +1,10 @@
-package com.ozonehis.eip.odooopenmrs.route.obs;
+package com.ozonehis.eip.odooopenmrs.route;
 
 import static java.util.Collections.singletonMap;
 import static org.openmrs.eip.mysql.watcher.WatcherConstants.PROP_EVENT;
 import static org.springframework.test.context.support.TestPropertySourceUtils.addInlinedPropertiesToEnvironment;
 
 import ch.qos.logback.classic.Level;
-import com.ozonehis.eip.odooopenmrs.route.BaseOdooRouteTest;
-import com.ozonehis.eip.odooopenmrs.route.OdooTestConstants;
 import java.util.HashMap;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
@@ -39,7 +37,7 @@ public class ObsToCustomerRouteTest extends BaseOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        loadXmlRoutesInCamelDirectory("obs/obs-to-customer.xml");
+        loadXmlRoutesInCamelDirectory("obs-to-customer.xml");
 
         mockTestRuleEndpoint.reset();
         mockPatientUuidToCustomerEndpoint.reset();

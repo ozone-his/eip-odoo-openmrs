@@ -1,4 +1,4 @@
-package com.ozonehis.eip.odooopenmrs.route.orders;
+package com.ozonehis.eip.odooopenmrs.route;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import ch.qos.logback.classic.Level;
-import com.ozonehis.eip.odooopenmrs.route.OdooTestConstants;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.camel.EndpointInject;
@@ -76,7 +75,7 @@ public class OdooProcessOrderRouteTest extends BaseOrderOdooRouteTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        loadXmlRoutesInCamelDirectory("orders/odoo-process-order.xml");
+        loadXmlRoutesInCamelDirectory("odoo-process-order.xml");
 
         mockFetchResourceEndpoint.reset();
         mockPatientHandlerEndpoint.reset();

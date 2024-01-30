@@ -1,6 +1,5 @@
-package com.ozonehis.eip.odooopenmrs.route.orders;
+package com.ozonehis.eip.odooopenmrs.route;
 
-import com.ozonehis.eip.odooopenmrs.route.OdooTestConstants;
 import java.util.Collections;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
@@ -29,7 +28,7 @@ public class OdooProcessDiscontinueOrVoidedOrderRouteTest extends BaseOrderOdooR
 
     @BeforeEach
     public void setup() throws Exception {
-        loadXmlRoutesInCamelDirectory("orders/odoo-process-dc-or-voided-order.xml");
+        loadXmlRoutesInCamelDirectory("odoo-process-dc-or-voided-order.xml");
 
         mockManageOrderLineEndpoint.reset();
         mockManageQuotationEndpoint.reset();
