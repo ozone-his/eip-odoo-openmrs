@@ -149,6 +149,39 @@
     </repository>
   </repositories>
 
+  <pluginRepositories>
+    <pluginRepository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>openmrs-repo</id>
+      <name>OpenMRS Nexus Repository</name>
+      <url>https://mavenrepo.openmrs.org/nexus/content/repositories/public</url>
+    </pluginRepository>
+    <pluginRepository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>openmrs-snapshots</id>
+      <name>OpenMRS Public Repository</name>
+      <url>https://mavenrepo.openmrs.org/snapshots</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>mks-nexus-public</id>
+      <url>https://nexus.mekomsolutions.net/repository/maven-public/</url>
+    </pluginRepository>
+    <pluginRepository>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>mks-nexus-snapshots</id>
+      <url>https://nexus.mekomsolutions.net/repository/maven-snapshots/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
   <build>
     <finalName>eip-odoo-openmrs-${project.version}</finalName>
     <resources>
