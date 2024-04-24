@@ -4,5 +4,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-@PropertySource("eip-odoo-openmrs.properties")
+@PropertySource(
+        value = {"eip-odoo-openmrs.properties", "classpath:eip-odoo-openmrs.properties"},
+        ignoreResourceNotFound = true)
 public class OdooOpenmrsConfig {}
