@@ -44,6 +44,8 @@
     <camel.version>4.1.0</camel.version>
     <spring-boot.version>3.1.4</spring-boot.version>
     <xmlRpcClientVersion>3.1.3</xmlRpcClientVersion>
+    <fhir-stu4.version>7.0.0</fhir-stu4.version>
+    <openmrs.fhir.version>4.0.0-SNAPSHOT</openmrs.fhir.version>
 
     <!-- Formatting plugins versions -->
     <spotless.version>2.30.0</spotless.version>
@@ -87,6 +89,16 @@
       <groupId>org.apache.xmlrpc</groupId>
       <artifactId>xmlrpc-client</artifactId>
       <version>${xmlRpcClientVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.uhn.hapi.fhir</groupId>
+      <artifactId>hapi-fhir-structures-r4</artifactId>
+      <version>${fhir-stu4.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openmrs.eip</groupId>
+      <artifactId>openmrs-fhir</artifactId>
+      <version>${openmrs.fhir.version}</version>
     </dependency>
 
     <!-- Test dependencies -->

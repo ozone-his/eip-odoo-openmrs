@@ -25,6 +25,14 @@ public class SaleOrderLine implements OdooDocument {
     private String saleOrderLineName;
 
     @Nonnull
+    @JsonProperty("order_id")
+    private String saleOrderLineOrderId; // TODO: Check if List<Object>
+
+    @Nonnull
+    @JsonProperty("qty_invoiced")
+    private Float saleOrderLineQuantityInvoiced;
+
+    @Nonnull
     @JsonProperty("invoice_status")
     private String saleOrderLineInvoiceStatus;
 
@@ -50,11 +58,7 @@ public class SaleOrderLine implements OdooDocument {
 
     @Nonnull
     @JsonProperty("product_uom")
-    private List<Object> saleOrderLineProductUom;
-
-    @Nonnull
-    @JsonProperty("qty_invoiced")
-    private Float saleOrderLineQtyInvoiced;
+    private String saleOrderLineProductUom;// TODO: Check if List<Object>
 
     @Nonnull
     @JsonProperty("scheduled_date")

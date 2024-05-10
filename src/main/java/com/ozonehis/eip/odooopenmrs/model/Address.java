@@ -7,31 +7,32 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Country implements OdooDocument {
+public class Address implements OdooDocument {
+    @Nonnull
+    @JsonProperty("street")
+    private String addressStreet;
 
     @Nonnull
-    @JsonProperty("id")
-    private Integer countryId;
+    @JsonProperty("street2")
+    private String addressStreet2;
 
     @Nonnull
-    @JsonProperty("name")
-    private String countryName;
+    @JsonProperty("zip")
+    private String addressZip;
 
     @Nonnull
-    @JsonProperty("code")
-    private String countryCode;
+    @JsonProperty("city")
+    private String addressCity;
 
     @Nonnull
-    @JsonProperty("address_format")
-    private String countryAddressFormat;
+    @JsonProperty("contact_address")
+    private String addressContactAddress;
 
-    @Nonnull
-    @JsonProperty("phone_code")
-    private Integer countryPhoneCode;
+    private Country country;
+
+    private CountryState countryState;
 }

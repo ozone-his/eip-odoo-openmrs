@@ -13,7 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Order implements OdooDocument {
+public class SaleOrder implements OdooDocument {
 
     @Nonnull
     @JsonProperty("name")
@@ -22,5 +22,9 @@ public class Order implements OdooDocument {
     @Nonnull
     @JsonProperty("date_order")
     private Date orderDate;
+
+    @Nonnull
+    @JsonProperty("type_name")
+    private String orderTypeName;
 
 }
