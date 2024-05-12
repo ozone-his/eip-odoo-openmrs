@@ -100,6 +100,11 @@
       <artifactId>openmrs-fhir</artifactId>
       <version>${openmrs.fhir.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-support</artifactId>
+    </dependency>
+
 
     <!-- Test dependencies -->
     <dependency>
