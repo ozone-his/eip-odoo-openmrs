@@ -22,6 +22,11 @@ public class OdooProducer extends DefaultProducer {
     @Override
     public void process(Exchange exchange) throws Exception {
         String body = exchange.getIn().getBody(String.class);
+
+        String model = ((OdooEndpoint) getEndpoint()).getModel();
+        String method = ((OdooEndpoint) getEndpoint()).getMethod();
+
+        //TODO: Parse params and requestParams
         log.info("OdooProducer: Body: {}", body);
     }
 }
