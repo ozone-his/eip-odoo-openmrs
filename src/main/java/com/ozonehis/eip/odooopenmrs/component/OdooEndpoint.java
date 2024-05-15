@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 @UriEndpoint(firstVersion = "1.0.0", scheme = "odoo", title = "Odoo", syntax = "odoo:method/model", producerOnly = true)
 public class OdooEndpoint extends DefaultEndpoint {
 
-    @UriParam(description = "Odoo method name Eg. create, write")
+    @UriParam(description = "Odoo method name Eg. write")
     @Metadata(required = true)
     private String method;
 

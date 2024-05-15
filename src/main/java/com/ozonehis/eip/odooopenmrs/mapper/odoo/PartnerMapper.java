@@ -8,16 +8,25 @@
 package com.ozonehis.eip.odooopenmrs.mapper.odoo;
 
 import com.ozonehis.eip.odooopenmrs.mapper.ToOdooMapping;
+import com.ozonehis.eip.odooopenmrs.model.Address;
+import com.ozonehis.eip.odooopenmrs.model.Country;
+import com.ozonehis.eip.odooopenmrs.model.CountryState;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
-import org.hl7.fhir.r4.model.Enumerations;
-import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.*;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Component
 public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
+
+    private static final String ADDRESS_EXTENSION_URL = "http://fhir.openmrs.org/ext/address";
+
+    private static final String ADDRESS1_EXTENSION = "http://fhir.openmrs.org/ext/address#address1";
+
+    private static final String ADDRESS2_EXTENSION = "http://fhir.openmrs.org/ext/address#address2";
 
     @Override
     public Partner toOdoo(Patient patient) {
@@ -38,6 +47,7 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
         // TODO: Check if odoo contains CustomerType like variable
 //        customer.setCustomerType(CustomerType.INDIVIDUAL);
 
+        addAddress(patient, partner);
         return partner;
     }
 
@@ -69,5 +79,56 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
         return patient.getName().stream()
                 .findFirst()
                 .map(name -> name.getGiven().get(0) + " " + name.getFamily());
+    }
+
+    protected void addAddress(Patient patient, Partner partner) {
+        if (patient.hasAddress()) {
+            patient.getAddress().stream()
+                    .filter(a -> a.getUse() != org.hl7.fhir.r4.model.Address.AddressUse.HOME)
+                    .forEach(fhirAddress -> {
+                        partner.setPartnerContactAddress(fhirAddress.getIdElement().getValue());//TODO: Check if correct
+                        partner.setPartnerCity(fhirAddress.getCity());
+                        Country country = new Country();
+                        country.setCountryName(fhirAddress.getCountry());
+                        partner.setCountry(country);
+                        partner.setPartnerZip(fhirAddress.getPostalCode());
+                        CountryState countryState = new CountryState();
+                        countryState.setCountryStateName(fhirAddress.getState());
+                        partner.setCountryState(countryState);
+                        //        address.setPrimaryAddress(true); TODO: Not available in Odoo
+
+                        if (fhirAddress.hasExtension()) {
+                            List<Extension> extensions = fhirAddress.getExtension();
+                            List<Extension> addressExtensions = extensions.stream()
+                                    .filter(extension -> extension.getUrl().equals(ADDRESS_EXTENSION_URL))
+                                    .findFirst()
+                                    .map(Element::getExtension)
+                                    .orElse(new ArrayList<>());
+
+                            addressExtensions.stream()
+                                    .filter(extension -> extension.getUrl().equals(ADDRESS1_EXTENSION))
+                                    .findFirst()
+                                    .ifPresent(extension ->
+                                            partner.setPartnerStreet(extension.getValue().toString()));
+
+                            addressExtensions.stream()
+                                    .filter(extension -> extension.getUrl().equals(ADDRESS2_EXTENSION))
+                                    .findFirst()
+                                    .ifPresent(extension ->
+                                            partner.setPartnerStreet2(extension.getValue().toString()));
+                        }
+
+                        if (patient.hasTelecom()) {
+                            partner.setPartnerPhone(patient.getTelecomFirstRep().getValue());
+                        }
+
+                        if (fhirAddress.hasUse()) {
+                            // TODO: Check if this is the correct way to map the address type
+                            if (fhirAddress.getUse().equals(org.hl7.fhir.r4.model.Address.AddressUse.HOME)) {
+                                // address.setAddressType(ADDRESS_TYPE); TODO: Not available in Odoo
+                            }
+                        }
+                    });
+        }
     }
 }

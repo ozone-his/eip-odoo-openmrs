@@ -48,4 +48,8 @@ public class Partner implements OdooDocument {
     @Nonnull
     @JsonProperty("phone")
     private String partnerPhone;
+
+    private Country country;
+
+    private CountryState countryState;
 }
