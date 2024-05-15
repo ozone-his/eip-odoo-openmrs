@@ -8,6 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import static com.google.common.collect.Lists.asList;
+
 public class OdooProducer extends DefaultProducer {
 
     @Autowired
@@ -26,6 +32,13 @@ public class OdooProducer extends DefaultProducer {
         String model = ((OdooEndpoint) getEndpoint()).getModel();
         String method = ((OdooEndpoint) getEndpoint()).getMethod();
 
+        //TODO: Parse params from body
+        List<Object> params = new ArrayList<>();
+        HashMap<String, Object> hashMap = new HashMap<>();
+        params.add(hashMap);
+
+
+        odooClient.execute(method, model, params, null);
         //TODO: Parse params and requestParams
         log.info("OdooProducer: Body: {}", body);
     }

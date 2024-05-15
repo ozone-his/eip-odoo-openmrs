@@ -12,11 +12,15 @@ public class Constants {
 
     public static final String SEARCH_METHOD = "search";
 
+    public static final String SEARCH_READ_METHOD = "search";
+
     public static final String HEADER_ODOO_RESOURCE = "Odoo.resource";
 
     public static final String HEADER_ODOO_DOCTYPE = "Odoo.doctype";
 
     public static final String HEADER_ODOO_ID = "Odoo.id";
+
+    public static final String EXCHANGE_PROPERTY_SKIP_ENCOUNTER = "skip.encounter";
 
 
 

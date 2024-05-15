@@ -30,7 +30,7 @@ public class PartnerHandler {
                 return true;
             }
         } catch (XmlRpcException e) {
-            throw new RuntimeException(e);
+            log.error("Error while checking if partner exists with id {} error {}", partnerRefID, e.getMessage(), e);
         }
         return false;
     }

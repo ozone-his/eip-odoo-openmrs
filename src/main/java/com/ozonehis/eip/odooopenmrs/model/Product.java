@@ -7,28 +7,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SaleOrder implements OdooDocument {
+public class Product implements OdooDocument {
+
+    @Nonnull
+    @JsonProperty("display_name")
+    private String ProductDisplayName; //Product Name
 
     @Nonnull
     @JsonProperty("name")
-    private String orderName;
-
-    @Nonnull
-    @JsonProperty("date_order")
-    private Date orderDate;
-
-    @Nonnull
-    @JsonProperty("type_name")
-    private String orderTypeName;
-
-    @Nonnull
-    @JsonProperty("invoice_status")
-    private String orderInvoiceStatus;
-
+    private String ProductName; //Product ID
 }
