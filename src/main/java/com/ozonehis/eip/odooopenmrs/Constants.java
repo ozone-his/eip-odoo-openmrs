@@ -8,7 +8,9 @@ import static java.util.Arrays.asList;
 public class Constants {
     public static final String PARTNER_MODEL = "res.partner";
 
-    public static final String ORDER_MODEL = "sale.order";
+    public static final String SALE_ORDER_MODEL = "sale.order";
+
+    public static final String SALE_ORDER_LINE_MODEL = "sale.order.line";
 
     public static final String SEARCH_METHOD = "search";
 
@@ -22,6 +24,9 @@ public class Constants {
 
     public static final String EXCHANGE_PROPERTY_SKIP_ENCOUNTER = "skip.encounter";
 
+    public static final String FHIR_RESOURCE_TYPE = "fhir.resource.type";
+
+    public static final String HEADER_EVENT_PROCESSED = "odoo.openmrs.event.processed";
 
 
     public List<String> orderDefaultAttributes = asList("name", "amount_total", "state", "pricelist_id", "payment_term_id",

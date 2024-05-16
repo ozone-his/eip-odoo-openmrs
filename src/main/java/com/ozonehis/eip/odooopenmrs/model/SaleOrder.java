@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -31,4 +33,46 @@ public class SaleOrder implements OdooDocument {
     @JsonProperty("invoice_status")
     private String orderInvoiceStatus;
 
+    @Nonnull
+    @JsonProperty("title")
+    private String orderTitle;//TODO: Check in odoo
+
+    @Nonnull
+    @JsonProperty("party_name")
+    private String orderPartyName; //TODO: Check in odoo
+
+    @Nonnull
+    @JsonProperty("customer_name")
+    private String orderPartnerName; //TODO: Check in odoo
+
+
+    @Nonnull
+    @JsonProperty("items")
+    private Set<SaleOrderLine> saleOrderLines = new HashSet<>();//TODO: Check in odoo
+
+
+    public void addSaleOrderLines(HashSet<SaleOrderLine> orderLines) {
+        saleOrderLines.addAll(orderLines);
+    }
+
+
+    public void addSaleOrderLine(SaleOrderLine orderLine) {
+        saleOrderLines.add(orderLine);
+    }
+
+    public void removeSaleOrderLine(SaleOrderLine orderLine) {
+        saleOrderLines.removeIf(line -> line.getSaleOrderLineOrderId().equals(orderLine.getSaleOrderLineOrderId()));
+    }
+
+    public void removeSaleOrderLine(String orderLineId) {
+        saleOrderLines.removeIf(line -> line.getSaleOrderLineOrderId().equals(orderLineId));
+    }
+
+    public boolean hasSaleOrderLine(SaleOrderLine orderLine) {
+        return saleOrderLines.stream().anyMatch(line -> line.getSaleOrderLineOrderId().equals(orderLine.getSaleOrderLineOrderId()));
+    }
+
+    public boolean hasSaleOrderLines() {
+        return !saleOrderLines.isEmpty();
+    }
 }

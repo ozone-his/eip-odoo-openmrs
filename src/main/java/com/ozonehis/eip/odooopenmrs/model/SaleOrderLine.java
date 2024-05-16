@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -24,7 +23,6 @@ public class SaleOrderLine implements OdooDocument {
     @JsonProperty("name")
     private String saleOrderLineName;
 
-    @Nonnull
     @JsonProperty("order_id")
     private String saleOrderLineOrderId; // TODO: Check if List<Object>
 

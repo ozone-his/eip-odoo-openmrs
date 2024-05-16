@@ -7,19 +7,16 @@
  */
 package com.ozonehis.eip.odooopenmrs.handlers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
-import org.apache.hc.core5.http.HttpStatus;
 import org.apache.xmlrpc.XmlRpcException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,7 +34,7 @@ public class SalesOrderHandler {
         List<List<List<Object>>> searchQuery = Collections.singletonList(
                 Collections.singletonList(Arrays.asList("name", "=", name)));
         try {
-            Object[] records = (Object[]) odooClient.execute(Constants.SEARCH_METHOD, Constants.ORDER_MODEL, searchQuery, null);
+            Object[] records = (Object[]) odooClient.execute(Constants.SEARCH_METHOD, Constants.SALE_ORDER_MODEL, searchQuery, null);
             if ((records != null) && (records.length > 0)) {
                 return true;
             }
@@ -51,7 +48,7 @@ public class SalesOrderHandler {
         List<List<List<Object>>> searchQuery = Collections.singletonList(
                 Collections.singletonList(Arrays.asList("name", "=", name)));
         try {
-            Object[] records = (Object[]) odooClient.execute(Constants.SEARCH_READ_METHOD, Constants.ORDER_MODEL, searchQuery, null);
+            Object[] records = (Object[]) odooClient.execute(Constants.SEARCH_READ_METHOD, Constants.SALE_ORDER_MODEL, searchQuery, null);
             if ((records != null) && (records.length == 1)) {
                 return (SaleOrder) records[0];
             }
@@ -63,7 +60,7 @@ public class SalesOrderHandler {
 
     public void sendSalesOrder(ProducerTemplate producerTemplate, String endpointUri, SaleOrder saleOrder) {
         var quotationHeaders = new HashMap<String, Object>();
-        quotationHeaders.put(Constants.HEADER_ODOO_DOCTYPE, Constants.ORDER_MODEL);
+        quotationHeaders.put(Constants.HEADER_ODOO_DOCTYPE, Constants.SALE_ORDER_MODEL);
         quotationHeaders.put(Constants.HEADER_ODOO_RESOURCE, saleOrder);
         quotationHeaders.put(Constants.HEADER_ODOO_ID, saleOrder.getOrderName());
 
