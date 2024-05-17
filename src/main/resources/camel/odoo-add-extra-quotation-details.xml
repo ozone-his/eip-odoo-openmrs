@@ -13,7 +13,7 @@
                     <simple>{{properties:odoo.weight.field}}</simple>
                 </setProperty>
 
-                <toD cacheSize="-1" uri="{{openmrs.baseUrl}}/ws/rest/v1/obs?concept={{emr.weight.concept}}&amp;patient=${exchangeProperty.patient.get('uuid')}" />
+                <toD cacheSize="-1" uri="{{openmrs.baseUrl}}/ws/rest/v1/obs?concept=${exchangeProperty.odooWeightField}&amp;patient=${exchangeProperty.patient.get('uuid')}" />
                 <unmarshal>
                     <json library="Jackson"/>
                 </unmarshal>
