@@ -49,7 +49,7 @@
 
     <!-- Formatting plugins versions -->
     <spotless.version>2.30.0</spotless.version>
-    <palantirJavaFormat.version>1.1.0</palantirJavaFormat.version>
+    <palantirJavaFormat.version>2.28.0</palantirJavaFormat.version>
 
     <!-- Classifier for the dependency report artifact -->
     <dependencyReportClassifier>dependencies</dependencyReportClassifier>
@@ -254,11 +254,37 @@
               <artifactSet>
                 <includes>
                   <include>org.openmrs.eip:*</include>
-                  <include>com.ozonehis:eip-commons</include>
+                  <include>com.ozonehis.eip:*</include>
                   <include>org.apache.xmlrpc:xmlrpc-client</include>
                   <include>org.liquibase:*</include>
+                  <include>com.ozonehis:*</include>
+                  <include>com.ozonehis.camel:*</include>
+                  <include>org.apache.camel:camel-fhir</include>
+                  <include>org.apache.camel:camel-fhir-api</include>
+                  <include>org.apache.commons:*</include>
+                  <include>commons-io:commons-io</include>
+                  <include>ca.uhn.hapi.fhir:*</include>
+                  <include>org.jetbrains.kotlin:*</include>
+                  <include>com.squareup.okhttp3:okhttp</include>
+                  <include>com.squareup.okio:*</include>
+                  <include>com.fasterxml.jackson.core:jackson-databind</include>
+                  <include>org.apache.httpcomponents:*</include>
+                  <include>com.google.guava:*</include>
                 </includes>
               </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                    <exclude>META-INF/okio.kotlin_module</exclude>
+                    <exclude>META-INF.versions.9.module-info</exclude>
+                  </excludes>
+                </filter>
+              </filters>
             </configuration>
           </execution>
         </executions>

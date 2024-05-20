@@ -18,9 +18,10 @@ public class DeleteSalesOrderRoute extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:odoo-delete-sales-order-route")
-            .routeId("odoo-delete-sales-order-route")
-            .to("odoo://unlink/sale.order")
-            .log(LoggingLevel.INFO, "Sales order deleted.").end();
+                .routeId("odoo-delete-sales-order-route")
+                .to("odoo://unlink/sale.order")
+                .log(LoggingLevel.INFO, "Sales order deleted.")
+                .end();
         // spotless:on
     }
 }

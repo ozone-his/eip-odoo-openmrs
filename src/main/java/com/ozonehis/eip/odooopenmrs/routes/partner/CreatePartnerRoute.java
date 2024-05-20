@@ -17,11 +17,11 @@ public class CreatePartnerRoute extends RouteBuilder {
     @Override
     public void configure() {
         // spotless:off
-		from("direct:odoo-create-partner-route")
-				.log(LoggingLevel.INFO, "Creating Partner in Odoo...")
-			.routeId("odoo-create-partner-route")
-			.to("odoo://create/res.partner")
-			.end();
-		// spotless:on
+        from("direct:odoo-create-partner-route")
+                .log(LoggingLevel.INFO, "Creating Partner in Odoo...")
+                .routeId("odoo-create-partner-route")
+                .to("odoo://create/res.partner")
+                .end();
+        // spotless:on
     }
 }

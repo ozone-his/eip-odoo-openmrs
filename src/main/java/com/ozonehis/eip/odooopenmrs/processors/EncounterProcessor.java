@@ -30,7 +30,7 @@ public class EncounterProcessor implements Processor {
         if (encounter != null && encounter.hasPeriod() && encounter.getPeriod().hasEnd()) {
             SaleOrder saleOrder = salesOrderHandler.getSalesOrder(encounter.getIdPart());
             if (saleOrder != null) {
-                saleOrder.setOrderInvoiceStatus("submitted");//TODO: Check
+                saleOrder.setOrderInvoiceStatus("submitted"); // TODO: Check
                 salesOrderHandler.sendSalesOrder(
                         exchange.getContext().createProducerTemplate(),
                         "direct:odoo-update-sales-order-route",

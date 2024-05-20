@@ -36,20 +36,25 @@ public class MedicationRequestRouting extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:fhir-medicationrequest")
-            .routeId(MEDICATION_REQUEST_TO_QUOTATION_ROUTER)
-            .process(exchange -> {
+                .routeId(MEDICATION_REQUEST_TO_QUOTATION_ROUTER)
+                .process(exchange -> {
                     MedicationRequest medicationRequest = exchange.getMessage().getBody(MedicationRequest.class);
                     exchange.setProperty(Constants.FHIR_RESOURCE_TYPE, medicationRequest.fhirType());
-                    exchange.setProperty(MEDICATION_REQUEST_ID, medicationRequest.getIdElement().getIdPart());
+                    exchange.setProperty(
+                            MEDICATION_REQUEST_ID,
+                            medicationRequest.getIdElement().getIdPart());
                     exchange.getMessage().setBody(medicationRequest);
                 })
-            .toD("openmrs-fhir://?id=${exchangeProperty." + MEDICATION_REQUEST_ID + "}&resource=${exchangeProperty." + Constants.FHIR_RESOURCE_TYPE + "}&include=" + MEDICATION_REQUEST_INCLUDE_PARAMS)
-            .to("direct:medication-request-to-quotation-processor").end();
+                .toD("odoo://?id=${exchangeProperty." + MEDICATION_REQUEST_ID + "}&resource=${exchangeProperty."
+                        + Constants.FHIR_RESOURCE_TYPE + "}&include=" + MEDICATION_REQUEST_INCLUDE_PARAMS)
+                .to("direct:medication-request-to-quotation-processor")
+                .end();
 
         from("direct:medication-request-to-quotation-processor")
-            .routeId(MEDICATION_REQUEST_TO_QUOTATION_PROCESSOR)
-            .process(medicationRequestProcessor)
-            .log(LoggingLevel.DEBUG,
+                .routeId(MEDICATION_REQUEST_TO_QUOTATION_PROCESSOR)
+                .process(medicationRequestProcessor)
+                .log(
+                        LoggingLevel.DEBUG,
                         "MedicationRequest with ID ${exchangeProperty." + MEDICATION_REQUEST_ID + "} processed.")
                 .end();
         // spotless:on

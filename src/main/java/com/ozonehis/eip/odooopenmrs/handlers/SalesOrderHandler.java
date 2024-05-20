@@ -10,17 +10,16 @@ package com.ozonehis.eip.odooopenmrs.handlers;
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.apache.xmlrpc.XmlRpcException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 
 @Slf4j
 @Setter
@@ -31,10 +30,11 @@ public class SalesOrderHandler {
     private OdooClient odooClient;
 
     public boolean salesOrderExists(String name) {
-        List<List<List<Object>>> searchQuery = Collections.singletonList(
-                Collections.singletonList(Arrays.asList("name", "=", name)));
+        List<List<List<Object>>> searchQuery =
+                Collections.singletonList(Collections.singletonList(Arrays.asList("name", "=", name)));
         try {
-            Object[] records = (Object[]) odooClient.execute(Constants.SEARCH_METHOD, Constants.SALE_ORDER_MODEL, searchQuery, null);
+            Object[] records = (Object[])
+                    odooClient.execute(Constants.SEARCH_METHOD, Constants.SALE_ORDER_MODEL, searchQuery, null);
             if ((records != null) && (records.length > 0)) {
                 return true;
             }
@@ -45,10 +45,11 @@ public class SalesOrderHandler {
     }
 
     public SaleOrder getSalesOrder(String name) {
-        List<List<List<Object>>> searchQuery = Collections.singletonList(
-                Collections.singletonList(Arrays.asList("name", "=", name)));
+        List<List<List<Object>>> searchQuery =
+                Collections.singletonList(Collections.singletonList(Arrays.asList("name", "=", name)));
         try {
-            Object[] records = (Object[]) odooClient.execute(Constants.SEARCH_READ_METHOD, Constants.SALE_ORDER_MODEL, searchQuery, null);
+            Object[] records = (Object[])
+                    odooClient.execute(Constants.SEARCH_READ_METHOD, Constants.SALE_ORDER_MODEL, searchQuery, null);
             if ((records != null) && (records.length == 1)) {
                 return (SaleOrder) records[0];
             }

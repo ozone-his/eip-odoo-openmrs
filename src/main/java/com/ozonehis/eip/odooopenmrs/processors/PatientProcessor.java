@@ -7,6 +7,8 @@
  */
 package com.ozonehis.eip.odooopenmrs.processors;
 
+import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
+
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
@@ -19,9 +21,6 @@ import org.hl7.fhir.r4.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-
-import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
-
 @Setter
 @Getter
 @Component
@@ -29,7 +28,6 @@ public class PatientProcessor implements Processor {
 
     @Autowired
     private PartnerMapper mapper;
-
 
     @Override
     public void process(Exchange exchange) {

@@ -7,8 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -33,5 +31,5 @@ public class SaleOrderLine implements OdooDocument {
     private Float saleOrderLineProductUomQty;
 
     @JsonProperty("product_uom")
-    private String saleOrderLineProductUom;// TODO: Check if List<Object>
+    private String saleOrderLineProductUom; // TODO: Check if List<Object>
 }

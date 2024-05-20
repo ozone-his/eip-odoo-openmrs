@@ -28,8 +28,9 @@ public class ServiceRequestRouting extends RouteBuilder {
 
     private static final String SERVICE_REQUEST_INCLUDE_PARAMS = "ServiceRequest:encounter,ServiceRequest:patient";
 
-    private static final String SEARCH_PARAMS = "id=${exchangeProperty." + SERVICE_REQUEST_ID
-            + "}&resource=${exchangeProperty." + Constants.FHIR_RESOURCE_TYPE + "}&include=" + SERVICE_REQUEST_INCLUDE_PARAMS;
+    private static final String SEARCH_PARAMS =
+            "id=${exchangeProperty." + SERVICE_REQUEST_ID + "}&resource=${exchangeProperty."
+                    + Constants.FHIR_RESOURCE_TYPE + "}&include=" + SERVICE_REQUEST_INCLUDE_PARAMS;
 
     @Autowired
     private ServiceRequestProcessor serviceRequestProcessor;
@@ -38,20 +39,24 @@ public class ServiceRequestRouting extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:fhir-servicerequest")
-            .routeId(SERVICE_REQUEST_TO_QUOTATION_ROUTER)
-            .process(exchange -> {
+                .routeId(SERVICE_REQUEST_TO_QUOTATION_ROUTER)
+                .process(exchange -> {
                     ServiceRequest serviceRequest = exchange.getMessage().getBody(ServiceRequest.class);
                     exchange.setProperty(Constants.FHIR_RESOURCE_TYPE, serviceRequest.fhirType());
-                    exchange.setProperty(SERVICE_REQUEST_ID, serviceRequest.getIdElement().getIdPart());
+                    exchange.setProperty(
+                            SERVICE_REQUEST_ID, serviceRequest.getIdElement().getIdPart());
                     exchange.getMessage().setBody(serviceRequest);
                 })
-            .toD("openmrs-fhir://?" + SEARCH_PARAMS)
-            .to("direct:service-request-to-quotation-processor").end();
+                .toD("odoo://?" + SEARCH_PARAMS)
+                .to("direct:service-request-to-quotation-processor")
+                .end();
 
         from("direct:service-request-to-quotation-processor")
-            .routeId(SERVICE_REQUEST_TO_QUOTATION_PROCESSOR)
-            .process(serviceRequestProcessor)
-            .log(LoggingLevel.DEBUG, "ServiceRequest with ID ${exchangeProperty." + SERVICE_REQUEST_ID + "} processed.")
+                .routeId(SERVICE_REQUEST_TO_QUOTATION_PROCESSOR)
+                .process(serviceRequestProcessor)
+                .log(
+                        LoggingLevel.DEBUG,
+                        "ServiceRequest with ID ${exchangeProperty." + SERVICE_REQUEST_ID + "} processed.")
                 .end();
         // spotless:on
     }

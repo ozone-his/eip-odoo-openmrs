@@ -17,11 +17,11 @@ public class UpdatePartnerRoute extends RouteBuilder {
     @Override
     public void configure() {
         // spotless:off
-		from("direct:odoo-update-partner-route")
-				.log(LoggingLevel.INFO, "Updating Partner in Odoo...")
-			.routeId("odoo-update-partner-route")
-			.to("odoo://write/res.partner")
-			.end();
-		// spotless:on
+        from("direct:odoo-update-partner-route")
+                .log(LoggingLevel.INFO, "Updating Partner in Odoo...")
+                .routeId("odoo-update-partner-route")
+                .to("odoo://write/res.partner")
+                .end();
+        // spotless:on
     }
 }

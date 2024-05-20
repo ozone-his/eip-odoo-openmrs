@@ -18,9 +18,10 @@ public class CreateSalesOrderRoute extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:odoo-update-sales-order-route")
-            .routeId("odoo-update-sales-order-route")
-            .to("odoo://write/sale.order")
-            .log(LoggingLevel.INFO, "Sales order updated.").end();
+                .routeId("odoo-update-sales-order-route")
+                .to("odoo://write/sale.order")
+                .log(LoggingLevel.INFO, "Sales order updated.")
+                .end();
         // spotless:on
     }
 }

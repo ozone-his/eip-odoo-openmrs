@@ -1,9 +1,9 @@
 package com.ozonehis.eip.odooopenmrs;
 
+import static java.util.Arrays.asList;
+
 import java.util.Arrays;
 import java.util.List;
-
-import static java.util.Arrays.asList;
 
 public class Constants {
     public static final String PARTNER_MODEL = "res.partner";
@@ -32,11 +32,20 @@ public class Constants {
 
     public static final String HEADER_EVENT_PROCESSED = "odoo.openmrs.event.processed";
 
-
-    public List<String> orderDefaultAttributes = asList("name", "amount_total", "state", "pricelist_id", "payment_term_id",
-            "invoice_status", "origin", "create_date", "currency_id", "order_line", "invoice_count", "invoice_ids",
+    public List<String> orderDefaultAttributes = asList(
+            "name",
+            "amount_total",
+            "state",
+            "pricelist_id",
+            "payment_term_id",
+            "invoice_status",
+            "origin",
+            "create_date",
+            "currency_id",
+            "order_line",
+            "invoice_count",
+            "invoice_ids",
             "product_id");
 
     public List<String> partnerDefaultAttributes = Arrays.asList("id", "name", "ref", "create_date");
-
 }

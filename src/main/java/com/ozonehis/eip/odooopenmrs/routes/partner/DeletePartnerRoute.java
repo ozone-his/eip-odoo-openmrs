@@ -17,11 +17,11 @@ public class DeletePartnerRoute extends RouteBuilder {
     @Override
     public void configure() {
         // spotless:off
-		from("direct:odoo-delete-partner-route")
-				.log(LoggingLevel.INFO, "Deleting Partner in Odoo...")
-			.routeId("odoo-delete-partner-route")
-			.to("odoo://unlink/res.partner")
-			.end();
-		// spotless:on
+        from("direct:odoo-delete-partner-route")
+                .log(LoggingLevel.INFO, "Deleting Partner in Odoo...")
+                .routeId("odoo-delete-partner-route")
+                .to("odoo://unlink/res.partner")
+                .end();
+        // spotless:on
     }
 }

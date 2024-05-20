@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
@@ -40,8 +39,7 @@ public class OdooClient {
 
     private XmlRpcClient client;
 
-    public OdooClient() {
-    }
+    public OdooClient() {}
 
     public void init() throws IOException {
         client = new XmlRpcClient() {
@@ -58,12 +56,11 @@ public class OdooClient {
 
     public void authenticate() throws MalformedURLException {
         XmlRpcClientConfigImpl common_config = new XmlRpcClientConfigImpl();
-        common_config.setServerURL(
-                new URL(String.format("%s/xmlrpc/2/common", getUrl())));
+        common_config.setServerURL(new URL(String.format("%s/xmlrpc/2/common", getUrl())));
 
         try {
-            uid = (Integer) client.execute(common_config, "authenticate",
-                    asList(getDatabase(), getUsername(), getPassword(), emptyMap()));
+            uid = (Integer) client.execute(
+                    common_config, "authenticate", asList(getDatabase(), getUsername(), getPassword(), emptyMap()));
         } catch (XmlRpcException e) {
             e.printStackTrace();
             throw new RuntimeException("Cannot authenticate to Odoo server");
@@ -93,7 +90,6 @@ public class OdooClient {
         return String.valueOf(this.uid);
     }
 
-
     public Object execute(String method, String model, List dataParams, HashMap requestParams) throws XmlRpcException {
 
         List<Object> params;
@@ -103,14 +99,15 @@ public class OdooClient {
             return client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, method, params));
         } else {
             params = asList(dataParams);
-            return client.execute("execute_kw",
-                    asList(getDatabase(), uid, getPassword(), model, method, params, requestParams));
+            return client.execute(
+                    "execute_kw", asList(getDatabase(), uid, getPassword(), model, method, params, requestParams));
         }
     }
 
     public ArrayList<String> getDomainFields(String model) throws XmlRpcException {
 
-        Map<String, Map<String, Object>> fieldsResult = (Map<String, Map<String, Object>>) client.execute("execute_kw",
+        Map<String, Map<String, Object>> fieldsResult = (Map<String, Map<String, Object>>) client.execute(
+                "execute_kw",
                 asList(getDatabase(), uid, getPassword(), model, "fields_get", emptyList(), new HashMap() {
                     {
                         put("attributes", asList("string"));
@@ -118,7 +115,6 @@ public class OdooClient {
                 }));
 
         return new ArrayList<>(fieldsResult.keySet());
-
     }
 
     /**
@@ -148,7 +144,7 @@ public class OdooClient {
             params.add(singletonMap("fields", fields));
         }
 
-        //TODO Add an API for the criteria argument instead of using a list
+        // TODO Add an API for the criteria argument instead of using a list
         return (Object[]) client.execute("execute_kw", params);
     }
 
@@ -166,8 +162,9 @@ public class OdooClient {
 
         authenticateIfNecessary();
 
-        //TODO Add an API for the criteria argument instead of using a list
-        return (Object[]) client.execute("execute_kw",
+        // TODO Add an API for the criteria argument instead of using a list
+        return (Object[]) client.execute(
+                "execute_kw",
                 asList(getDatabase(), uid, getPassword(), model, "search", singletonList(singletonList(criteria))));
     }
 
@@ -176,5 +173,4 @@ public class OdooClient {
             authenticate();
         }
     }
-
 }

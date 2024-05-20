@@ -8,7 +8,6 @@
 package com.ozonehis.eip.odooopenmrs.mapper.odoo;
 
 import com.ozonehis.eip.odooopenmrs.mapper.ToOdooMapping;
-import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.stereotype.Component;
@@ -23,19 +22,21 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
             saleOrderLine.setSaleOrderLineOrderId(serviceRequest.getIdPart());
             if (serviceRequest.hasCode()) {
                 saleOrderLine.setSaleOrderLineName(
-                        serviceRequest.getCode().getCodingFirstRep().getCode());//TODO: Check what to map?
+                        serviceRequest.getCode().getCodingFirstRep().getCode()); // TODO: Check what to map?
             }
             saleOrderLine.setSaleOrderLineProductUomQty(1.0f); // default quantity is 1 for serviceRequests.
             String requesterDisplay = serviceRequest.getRequester().getDisplay();
             String serviceDisplay = serviceRequest.getCode().getText();
-            saleOrderLine.setSaleOrderLineName(serviceDisplay + " | Requester: " + requesterDisplay); //TODO: Check if present in Odoo
+            // TODO: Check if present in Odoo
+            saleOrderLine.setSaleOrderLineName(serviceDisplay + " | Requester: " + requesterDisplay);
 
         } else if (resource instanceof MedicationRequest medicationRequest) {
             saleOrderLine.setSaleOrderLineOrderId(medicationRequest.getIdPart());
             if (medicationRequest.hasDispenseRequest()) {
                 if (medicationRequest.getDispenseRequest().hasQuantity()) {
                     Quantity quantity = medicationRequest.getDispenseRequest().getQuantity();
-                    saleOrderLine.setSaleOrderLineProductUomQty(quantity.getValue().floatValue());
+                    saleOrderLine.setSaleOrderLineProductUomQty(
+                            quantity.getValue().floatValue());
                     saleOrderLine.setSaleOrderLineProductUom(quantity.getUnit());
                 }
             }
@@ -53,9 +54,12 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
             String requesterDisplay = medicationRequest.getRequester().getDisplay();
             String medicationDisplay =
                     medicationRequest.getMedicationReference().getDisplay();
-            saleOrderLine.setSaleOrderLineName(saleOrderLine.getSaleOrderLineName() + " | " + medicationDisplay + " | Requester: " + requesterDisplay); //TODO: Check if present in Odoo
+            saleOrderLine.setSaleOrderLineName(saleOrderLine.getSaleOrderLineName() + " | " + medicationDisplay
+                    + " | Requester: " + requesterDisplay); // TODO: Check if present in Odoo
             // Add dosage instructions to the notes.
-            saleOrderLine.setSaleOrderLineName(saleOrderLine.getSaleOrderLineName() + " | Notes: " + constructDosageInstructionsText(medicationRequest)); //TODO: Check if present in Odoo
+            // TODO: Check if present in Odoo
+            saleOrderLine.setSaleOrderLineName(saleOrderLine.getSaleOrderLineName() + " | Notes: "
+                    + constructDosageInstructionsText(medicationRequest));
 
         } else {
             throw new IllegalArgumentException("Sales Order Mapper Unsupported resource type: "

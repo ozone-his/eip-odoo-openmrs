@@ -14,7 +14,6 @@ import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-
 @Component
 public class EncounterRouting extends RouteBuilder {
 
@@ -25,19 +24,19 @@ public class EncounterRouting extends RouteBuilder {
     public void configure() throws Exception {
         // spotless:off
         from("direct:encounter-to-sales-order-router")
-            .routeId("encounter-to-sales-order-router")
-            .process(encounterProcessor)
-            .choice()
+                .routeId("encounter-to-sales-order-router")
+                .process(encounterProcessor)
+                .choice()
                 .when(simple("${exchangeProperty." + Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER + "} == true"))
-                    .log(LoggingLevel.INFO, "Skipping encounter processing")
+                .log(LoggingLevel.INFO, "Skipping encounter processing")
                 .otherwise()
-                    .log(LoggingLevel.INFO, "Processing encounter")
+                .log(LoggingLevel.INFO, "Processing encounter")
                 .end()
-            .end();
+                .end();
 
         from("direct:fhir-encounter")
-            .routeId("fhir-encounter-to-sales-order-router")
-            .to("direct:encounter-to-sales-order-router")
+                .routeId("fhir-encounter-to-sales-order-router")
+                .to("direct:encounter-to-sales-order-router")
                 .end();
         // spotless:on
     }

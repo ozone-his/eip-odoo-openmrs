@@ -11,6 +11,10 @@ import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderLineMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xmlrpc.XmlRpcException;
@@ -19,11 +23,6 @@ import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Setter
@@ -37,12 +36,13 @@ public class SaleOrderLineHandler {
     private SaleOrderLineMapper<Resource> saleOrderLineMapper;
 
     public Optional<SaleOrderLine> saleOrderLineExists(String name) {
-        List<List<List<Object>>> searchQuery = Collections.singletonList(
-                Collections.singletonList(Arrays.asList("name", "=", name)));
+        List<List<List<Object>>> searchQuery =
+                Collections.singletonList(Collections.singletonList(Arrays.asList("name", "=", name)));
         try {
-            Object[] records = (Object[]) odooClient.execute(Constants.SEARCH_METHOD, Constants.SALE_ORDER_LINE_MODEL, searchQuery, null);
+            Object[] records = (Object[])
+                    odooClient.execute(Constants.SEARCH_METHOD, Constants.SALE_ORDER_LINE_MODEL, searchQuery, null);
             if ((records != null) && (records.length > 0)) {
-                return Optional.ofNullable((SaleOrderLine) records[0]);//TODO: Fix
+                return Optional.ofNullable((SaleOrderLine) records[0]); // TODO: Fix
             }
         } catch (XmlRpcException e) {
             log.error("Error while checking if sales order line exists with name {} error {}", name, e.getMessage(), e);
@@ -51,7 +51,9 @@ public class SaleOrderLineHandler {
     }
 
     public Optional<SaleOrderLine> createSaleOrderLineIfItemExists(Resource resource) {
-        return getItemName(resource).flatMap(this::saleOrderLineExists).map(item -> saleOrderLineMapper.toOdoo(resource));
+        return getItemName(resource)
+                .flatMap(this::saleOrderLineExists)
+                .map(item -> saleOrderLineMapper.toOdoo(resource));
     }
 
     private Optional<String> getItemName(Resource resource) {

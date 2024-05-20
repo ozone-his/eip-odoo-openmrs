@@ -10,10 +10,8 @@ package com.ozonehis.eip.odooopenmrs.mapper.odoo;
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.mapper.ToOdooMapping;
-import com.ozonehis.eip.odooopenmrs.model.Address;
-import com.ozonehis.eip.odooopenmrs.model.Country;
-import com.ozonehis.eip.odooopenmrs.model.CountryState;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
+import java.util.*;
 import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.*;
 import org.openmrs.eip.EIPException;
@@ -21,8 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 @Component
 public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
@@ -45,9 +41,9 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
         Partner partner = new Partner();
         partner.setPartnerRef(patient.getIdPart());
         // TODO: Gender not available in Odoo
-//        if (patient.hasGender()) {
-//            mapGender(patient.getGender()).ifPresent(customer::setGender);
-//        }
+        //        if (patient.hasGender()) {
+        //            mapGender(patient.getGender()).ifPresent(customer::setGender);
+        //        }
         String patientName = getPatientName(patient).orElse("");
         String patientIdentifier = getPreferredPatientIdentifier(patient).orElse("");
         partner.setPartnerName(patientName + " - " + patientIdentifier);
@@ -91,26 +87,28 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
                             addressExtensions.stream()
                                     .filter(extension -> extension.getUrl().equals(ADDRESS1_EXTENSION))
                                     .findFirst()
-                                    .ifPresent(extension ->
-                                            partner.setPartnerStreet(extension.getValue().toString()));
+                                    .ifPresent(extension -> partner.setPartnerStreet(
+                                            extension.getValue().toString()));
 
                             addressExtensions.stream()
                                     .filter(extension -> extension.getUrl().equals(ADDRESS2_EXTENSION))
                                     .findFirst()
-                                    .ifPresent(extension ->
-                                            partner.setPartnerStreet2(extension.getValue().toString()));
+                                    .ifPresent(extension -> partner.setPartnerStreet2(
+                                            extension.getValue().toString()));
                         }
                     });
         }
     }
 
     private String getStateIdFromOdoo(String stateName) {
-        List<List<List<Object>>> searchQuery = Collections.singletonList(
-                Collections.singletonList(Arrays.asList("name", "=", stateName)));
+        List<List<List<Object>>> searchQuery =
+                Collections.singletonList(Collections.singletonList(Arrays.asList("name", "=", stateName)));
         try {
-            Object[] records = (Object[]) odooClient.execute(Constants.SEARCH_METHOD, Constants.COUNTRY_STATE_MODEL, searchQuery, null);
+            Object[] records = (Object[])
+                    odooClient.execute(Constants.SEARCH_METHOD, Constants.COUNTRY_STATE_MODEL, searchQuery, null);
             if (records.length > 1) {
-                throw new EIPException(String.format("Found %s states in odoo matching name: %s", records.length, stateName));
+                throw new EIPException(
+                        String.format("Found %s states in odoo matching name: %s", records.length, stateName));
             } else if (records.length == 0) {
                 log.warn("No state found in odoo matching name: {}", stateName);
             }
@@ -121,12 +119,14 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
     }
 
     private String getCountryIdFromOdoo(String countryName) {
-        List<List<List<Object>>> searchQuery = Collections.singletonList(
-                Collections.singletonList(Arrays.asList("name", "=", countryName)));
+        List<List<List<Object>>> searchQuery =
+                Collections.singletonList(Collections.singletonList(Arrays.asList("name", "=", countryName)));
         try {
-            Object[] records = (Object[]) odooClient.execute(Constants.SEARCH_METHOD, Constants.COUNTRY_STATE_MODEL, searchQuery, null);
+            Object[] records = (Object[])
+                    odooClient.execute(Constants.SEARCH_METHOD, Constants.COUNTRY_STATE_MODEL, searchQuery, null);
             if (records.length > 1) {
-                throw new EIPException(String.format("Found %s countries in odoo matching name: %s", records.length, countryName));
+                throw new EIPException(
+                        String.format("Found %s countries in odoo matching name: %s", records.length, countryName));
             } else if (records.length == 0) {
                 log.warn("No country found in odoo matching name: {}", countryName);
             }

@@ -15,9 +15,9 @@ public class Product implements OdooDocument {
 
     @Nonnull
     @JsonProperty("display_name")
-    private String ProductDisplayName; //Product Name
+    private String ProductDisplayName; // Product Name
 
     @Nonnull
     @JsonProperty("name")
-    private String ProductName; //Product ID
+    private String ProductName; // Product ID
 }
