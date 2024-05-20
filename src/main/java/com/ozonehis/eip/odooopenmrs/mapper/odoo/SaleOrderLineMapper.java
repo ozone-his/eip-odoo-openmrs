@@ -23,19 +23,19 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
             saleOrderLine.setSaleOrderLineOrderId(serviceRequest.getIdPart());
             if (serviceRequest.hasCode()) {
                 saleOrderLine.setSaleOrderLineName(
-                        serviceRequest.getCode().getCodingFirstRep().getCode());
+                        serviceRequest.getCode().getCodingFirstRep().getCode());//TODO: Check what to map?
             }
-            saleOrderLine.setSaleOrderLineQuantityInvoiced(1.0f); // default quantity is 1 for serviceRequests.
+            saleOrderLine.setSaleOrderLineProductUomQty(1.0f); // default quantity is 1 for serviceRequests.
             String requesterDisplay = serviceRequest.getRequester().getDisplay();
             String serviceDisplay = serviceRequest.getCode().getText();
-//            saleOrderLine.setDescription(serviceDisplay + " | Requester: " + requesterDisplay); TODO: Check if present in Odoo
+            saleOrderLine.setSaleOrderLineName(serviceDisplay + " | Requester: " + requesterDisplay); //TODO: Check if present in Odoo
 
         } else if (resource instanceof MedicationRequest medicationRequest) {
             saleOrderLine.setSaleOrderLineOrderId(medicationRequest.getIdPart());
             if (medicationRequest.hasDispenseRequest()) {
                 if (medicationRequest.getDispenseRequest().hasQuantity()) {
                     Quantity quantity = medicationRequest.getDispenseRequest().getQuantity();
-                    saleOrderLine.setSaleOrderLineQuantityInvoiced(quantity.getValue().floatValue());
+                    saleOrderLine.setSaleOrderLineProductUomQty(quantity.getValue().floatValue());
                     saleOrderLine.setSaleOrderLineProductUom(quantity.getUnit());
                 }
             }
@@ -46,19 +46,19 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
                             .getMedicationReference()
                             .getReference()
                             .split("/")[1];
-                    saleOrderLine.setSaleOrderLineName(medicationCode);
+                    saleOrderLine.setSaleOrderLineName(saleOrderLine.getSaleOrderLineName() + " | " + medicationCode);
                 }
             }
 
             String requesterDisplay = medicationRequest.getRequester().getDisplay();
             String medicationDisplay =
                     medicationRequest.getMedicationReference().getDisplay();
-//            quotationItem.setDescription(medicationDisplay + " | Requester: " + requesterDisplay); TODO: Check if present in Odoo
+            saleOrderLine.setSaleOrderLineName(saleOrderLine.getSaleOrderLineName() + " | " + medicationDisplay + " | Requester: " + requesterDisplay); //TODO: Check if present in Odoo
             // Add dosage instructions to the notes.
-//            quotationItem.setNotes(constructDosageInstructionsText(medicationRequest)); TODO: Check if present in Odoo
+            saleOrderLine.setSaleOrderLineName(saleOrderLine.getSaleOrderLineName() + " | Notes: " + constructDosageInstructionsText(medicationRequest)); //TODO: Check if present in Odoo
 
         } else {
-            throw new IllegalArgumentException("Quotation Mapper Unsupported resource type: "
+            throw new IllegalArgumentException("Sales Order Mapper Unsupported resource type: "
                     + resource.getClass().getName());
         }
         return saleOrderLine;

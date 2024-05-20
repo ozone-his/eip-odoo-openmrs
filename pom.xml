@@ -105,7 +105,6 @@
       <artifactId>camel-support</artifactId>
     </dependency>
 
-
     <!-- Test dependencies -->
     <dependency>
       <groupId>com.ozonehis</groupId>

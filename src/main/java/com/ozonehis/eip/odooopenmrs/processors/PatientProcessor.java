@@ -8,7 +8,6 @@
 package com.ozonehis.eip.odooopenmrs.processors;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
-import com.ozonehis.eip.odooopenmrs.mapper.odoo.AddressMapper;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
 import lombok.Getter;
@@ -30,9 +29,6 @@ public class PatientProcessor implements Processor {
 
     @Autowired
     private PartnerMapper mapper;
-
-    @Autowired
-    private AddressMapper addressMapper;
 
 
     @Override

@@ -36,16 +36,15 @@ public class SaleOrder implements OdooDocument {
     @JsonProperty("order_line")
     private List<Integer> orderLine;
 
+    @JsonProperty("type_name")
+    private String orderTypeName;
+
 
 // Not required below
 
     @Nonnull
     @JsonProperty("date_order")
     private Date orderDate;
-
-    @Nonnull
-    @JsonProperty("type_name")
-    private String orderTypeName;
 
     @Nonnull
     @JsonProperty("invoice_status")

@@ -17,20 +17,20 @@ public class SaleOrderMapper implements ToOdooMapping<Encounter, SaleOrder> {
 
     @Override
     public SaleOrder toOdoo(Encounter encounter) {
-        SaleOrder quotation = new SaleOrder();
+        SaleOrder saleOrder = new SaleOrder();
         if (encounter == null) {
             return null;
         }
         if (encounter.hasPartOf()) {
             String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
-            quotation.setOrderName(encounterVisitUuid);
-            quotation.setOrderTypeName("Sales Order");
-//            quotation.setQuotationTo("Customer"); TODO: Check if present in Odoo
+            saleOrder.setOrderName(encounterVisitUuid);
+            saleOrder.setOrderTypeName("Sales Order");
+            //            quotation.setQuotationTo("Customer"); TODO: Check if present in Odoo
         } else {
             throw new IllegalArgumentException(
-                    "The Encounter does not have a partOf reference. Cannot map to Quotation.");
+                    "The Encounter does not have a partOf reference. Cannot map to Sale Order.");
         }
 
-        return quotation;
+        return saleOrder;
     }
 }
