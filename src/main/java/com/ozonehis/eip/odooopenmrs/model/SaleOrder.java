@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -18,8 +19,25 @@ import java.util.Set;
 public class SaleOrder implements OdooDocument {
 
     @Nonnull
+    @JsonProperty("id")
+    private Integer orderId;
+
     @JsonProperty("name")
     private String orderName;
+
+    @Nonnull
+    @JsonProperty("state")
+    private String orderState;
+
+    @Nonnull
+    @JsonProperty("partner_id")
+    private String orderPartnerId; //TODO check if list in Odoo
+
+    @JsonProperty("order_line")
+    private List<Integer> orderLine;
+
+
+// Not required below
 
     @Nonnull
     @JsonProperty("date_order")

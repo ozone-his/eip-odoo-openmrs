@@ -23,5 +23,5 @@ public class CountryState implements OdooDocument {
 
     @Nonnull
     @JsonProperty("code")
-    private String countryStateCode;
+    private String countryStateCode; // Check if required
 }

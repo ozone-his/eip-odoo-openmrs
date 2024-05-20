@@ -12,6 +12,10 @@ public class Constants {
 
     public static final String SALE_ORDER_LINE_MODEL = "sale.order.line";
 
+    public static final String COUNTRY_STATE_MODEL = "res.country.state";
+
+    public static final String COUNTRY_MODEL = "res.country";
+
     public static final String SEARCH_METHOD = "search";
 
     public static final String SEARCH_READ_METHOD = "search";

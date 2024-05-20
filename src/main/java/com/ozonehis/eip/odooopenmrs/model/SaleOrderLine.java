@@ -21,44 +21,17 @@ public class SaleOrderLine implements OdooDocument {
 
     @Nonnull
     @JsonProperty("name")
-    private String saleOrderLineName;
+    private String saleOrderLineName; // Stores Description
 
     @JsonProperty("order_id")
     private String saleOrderLineOrderId; // TODO: Check if List<Object>
 
-    @Nonnull
-    @JsonProperty("qty_invoiced")
-    private Float saleOrderLineQuantityInvoiced;
+    @JsonProperty("product_id")
+    private String saleOrderLineProductId; // TODO: Check if List<Object>
 
-    @Nonnull
-    @JsonProperty("invoice_status")
-    private String saleOrderLineInvoiceStatus;
+    @JsonProperty("product_uom_qty")
+    private Float saleOrderLineProductUomQty;
 
-    @Nonnull
-    @JsonProperty("price_unit")
-    private Float saleOrderLinePriceUnit;
-
-    @Nonnull
-    @JsonProperty("price_subtotal")
-    private Float saleOrderLinePriceSubtotal;
-
-    @Nonnull
-    @JsonProperty("price_tax")
-    private Float saleOrderLinePriceTax;
-
-    @Nonnull
-    @JsonProperty("price_total")
-    private Float saleOrderLinePriceTotal;
-
-    @Nonnull
-    @JsonProperty("price_reduce")
-    private Float saleOrderLinePriceReduce;
-
-    @Nonnull
     @JsonProperty("product_uom")
     private String saleOrderLineProductUom;// TODO: Check if List<Object>
-
-    @Nonnull
-    @JsonProperty("scheduled_date")
-    private Date saleOrderLineScheduledDate;
 }

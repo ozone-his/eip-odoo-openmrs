@@ -21,35 +21,30 @@ public class Partner implements OdooDocument {
     @JsonProperty("ref")
     private String partnerRef;
 
-    @Nonnull
+    @JsonProperty("type")
+    private String partnerType;
+
     @JsonProperty("street")
     private String partnerStreet;
 
-    @Nonnull
     @JsonProperty("street2")
     private String partnerStreet2;
 
-    @Nonnull
-    @JsonProperty("zip")
-    private String partnerZip;
-
-    @Nonnull
     @JsonProperty("city")
     private String partnerCity;
 
-    @Nonnull
-    @JsonProperty("contact_address")
-    private String partnerContactAddress;
+    @JsonProperty("zip")
+    private String partnerZip;
 
-    @Nonnull
-    @JsonProperty("email")
-    private String partnerEmail;
+    @JsonProperty("country_id")
+    private String partnerCountryId;
 
-    @Nonnull
-    @JsonProperty("phone")
-    private String partnerPhone;
+    @JsonProperty("state_id")
+    private String partnerStateId;
 
-    private Country country;
+    @JsonProperty("active")
+    private Boolean partnerActive;
 
-    private CountryState countryState;
+    @JsonProperty("comment")
+    private String partnerComment; // Stores emrIdField
 }

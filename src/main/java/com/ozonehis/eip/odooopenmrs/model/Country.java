@@ -23,15 +23,6 @@ public class Country implements OdooDocument {
     @JsonProperty("name")
     private String countryName;
 
-    @Nonnull
     @JsonProperty("code")
     private String countryCode;
-
-    @Nonnull
-    @JsonProperty("address_format")
-    private String countryAddressFormat;
-
-    @Nonnull
-    @JsonProperty("phone_code")
-    private Integer countryPhoneCode;
 }
