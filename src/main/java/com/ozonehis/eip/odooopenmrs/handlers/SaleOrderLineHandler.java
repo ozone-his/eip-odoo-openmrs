@@ -7,14 +7,13 @@
  */
 package com.ozonehis.eip.odooopenmrs.handlers;
 
+import static java.util.Arrays.asList;
+
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderLineMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import java.net.MalformedURLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -37,11 +36,8 @@ public class SaleOrderLineHandler {
     private SaleOrderLineMapper<Resource> saleOrderLineMapper;
 
     public Optional<SaleOrderLine> saleOrderLineExists(String name) {
-        List<List<List<Object>>> searchQuery =
-                Collections.singletonList(Collections.singletonList(Arrays.asList("name", "=", name)));
         try {
-            Object[] records = (Object[])
-                    odooClient.execute(Constants.SEARCH_METHOD, Constants.SALE_ORDER_LINE_MODEL, searchQuery, null);
+            Object[] records = odooClient.search(Constants.SALE_ORDER_LINE_MODEL, asList("name", "=", name));
             if ((records != null) && (records.length > 0)) {
                 return Optional.ofNullable((SaleOrderLine) records[0]); // TODO: Fix
             }

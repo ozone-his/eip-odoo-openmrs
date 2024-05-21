@@ -16,7 +16,9 @@ public class Constants {
 
     public static final String COUNTRY_MODEL = "res.country";
 
-    public static final String SEARCH_METHOD = "search";
+    //    public static final String SEARCH_METHOD = "search";
+
+    public static final String CREATE_METHOD = "create";
 
     public static final String SEARCH_READ_METHOD = "search";
 

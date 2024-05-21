@@ -13,11 +13,9 @@ import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
-
 import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.*;
 import org.openmrs.eip.EIPException;
@@ -51,6 +49,7 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
         }
         Partner partner = new Partner();
         partner.setPartnerRef(patient.getIdPart());
+        partner.setPartnerActive(patient.getActive());
         // TODO: Gender not available in Odoo
         //        if (patient.hasGender()) {
         //            mapGender(patient.getGender()).ifPresent(customer::setGender);

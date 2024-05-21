@@ -47,6 +47,7 @@ public class OdooClient {
                 setConfig(new XmlRpcClientConfigImpl() {
 
                     {
+                        setEnabledForExtensions(true);
                         setServerURL(new URL(String.format("%s/xmlrpc/2/object", getUrl())));
                     }
                 });

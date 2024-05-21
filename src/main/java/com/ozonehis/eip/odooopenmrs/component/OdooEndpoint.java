@@ -1,9 +1,10 @@
 package com.ozonehis.eip.odooopenmrs.component;
 
+import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import org.apache.camel.*;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriEndpoint;
-import org.apache.camel.spi.UriParam;
+import org.apache.camel.spi.UriPath;
 import org.apache.camel.support.DefaultEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,27 +12,26 @@ import org.slf4j.LoggerFactory;
 /**
  * Odoo component to integrate with Odoo XML RPC.
  */
-@UriEndpoint(
-        firstVersion = "1.0.0",
-        scheme = "odoo",
-        title = "Odoo",
-        syntax = "odoo://method/model",
-        producerOnly = true)
+@UriEndpoint(firstVersion = "1.0.0", scheme = "odoo", title = "Odoo", syntax = "odoo:method/model", producerOnly = true)
 public class OdooEndpoint extends DefaultEndpoint {
 
-    @UriParam(description = "Odoo method name Eg. write")
+    @UriPath(description = "Odoo method name Eg. write")
     @Metadata(required = true)
     private String method;
 
-    @UriParam(description = "Odoo model name Eg. res.partner")
+    @UriPath(description = "Odoo model name Eg. res.partner")
     @Metadata(required = true)
     private String model;
 
     private static final Logger log = LoggerFactory.getLogger(OdooEndpoint.class);
 
-    public OdooEndpoint(String endpointUri, Component component) {
-        this.setEndpointUri(endpointUri);
-        this.setComponent(component);
+    private OdooClient odooClient;
+
+    public OdooEndpoint(String endpointUri, Component component, String method, String model, OdooClient odooClient) {
+        super(endpointUri, component);
+        this.method = method;
+        this.model = model;
+        this.odooClient = odooClient;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class OdooEndpoint extends DefaultEndpoint {
     @Override
     public Producer createProducer() {
         log.info("Creating odoo producer");
-        return new OdooProducer(this);
+        return new OdooProducer(this, odooClient);
     }
 
     @Override

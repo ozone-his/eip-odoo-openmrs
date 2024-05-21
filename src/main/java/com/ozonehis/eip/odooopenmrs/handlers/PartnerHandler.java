@@ -1,14 +1,12 @@
 package com.ozonehis.eip.odooopenmrs.handlers;
 
+import static java.util.Arrays.asList;
 import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import java.net.MalformedURLException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
@@ -26,11 +24,8 @@ public class PartnerHandler {
     private OdooClient odooClient;
 
     public boolean partnerExists(String partnerRefID) {
-        List<List<List<Object>>> searchQuery =
-                Collections.singletonList(Collections.singletonList(Arrays.asList("ref", "=", partnerRefID)));
         try {
-            Object[] records =
-                    (Object[]) odooClient.execute(Constants.SEARCH_METHOD, Constants.PARTNER_MODEL, searchQuery, null);
+            Object[] records = odooClient.search(Constants.PARTNER_MODEL, asList("ref", "=", partnerRefID));
             if ((records != null) && (records.length > 0)) {
                 return true;
             }
