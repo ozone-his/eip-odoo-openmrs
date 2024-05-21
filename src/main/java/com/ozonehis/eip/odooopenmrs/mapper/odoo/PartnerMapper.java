@@ -7,11 +7,17 @@
  */
 package com.ozonehis.eip.odooopenmrs.mapper.odoo;
 
+import static java.util.Arrays.asList;
+
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.*;
+
 import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.*;
 import org.openmrs.eip.EIPException;
@@ -35,6 +41,11 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
 
     @Override
     public Partner toOdoo(Patient patient) {
+        try {
+            odooClient.init();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         if (patient == null) {
             return null;
         }
@@ -66,73 +77,75 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
     }
 
     protected void addAddress(Patient patient, Partner partner) {
+        log.info(
+                "PartnerMapper: Patient addAddress {},{},{}",
+                patient.getAddress(),
+                patient.getAddress().get(0).getUse(),
+                patient.getAddress().get(0).getCity());
         if (patient.hasAddress()) {
-            patient.getAddress().stream()
-                    .filter(a -> a.getUse() != org.hl7.fhir.r4.model.Address.AddressUse.HOME)
-                    .forEach(fhirAddress -> {
-                        partner.setPartnerCity(fhirAddress.getCity());
-                        partner.setPartnerCountryId(getCountryIdFromOdoo(fhirAddress.getCountry()));
-                        partner.setPartnerZip(fhirAddress.getPostalCode());
-                        partner.setPartnerStateId(getStateIdFromOdoo(fhirAddress.getPostalCode()));
-                        partner.setPartnerType(fhirAddress.getType().getDisplay());
+            patient.getAddress().forEach(fhirAddress -> {
+                partner.setPartnerCity(fhirAddress.getCity());
+                partner.setPartnerCountryId(getCountryIdFromOdoo(fhirAddress.getCountry()));
+                partner.setPartnerZip(fhirAddress.getPostalCode());
+                partner.setPartnerStateId(getStateIdFromOdoo(fhirAddress.getPostalCode()));
+                if (fhirAddress.getType() != null) {
+                    partner.setPartnerType(fhirAddress.getType().getDisplay());
+                }
 
-                        if (fhirAddress.hasExtension()) {
-                            List<Extension> extensions = fhirAddress.getExtension();
-                            List<Extension> addressExtensions = extensions.stream()
-                                    .filter(extension -> extension.getUrl().equals(ADDRESS_EXTENSION_URL))
-                                    .findFirst()
-                                    .map(Element::getExtension)
-                                    .orElse(new ArrayList<>());
+                if (fhirAddress.hasExtension()) {
+                    List<Extension> extensions = fhirAddress.getExtension();
+                    List<Extension> addressExtensions = extensions.stream()
+                            .filter(extension -> extension.getUrl().equals(ADDRESS_EXTENSION_URL))
+                            .findFirst()
+                            .map(Element::getExtension)
+                            .orElse(new ArrayList<>());
 
-                            addressExtensions.stream()
-                                    .filter(extension -> extension.getUrl().equals(ADDRESS1_EXTENSION))
-                                    .findFirst()
-                                    .ifPresent(extension -> partner.setPartnerStreet(
-                                            extension.getValue().toString()));
+                    addressExtensions.stream()
+                            .filter(extension -> extension.getUrl().equals(ADDRESS1_EXTENSION))
+                            .findFirst()
+                            .ifPresent(extension -> partner.setPartnerStreet(
+                                    extension.getValue().toString()));
 
-                            addressExtensions.stream()
-                                    .filter(extension -> extension.getUrl().equals(ADDRESS2_EXTENSION))
-                                    .findFirst()
-                                    .ifPresent(extension -> partner.setPartnerStreet2(
-                                            extension.getValue().toString()));
-                        }
-                    });
+                    addressExtensions.stream()
+                            .filter(extension -> extension.getUrl().equals(ADDRESS2_EXTENSION))
+                            .findFirst()
+                            .ifPresent(extension -> partner.setPartnerStreet2(
+                                    extension.getValue().toString()));
+                }
+            });
         }
     }
 
-    private String getStateIdFromOdoo(String stateName) {
-        List<List<List<Object>>> searchQuery =
-                Collections.singletonList(Collections.singletonList(Arrays.asList("name", "=", stateName)));
+    private Integer getStateIdFromOdoo(String stateName) {
         try {
-            Object[] records = (Object[])
-                    odooClient.execute(Constants.SEARCH_METHOD, Constants.COUNTRY_STATE_MODEL, searchQuery, null);
+            Object[] records = odooClient.search(Constants.COUNTRY_STATE_MODEL, asList("name", "=", stateName));
             if (records.length > 1) {
                 throw new EIPException(
                         String.format("Found %s states in odoo matching name: %s", records.length, stateName));
             } else if (records.length == 0) {
                 log.warn("No state found in odoo matching name: {}", stateName);
+                return null;
             }
-            return (String) records[0];
-        } catch (XmlRpcException e) {
+            return (Integer) records[0];
+        } catch (XmlRpcException | MalformedURLException e) {
             throw new RuntimeException("Error occurred while fetching state from Odoo", e);
         }
     }
 
-    private String getCountryIdFromOdoo(String countryName) {
-        List<List<List<Object>>> searchQuery =
-                Collections.singletonList(Collections.singletonList(Arrays.asList("name", "=", countryName)));
+    private Integer getCountryIdFromOdoo(String countryName) {
         try {
-            Object[] records = (Object[])
-                    odooClient.execute(Constants.SEARCH_METHOD, Constants.COUNTRY_STATE_MODEL, searchQuery, null);
+            Object[] records = odooClient.search(Constants.COUNTRY_MODEL, asList("name", "=", countryName));
             if (records.length > 1) {
                 throw new EIPException(
                         String.format("Found %s countries in odoo matching name: %s", records.length, countryName));
             } else if (records.length == 0) {
                 log.warn("No country found in odoo matching name: {}", countryName);
+                return null;
             }
-            return (String) records[0];
-        } catch (XmlRpcException e) {
-            throw new RuntimeException("Error occurred while fetching country from Odoo", e);
+            return (Integer) records[0];
+        } catch (XmlRpcException | MalformedURLException e) {
+            throw new RuntimeException(
+                    String.format("Error occurred while fetching country from Odoo %s", e.getMessage()), e);
         }
     }
 }

@@ -10,6 +10,7 @@ package com.ozonehis.eip.odooopenmrs.handlers;
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,7 +39,7 @@ public class SalesOrderHandler {
             if ((records != null) && (records.length > 0)) {
                 return true;
             }
-        } catch (XmlRpcException e) {
+        } catch (XmlRpcException | MalformedURLException e) {
             log.error("Error while checking if sales order exists with name {} error {}", name, e.getMessage(), e);
         }
         return false;
@@ -53,7 +54,7 @@ public class SalesOrderHandler {
             if ((records != null) && (records.length == 1)) {
                 return (SaleOrder) records[0];
             }
-        } catch (XmlRpcException e) {
+        } catch (XmlRpcException | MalformedURLException e) {
             log.error("Error while checking if sales order exists with name {} error {}", name, e.getMessage(), e);
         }
         return null;

@@ -11,6 +11,7 @@ import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderLineMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +45,7 @@ public class SaleOrderLineHandler {
             if ((records != null) && (records.length > 0)) {
                 return Optional.ofNullable((SaleOrderLine) records[0]); // TODO: Fix
             }
-        } catch (XmlRpcException e) {
+        } catch (XmlRpcException | MalformedURLException e) {
             log.error("Error while checking if sales order line exists with name {} error {}", name, e.getMessage(), e);
         }
         return Optional.empty();

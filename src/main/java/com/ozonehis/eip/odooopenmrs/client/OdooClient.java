@@ -90,8 +90,9 @@ public class OdooClient {
         return String.valueOf(this.uid);
     }
 
-    public Object execute(String method, String model, List dataParams, HashMap requestParams) throws XmlRpcException {
-
+    public Object execute(String method, String model, List dataParams, HashMap requestParams)
+            throws XmlRpcException, MalformedURLException {
+        authenticate();
         List<Object> params;
 
         if (requestParams == null) {

@@ -37,10 +37,10 @@ public class Partner implements OdooDocument {
     private String partnerZip;
 
     @JsonProperty("country_id")
-    private String partnerCountryId;
+    private Integer partnerCountryId;
 
     @JsonProperty("state_id")
-    private String partnerStateId;
+    private Integer partnerStateId;
 
     @JsonProperty("active")
     private Boolean partnerActive;

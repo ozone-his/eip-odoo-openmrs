@@ -4,6 +4,7 @@ import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,7 +34,7 @@ public class PartnerHandler {
             if ((records != null) && (records.length > 0)) {
                 return true;
             }
-        } catch (XmlRpcException e) {
+        } catch (XmlRpcException | MalformedURLException e) {
             log.error("Error while checking if partner exists with id {} error {}", partnerRefID, e.getMessage(), e);
         }
         return false;
