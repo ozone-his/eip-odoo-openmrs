@@ -25,6 +25,7 @@ public class SaleOrderMapper implements ToOdooMapping<Encounter, SaleOrder> {
             String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
             saleOrder.setOrderName(encounterVisitUuid);
             saleOrder.setOrderTypeName("Sales Order");
+            saleOrder.setOrderState("draft"); // TODO Add a check
             //            quotation.setQuotationTo("Customer"); TODO: Check if present in Odoo
         } else {
             throw new IllegalArgumentException(

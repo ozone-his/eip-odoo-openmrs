@@ -20,9 +20,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class MedicationRequestRouting extends RouteBuilder {
 
-    private static final String MEDICATION_REQUEST_TO_QUOTATION_ROUTER = "medication-request-to-quotation-router";
+    private static final String MEDICATION_REQUEST_TO_SALE_ORDER_ROUTER = "medication-request-to-sale-order-router";
 
-    private static final String MEDICATION_REQUEST_TO_QUOTATION_PROCESSOR = "medication-request-to-quotation-processor";
+    private static final String MEDICATION_REQUEST_TO_SALE_ORDER_PROCESSOR =
+            "medication-request-to-sale-order-processor";
 
     private static final String MEDICATION_REQUEST_ID = "medication.request.id";
 
@@ -36,7 +37,7 @@ public class MedicationRequestRouting extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:fhir-medicationrequest")
-                .routeId(MEDICATION_REQUEST_TO_QUOTATION_ROUTER)
+                .routeId(MEDICATION_REQUEST_TO_SALE_ORDER_ROUTER)
                 .process(exchange -> {
                     MedicationRequest medicationRequest = exchange.getMessage().getBody(MedicationRequest.class);
                     exchange.setProperty(Constants.FHIR_RESOURCE_TYPE, medicationRequest.fhirType());
@@ -45,13 +46,13 @@ public class MedicationRequestRouting extends RouteBuilder {
                             medicationRequest.getIdElement().getIdPart());
                     exchange.getMessage().setBody(medicationRequest);
                 })
-                .toD("odoo://?id=${exchangeProperty." + MEDICATION_REQUEST_ID + "}&resource=${exchangeProperty."
+                .toD("openmrs-fhir://?id=${exchangeProperty." + MEDICATION_REQUEST_ID + "}&resource=${exchangeProperty."
                         + Constants.FHIR_RESOURCE_TYPE + "}&include=" + MEDICATION_REQUEST_INCLUDE_PARAMS)
-                .to("direct:medication-request-to-quotation-processor")
+                .to("direct:medication-request-to-sale-order-processor")
                 .end();
 
-        from("direct:medication-request-to-quotation-processor")
-                .routeId(MEDICATION_REQUEST_TO_QUOTATION_PROCESSOR)
+        from("direct:medication-request-to-sale-order-processor")
+                .routeId(MEDICATION_REQUEST_TO_SALE_ORDER_PROCESSOR)
                 .process(medicationRequestProcessor)
                 .log(
                         LoggingLevel.DEBUG,

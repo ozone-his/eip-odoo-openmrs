@@ -106,6 +106,11 @@ public class OdooClient {
         }
     }
 
+    public Object write(String model, List<Object> dataParams) throws XmlRpcException, MalformedURLException {
+        authenticate();
+        return client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "write", dataParams));
+    }
+
     public ArrayList<String> getDomainFields(String model) throws XmlRpcException {
 
         Map<String, Map<String, Object>> fieldsResult = (Map<String, Map<String, Object>>) client.execute(

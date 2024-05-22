@@ -23,20 +23,20 @@ public class PartnerHandler {
     @Autowired
     private OdooClient odooClient;
 
-    public boolean partnerExists(String partnerRefID) {
+    public int partnerExists(String partnerRefID) {
         try {
             Object[] records = odooClient.search(Constants.PARTNER_MODEL, asList("ref", "=", partnerRefID));
             if ((records != null) && (records.length > 0)) {
-                return true;
+                return (Integer) records[0];
             }
         } catch (XmlRpcException | MalformedURLException e) {
             log.error("Error while checking if partner exists with id {} error {}", partnerRefID, e.getMessage(), e);
         }
-        return false;
+        return 0;
     }
 
     public void ensurePartnerExistsAndUpdate(ProducerTemplate producerTemplate, Patient patient) {
-        if (partnerExists(patient.getIdPart())) {
+        if (partnerExists(patient.getIdPart()) > 0) {
             log.info("Customer with UUID {} already exists, updating...", patient.getIdPart());
             var headers = new HashMap<String, Object>();
             headers.put(Constants.HEADER_ODOO_DOCTYPE, "Partner");

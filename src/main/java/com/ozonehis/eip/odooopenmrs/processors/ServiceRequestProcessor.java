@@ -88,22 +88,27 @@ public class ServiceRequestProcessor implements Processor {
                             this.saleOrderLineHandler
                                     .createSaleOrderLineIfItemExists(serviceRequest)
                                     .ifPresent(quotationItem -> {
-                                        if (finalSaleOrder.hasSaleOrderLine(quotationItem)) {
-                                            log.debug("Sale order line already exists. Already processed skipping...");
-                                        } else {
-                                            finalSaleOrder.addSaleOrderLine(quotationItem);
-                                        }
+                                        //                                        if
+                                        // (finalSaleOrder.hasSaleOrderLine(quotationItem)) {
+                                        //                                            log.debug("Sale order line already
+                                        // exists. Already processed skipping...");
+                                        //                                        } else {
+                                        //
+                                        // finalSaleOrder.addSaleOrderLine(quotationItem);
+                                        //                                        }
                                     });
                             salesOrderHandler.sendSalesOrder(
                                     producerTemplate, "direct:odoo-update-sales-order-route", finalSaleOrder);
                         } else {
                             saleOrder = saleOrderMapper.toOdoo(encounter);
-                            saleOrder.setOrderTitle(partner.getPartnerName());
-                            saleOrder.setOrderPartyName(partner.getPartnerRef());
-                            saleOrder.setOrderPartnerName(partner.getPartnerName());
-                            this.saleOrderLineHandler
-                                    .createSaleOrderLineIfItemExists(serviceRequest)
-                                    .ifPresent(saleOrder::addSaleOrderLine);
+                            saleOrder.setOrderPartnerId(partnerHandler.partnerExists(patient.getIdPart()));
+                            //                            saleOrder.setOrderTitle(partner.getPartnerName());
+                            //                            saleOrder.setOrderPartyName(partner.getPartnerRef());
+                            //                            saleOrder.setOrderPartnerName(partner.getPartnerName());
+                            //                            this.saleOrderLineHandler
+                            //                                    .createSaleOrderLineIfItemExists(serviceRequest)
+                            //                                    .ifPresent(saleOrder::addSaleOrderLine);
+                            log.info("TESTING: IN SERVICE REQUEST");
                             salesOrderHandler.sendSalesOrder(
                                     producerTemplate, "direct:odoo-create-sales-order-route", saleOrder);
                         }

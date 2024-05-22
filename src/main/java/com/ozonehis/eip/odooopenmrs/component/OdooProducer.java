@@ -3,10 +3,9 @@ package com.ozonehis.eip.odooopenmrs.component;
 import static java.util.Arrays.asList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
-import com.ozonehis.eip.odooopenmrs.model.Partner;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,19 +36,19 @@ public class OdooProducer extends DefaultProducer {
         log.info("OdooProducer: Model: {}, Method {}", model, method);
         log.info("OdooProducer: OdooClient {}", odooClient);
 
-        // TODO: Parse params from body
-        List<Object> params = new ArrayList<>();
-        HashMap<String, Object> hashMap = new HashMap<>();
-        params.add(hashMap);
-
-        if (body instanceof Partner) {
-            Object[] records =
-                    (Object[]) odooClient.execute(method, model, asList(convertObjectToMap((Partner) body)), null);
-            log.info("OdooProducer: Created user userId: {}", records[0]);
+        if (method.equalsIgnoreCase(Constants.CREATE_METHOD)) {
+            Object[] records = (Object[]) odooClient.execute(method, model, List.of(convertObjectToMap(body)), null);
+            log.info("OdooProducer: Created {} in Odoo with id: {}", body, records[0]);
+        } else if (method.equalsIgnoreCase(Constants.WRITE_METHOD)) {
+            Object[] records = odooClient.search(
+                    Constants.PARTNER_MODEL,
+                    asList("ref", "=", convertObjectToMap(body).get("ref")));
+            Boolean response =
+                    (Boolean) odooClient.write(model, asList(asList((Integer) records[0]), convertObjectToMap(body)));
+            log.info("OdooProducer: Updated {} in Odoo with id: {}", body, records[0]);
+            log.info("OdooProducer: Map: {} response {} search id {}", convertObjectToMap(body), response, records[0]);
         }
 
-        //        odooClient.execute(method, model, params, null);
-        // TODO: Parse params and requestParams
         log.info("OdooProducer: Body: {}", body);
     }
 

@@ -20,9 +20,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class ServiceRequestRouting extends RouteBuilder {
 
-    private static final String SERVICE_REQUEST_TO_QUOTATION_ROUTER = "service-request-to-quotation-router";
+    private static final String SERVICE_REQUEST_TO_SALE_ORDER_ROUTER = "service-request-to-sale-order-router";
 
-    private static final String SERVICE_REQUEST_TO_QUOTATION_PROCESSOR = "service-request-to-quotation-processor";
+    private static final String SERVICE_REQUEST_TO_SALE_ORDER_PROCESSOR = "service-request-to-sale-order-processor";
 
     private static final String SERVICE_REQUEST_ID = "service.request.id";
 
@@ -39,7 +39,7 @@ public class ServiceRequestRouting extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:fhir-servicerequest")
-                .routeId(SERVICE_REQUEST_TO_QUOTATION_ROUTER)
+                .routeId(SERVICE_REQUEST_TO_SALE_ORDER_ROUTER)
                 .process(exchange -> {
                     ServiceRequest serviceRequest = exchange.getMessage().getBody(ServiceRequest.class);
                     exchange.setProperty(Constants.FHIR_RESOURCE_TYPE, serviceRequest.fhirType());
@@ -47,12 +47,12 @@ public class ServiceRequestRouting extends RouteBuilder {
                             SERVICE_REQUEST_ID, serviceRequest.getIdElement().getIdPart());
                     exchange.getMessage().setBody(serviceRequest);
                 })
-                .toD("odoo://?" + SEARCH_PARAMS)
-                .to("direct:service-request-to-quotation-processor")
+                .toD("openmrs-fhir://?" + SEARCH_PARAMS)
+                .to("direct:service-request-to-sale-order-processor")
                 .end();
 
-        from("direct:service-request-to-quotation-processor")
-                .routeId(SERVICE_REQUEST_TO_QUOTATION_PROCESSOR)
+        from("direct:service-request-to-sale-order-processor")
+                .routeId(SERVICE_REQUEST_TO_SALE_ORDER_PROCESSOR)
                 .process(serviceRequestProcessor)
                 .log(
                         LoggingLevel.DEBUG,

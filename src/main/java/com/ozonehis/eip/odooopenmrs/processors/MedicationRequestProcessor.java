@@ -87,32 +87,40 @@ public class MedicationRequestProcessor implements Processor {
                     if (medicationRequest.getStatus().equals(MedicationRequest.MedicationRequestStatus.CANCELLED)) {
                         handleSaleOrderWithItems(encounterVisitUuid, medicationRequest, exchange, producerTemplate);
                     } else {
-                        SaleOrder saleOrder = salesOrderHandler.getSalesOrder(encounterVisitUuid);
+                        //                        SaleOrder saleOrder =
+                        // salesOrderHandler.getSalesOrder(encounterVisitUuid);
+                        SaleOrder saleOrder = null;
                         if (saleOrder != null) {
                             // If the sale order exists, update it
                             Medication finalMedication = medication;
                             saleOrderLineHandler
                                     .createSaleOrderLineIfItemExists(medicationRequest)
                                     .ifPresent(line -> {
-                                        if (saleOrder.hasSaleOrderLine(line)) {
-                                            saleOrder.removeSaleOrderLine(line);
-                                        }
-                                        if (line.getSaleOrderLineOrderId() == null) {
-                                            line.setSaleOrderLineOrderId(finalMedication.getIdPart());
-                                        }
-                                        saleOrder.addSaleOrderLine(line);
+                                        //                                        if (saleOrder.hasSaleOrderLine(line))
+                                        // {
+                                        //
+                                        // saleOrder.removeSaleOrderLine(line);
+                                        //                                        }
+                                        //                                        if (line.getSaleOrderLineOrderId() ==
+                                        // null) {
+                                        //
+                                        // line.setSaleOrderLineOrderId(finalMedication.getIdPart());
+                                        //                                        }
+                                        //                                        saleOrder.addSaleOrderLine(line);
                                     });
                             salesOrderHandler.sendSalesOrder(
                                     producerTemplate, "direct:odoo-update-sales-order-route", saleOrder);
                         } else {
                             // If the sale order does not exist, create it
                             SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
-                            newSaleOrder.setOrderTitle(partner.getPartnerName());
-                            newSaleOrder.setOrderPartyName(partner.getPartnerRef());
-                            newSaleOrder.setOrderPartnerName(partner.getPartnerName());
-                            saleOrderLineHandler
-                                    .createSaleOrderLineIfItemExists(medicationRequest)
-                                    .ifPresent(newSaleOrder::addSaleOrderLine);
+                            newSaleOrder.setOrderPartnerId(partnerHandler.partnerExists(patient.getIdPart()));
+                            //                            newSaleOrder.setOrderTitle(partner.getPartnerName());
+                            //                            newSaleOrder.setOrderPartyName(partner.getPartnerRef());
+                            //                            newSaleOrder.setOrderPartnerName(partner.getPartnerName());
+                            //                            saleOrderLineHandler
+                            //                                    .createSaleOrderLineIfItemExists(medicationRequest)
+                            //                                    .ifPresent(newSaleOrder::addSaleOrderLine);
+                            log.info("TESTING: IN MEDICATION REQUEST");
                             salesOrderHandler.sendSalesOrder(
                                     producerTemplate, "direct:odoo-create-sales-order-route", newSaleOrder);
                         }
@@ -136,12 +144,12 @@ public class MedicationRequestProcessor implements Processor {
         SaleOrder saleOrder = salesOrderHandler.getSalesOrder(encounterVisitUuid);
         if (saleOrder != null) {
             log.debug("Removing item from sale order with ID {}", medicationRequest.getIdPart());
-            saleOrder.removeSaleOrderLine(medicationRequest.getIdPart());
-
-            String route = saleOrder.hasSaleOrderLines()
-                    ? "direct:odoo-update-sales-order-route"
-                    : "direct:odoo-delete-sales-order-route";
-            salesOrderHandler.sendSalesOrder(producerTemplate, route, saleOrder);
+            //            saleOrder.removeSaleOrderLine(medicationRequest.getIdPart());
+            //
+            //            String route = saleOrder.hasSaleOrderLines()
+            //                    ? "direct:odoo-update-sales-order-route"
+            //                    : "direct:odoo-delete-sales-order-route";
+            //            salesOrderHandler.sendSalesOrder(producerTemplate, route, saleOrder);
         } else {
             log.debug("Sale order with ID {} already deleted", encounterVisitUuid);
             exchange.getMessage().setHeader(com.ozonehis.eip.odooopenmrs.Constants.HEADER_EVENT_PROCESSED, true);
