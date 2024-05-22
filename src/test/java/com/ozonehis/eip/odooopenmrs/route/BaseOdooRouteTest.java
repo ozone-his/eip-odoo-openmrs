@@ -8,6 +8,7 @@ import org.openmrs.eip.Constants;
 import org.openmrs.eip.EIPException;
 import org.openmrs.eip.mysql.watcher.route.BaseWatcherRouteTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -20,6 +21,8 @@ import org.springframework.test.context.jdbc.SqlConfig;
         value = {"classpath:sql/test_data.sql"},
         config =
                 @SqlConfig(dataSource = Constants.OPENMRS_DATASOURCE_NAME, transactionManager = "openmrsTestTxManager"))
+// @DirtiesContext tells the testing framework to close and recreate the context for later tests.
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public abstract class BaseOdooRouteTest extends BaseWatcherRouteTest {
 
     protected final ObjectMapper mapper = new ObjectMapper();
