@@ -11,9 +11,12 @@ import static java.util.Arrays.asList;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
+import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import java.net.MalformedURLException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
@@ -29,23 +32,32 @@ public class SalesOrderHandler {
     @Autowired
     private OdooClient odooClient;
 
-    public boolean salesOrderExists(String name) {
+    public SaleOrder salesOrderExists(String name) {
         try {
-            Object[] records = odooClient.search(Constants.SALE_ORDER_MODEL, asList("name", "=", name));
+            Object[] records = odooClient.search(Constants.SALE_ORDER_MODEL, asList("client_order_ref", "=", name));
             if ((records != null) && (records.length > 0)) {
-                return true;
+                return OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
             }
         } catch (XmlRpcException | MalformedURLException e) {
             log.error("Error while checking if sales order exists with name {} error {}", name, e.getMessage(), e);
         }
-        return false;
+        return null;
     }
 
     public SaleOrder getSalesOrder(String name) {
         try {
-            Object[] records = odooClient.searchAndRead(Constants.SALE_ORDER_MODEL, asList("name", "=", name), null);
+            Object[] records = odooClient.searchAndRead(
+                    Constants.SALE_ORDER_MODEL,
+                    asList(asList("client_order_ref", "=", name)),
+                    Constants.orderDefaultAttributes);
             if ((records != null) && (records.length == 1)) {
-                return (SaleOrder) records[0];
+                log.info("Fetched Sales Order: {}", records[0]);
+                SaleOrder fetchedSalesOrder =
+                        OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
+                List<Object> partnerIdList = (List<Object>) fetchedSalesOrder.getOrderPartnerId();
+                fetchedSalesOrder.setOrderPartnerId((Integer) partnerIdList.get(0));
+                log.info("Fetched Sales Order updated: {}", fetchedSalesOrder);
+                return fetchedSalesOrder;
             }
         } catch (XmlRpcException | MalformedURLException e) {
             log.error("Error while checking if sales order exists with name {} error {}", name, e.getMessage(), e);
@@ -57,7 +69,7 @@ public class SalesOrderHandler {
         var quotationHeaders = new HashMap<String, Object>();
         quotationHeaders.put(Constants.HEADER_ODOO_DOCTYPE, Constants.SALE_ORDER_MODEL);
         quotationHeaders.put(Constants.HEADER_ODOO_RESOURCE, saleOrder);
-        quotationHeaders.put(Constants.HEADER_ODOO_ID, saleOrder.getOrderName());
+        quotationHeaders.put(Constants.HEADER_ODOO_ID, saleOrder.getOrderClientOrderRef());
 
         producerTemplate.sendBodyAndHeaders(endpointUri, saleOrder, quotationHeaders);
     }

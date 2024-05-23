@@ -13,7 +13,6 @@ import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
 import org.apache.xmlrpc.XmlRpcException;
@@ -39,11 +38,6 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
 
     @Override
     public Partner toOdoo(Patient patient) {
-        try {
-            odooClient.init();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         if (patient == null) {
             return null;
         }

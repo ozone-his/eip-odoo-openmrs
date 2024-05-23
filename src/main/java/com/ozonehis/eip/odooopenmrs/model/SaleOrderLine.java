@@ -22,14 +22,14 @@ public class SaleOrderLine implements OdooDocument {
     private String saleOrderLineName; // Stores Description
 
     @JsonProperty("order_id")
-    private String saleOrderLineOrderId; // TODO: Check if List<Object>
+    private Integer saleOrderLineOrderId; // TODO: Check if List<Object>
 
     @JsonProperty("product_id")
-    private String saleOrderLineProductId; // TODO: Check if List<Object>
+    private Integer saleOrderLineProductId; // TODO: Check if List<Object>
 
     @JsonProperty("product_uom_qty")
     private Float saleOrderLineProductUomQty;
 
     @JsonProperty("product_uom")
-    private String saleOrderLineProductUom; // TODO: Check if List<Object>
+    private Object saleOrderLineProductUom; // TODO: Check if List<Object>
 }

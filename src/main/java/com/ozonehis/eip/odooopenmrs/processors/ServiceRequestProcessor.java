@@ -85,18 +85,18 @@ public class ServiceRequestProcessor implements Processor {
                         if (saleOrder != null) {
                             // Sale order exists, update it with the new sale order line
                             SaleOrder finalSaleOrder = saleOrder;
-                            this.saleOrderLineHandler
-                                    .createSaleOrderLineIfItemExists(serviceRequest)
-                                    .ifPresent(quotationItem -> {
-                                        //                                        if
-                                        // (finalSaleOrder.hasSaleOrderLine(quotationItem)) {
-                                        //                                            log.debug("Sale order line already
-                                        // exists. Already processed skipping...");
-                                        //                                        } else {
-                                        //
-                                        // finalSaleOrder.addSaleOrderLine(quotationItem);
-                                        //                                        }
-                                    });
+                            //                            this.saleOrderLineHandler
+                            //                                    .createSaleOrderLineIfItemExists(serviceRequest)
+                            //                                    .ifPresent(quotationItem -> {
+                            //                                        if
+                            // (finalSaleOrder.hasSaleOrderLine(quotationItem)) {
+                            //                                            log.debug("Sale order line already
+                            // exists. Already processed skipping...");
+                            //                                        } else {
+                            //
+                            // finalSaleOrder.addSaleOrderLine(quotationItem);
+                            //                                        }
+                            //                                    });
                             salesOrderHandler.sendSalesOrder(
                                     producerTemplate, "direct:odoo-update-sales-order-route", finalSaleOrder);
                         } else {
@@ -108,7 +108,7 @@ public class ServiceRequestProcessor implements Processor {
                             //                            this.saleOrderLineHandler
                             //                                    .createSaleOrderLineIfItemExists(serviceRequest)
                             //                                    .ifPresent(saleOrder::addSaleOrderLine);
-                            log.info("TESTING: IN SERVICE REQUEST");
+                            log.info("TESTING: IN SERVICE REQUEST {}", saleOrder);
                             salesOrderHandler.sendSalesOrder(
                                     producerTemplate, "direct:odoo-create-sales-order-route", saleOrder);
                         }

@@ -9,9 +9,11 @@ package com.ozonehis.eip.odooopenmrs.mapper.odoo;
 
 import com.ozonehis.eip.odooopenmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
+import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R, SaleOrderLine> {
 
@@ -19,7 +21,7 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
     public SaleOrderLine toOdoo(R resource) {
         SaleOrderLine saleOrderLine = new SaleOrderLine();
         if (resource instanceof ServiceRequest serviceRequest) {
-            saleOrderLine.setSaleOrderLineOrderId(serviceRequest.getIdPart());
+            //            saleOrderLine.setSaleOrderLineOrderId(serviceRequest.getIdPart());
             if (serviceRequest.hasCode()) {
                 saleOrderLine.setSaleOrderLineName(
                         serviceRequest.getCode().getCodingFirstRep().getCode()); // TODO: Check what to map?
@@ -31,10 +33,11 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
             saleOrderLine.setSaleOrderLineName(serviceDisplay + " | Requester: " + requesterDisplay);
 
         } else if (resource instanceof MedicationRequest medicationRequest) {
-            saleOrderLine.setSaleOrderLineOrderId(medicationRequest.getIdPart());
+            //            saleOrderLine.setSaleOrderLineOrderId(medicationRequest.getIdPart());
             if (medicationRequest.hasDispenseRequest()) {
                 if (medicationRequest.getDispenseRequest().hasQuantity()) {
                     Quantity quantity = medicationRequest.getDispenseRequest().getQuantity();
+                    log.info("SaleOrderLineMapper: Quantity value {}", quantity.getValue());
                     saleOrderLine.setSaleOrderLineProductUomQty(
                             quantity.getValue().floatValue());
                     saleOrderLine.setSaleOrderLineProductUom(quantity.getUnit());

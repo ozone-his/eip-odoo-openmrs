@@ -7,12 +7,15 @@
  */
 package com.ozonehis.eip.odooopenmrs.processors;
 
+import com.ozonehis.eip.odooopenmrs.client.OdooClient;
+import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderLineHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +47,9 @@ public class MedicationRequestProcessor implements Processor {
 
     @Autowired
     private SaleOrderLineHandler saleOrderLineHandler;
+
+    @Autowired
+    private OdooClient odooClient;
 
     @Override
     public void process(Exchange exchange) {
@@ -87,42 +93,42 @@ public class MedicationRequestProcessor implements Processor {
                     if (medicationRequest.getStatus().equals(MedicationRequest.MedicationRequestStatus.CANCELLED)) {
                         handleSaleOrderWithItems(encounterVisitUuid, medicationRequest, exchange, producerTemplate);
                     } else {
-                        //                        SaleOrder saleOrder =
-                        // salesOrderHandler.getSalesOrder(encounterVisitUuid);
-                        SaleOrder saleOrder = null;
+                        SaleOrder saleOrder = salesOrderHandler.getSalesOrder(encounterVisitUuid);
+                        //                        SaleOrder saleOrder = null;
                         if (saleOrder != null) {
                             // If the sale order exists, update it
-                            Medication finalMedication = medication;
-                            saleOrderLineHandler
-                                    .createSaleOrderLineIfItemExists(medicationRequest)
-                                    .ifPresent(line -> {
-                                        //                                        if (saleOrder.hasSaleOrderLine(line))
-                                        // {
-                                        //
-                                        // saleOrder.removeSaleOrderLine(line);
-                                        //                                        }
-                                        //                                        if (line.getSaleOrderLineOrderId() ==
-                                        // null) {
-                                        //
-                                        // line.setSaleOrderLineOrderId(finalMedication.getIdPart());
-                                        //                                        }
-                                        //                                        saleOrder.addSaleOrderLine(line);
-                                    });
+                            Integer saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
+                                    medicationRequest, saleOrder);
+                            if (saleOrderLineId != null) {
+                                List<Integer> saleOrderLineIdList = new ArrayList<>();
+                                saleOrderLineIdList.add(saleOrderLineId);
+                                saleOrder.setOrderLine(saleOrderLineIdList);
+                            }
+                            log.info("TESTING: IN MEDICATION REQUEST saleOrder != null {}", saleOrder);
                             salesOrderHandler.sendSalesOrder(
                                     producerTemplate, "direct:odoo-update-sales-order-route", saleOrder);
                         } else {
                             // If the sale order does not exist, create it
                             SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
                             newSaleOrder.setOrderPartnerId(partnerHandler.partnerExists(patient.getIdPart()));
-                            //                            newSaleOrder.setOrderTitle(partner.getPartnerName());
-                            //                            newSaleOrder.setOrderPartyName(partner.getPartnerRef());
-                            //                            newSaleOrder.setOrderPartnerName(partner.getPartnerName());
-                            //                            saleOrderLineHandler
-                            //                                    .createSaleOrderLineIfItemExists(medicationRequest)
-                            //                                    .ifPresent(newSaleOrder::addSaleOrderLine);
-                            log.info("TESTING: IN MEDICATION REQUEST");
-                            salesOrderHandler.sendSalesOrder(
-                                    producerTemplate, "direct:odoo-create-sales-order-route", newSaleOrder);
+                            Object[] records = (Object[]) odooClient.execute(
+                                    com.ozonehis.eip.odooopenmrs.Constants.CREATE_METHOD,
+                                    com.ozonehis.eip.odooopenmrs.Constants.SALE_ORDER_MODEL,
+                                    List.of(OdooUtils.convertObjectToMap(newSaleOrder)),
+                                    null);
+
+                            newSaleOrder.setOrderId((Integer) records[0]);
+                            Integer saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
+                                    medicationRequest, newSaleOrder);
+                            if (saleOrderLineId != null) {
+                                List<Integer> saleOrderLineIdList = new ArrayList<>();
+                                saleOrderLineIdList.add(saleOrderLineId);
+                                newSaleOrder.setOrderLine(saleOrderLineIdList);
+                            }
+                            log.info("TESTING: IN MEDICATION REQUEST saleOrder == null {}", newSaleOrder);
+                            //                            salesOrderHandler.sendSalesOrder(
+                            //                                    producerTemplate,
+                            // "direct:odoo-create-sales-order-route", newSaleOrder);
                         }
                     }
                 } else if ("d".equals(eventType)) {

@@ -56,6 +56,11 @@ public class OdooClient {
     }
 
     public void authenticate() throws MalformedURLException {
+        try {
+            init();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         XmlRpcClientConfigImpl common_config = new XmlRpcClientConfigImpl();
         common_config.setServerURL(new URL(String.format("%s/xmlrpc/2/common", getUrl())));
 
@@ -93,7 +98,7 @@ public class OdooClient {
 
     public Object execute(String method, String model, List dataParams, HashMap requestParams)
             throws XmlRpcException, MalformedURLException {
-        authenticate();
+        authenticateIfNecessary();
         List<Object> params;
 
         if (requestParams == null) {
@@ -107,7 +112,7 @@ public class OdooClient {
     }
 
     public Object write(String model, List<Object> dataParams) throws XmlRpcException, MalformedURLException {
-        authenticate();
+        authenticateIfNecessary();
         return client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "write", dataParams));
     }
 
@@ -146,7 +151,7 @@ public class OdooClient {
         params.add(getPassword());
         params.add(model);
         params.add("search_read");
-        params.add(singletonList(singletonList(criteria)));
+        params.add(singletonList(criteria));
         if (fields != null) {
             params.add(singletonMap("fields", fields));
         }

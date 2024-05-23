@@ -2,7 +2,6 @@ package com.ozonehis.eip.odooopenmrs.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,18 +10,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Product implements OdooDocument {
+public class Uom {
+
     @JsonProperty("id")
-    private Integer productId;
+    private Integer uomId;
 
-    @Nonnull
-    @JsonProperty("display_name")
-    private String productDisplayName; // Product Name
-
-    @Nonnull
     @JsonProperty("name")
-    private String productName; // Product ID
+    private String uomName;
 
     @JsonProperty("res_id")
-    private Integer productResId;
+    private Integer uomResId;
+
+    @JsonProperty("display_name")
+    private String uomDisplayName;
 }

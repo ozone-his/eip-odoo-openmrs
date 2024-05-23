@@ -16,14 +16,14 @@ public class SaleOrder implements OdooDocument {
     @JsonProperty("id")
     private Integer orderId;
 
-    @JsonProperty("name")
-    private String orderName;
+    @JsonProperty("client_order_ref")
+    private String orderClientOrderRef;
 
     @JsonProperty("state")
     private String orderState;
 
     @JsonProperty("partner_id")
-    private int orderPartnerId; // TODO check if list in Odoo
+    private Object orderPartnerId; // TODO check if list in Odoo
 
     @JsonProperty("order_line")
     private List<Integer> orderLine;

@@ -41,14 +41,14 @@ public class PartnerHandler {
             var headers = new HashMap<String, Object>();
             headers.put(Constants.HEADER_ODOO_DOCTYPE, "Partner");
             headers.put(HEADER_FHIR_EVENT_TYPE, "u");
-            //            headers.put(HEADER_ENABLE_PATIENT_SYNC, true);
+            headers.put(Constants.HEADER_ENABLE_PATIENT_SYNC, true);
             producerTemplate.sendBodyAndHeaders("direct:patient-to-partner-router", patient, headers);
         } else {
             log.info("Partner with UUID {} does not exist, creating...", patient.getIdPart());
             var headers = new HashMap<String, Object>();
-            headers.put(Constants.HEADER_ODOO_DOCTYPE, "Customer");
+            headers.put(Constants.HEADER_ODOO_DOCTYPE, "Partner");
             headers.put(HEADER_FHIR_EVENT_TYPE, "c");
-            //            headers.put(HEADER_ENABLE_PATIENT_SYNC, true);
+            headers.put(Constants.HEADER_ENABLE_PATIENT_SYNC, true);
             producerTemplate.sendBodyAndHeaders("direct:patient-to-partner-router", patient, headers);
         }
     }
