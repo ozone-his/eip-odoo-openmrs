@@ -10,7 +10,7 @@
                 <simple>${properties:odoo.weight.field:null} != null &amp;&amp; ${properties:odoo.weight.field:null}  != ''</simple>
                 
                 <setProperty name="odooWeightField">
-                    <simple>{{properties:odoo.weight.field}}</simple>
+                    <simple>${properties:odoo.weight.field}</simple>
                 </setProperty>
 
                 <toD cacheSize="-1" uri="{{openmrs.baseUrl}}/ws/rest/v1/obs?concept=${exchangeProperty.odooWeightField}&amp;patient=${exchangeProperty.patient.get('uuid')}" />
