@@ -67,17 +67,19 @@ public class SaleOrderLineHandler {
     }
 
     public Integer createSaleOrderLineIfProductExists(Resource resource, SaleOrder saleOrder) {
-        // TODO: Remove this check ensure Sale order should be created before sale order line
-        if (saleOrder == null) {
-            return null;
-        }
         Product product = getProduct(getItemName(resource));
         log.info("SaleOrderLineHandler: createSaleOrderLineIfProductExists  product {}", product);
         if (product != null) {
             SaleOrderLine saleOrderLine = saleOrderLineMapper.toOdoo(resource);
             saleOrderLine.setSaleOrderLineOrderId(saleOrder.getOrderId());
-            saleOrderLine.setSaleOrderLineProductUom((Integer)
-                    getUom((String) saleOrderLine.getSaleOrderLineProductUom()).getUomResId());
+            if (resource instanceof MedicationRequest) {
+                saleOrderLine.setSaleOrderLineProductUom(
+                        (Integer) getUom((String) saleOrderLine.getSaleOrderLineProductUom())
+                                .getUomResId());
+            } else if (resource instanceof ServiceRequest) {
+                saleOrderLine.setSaleOrderLineProductUom(
+                        1); // TODO: Hardcoded to 1 so that `Units` is shown for ServiceRequest
+            }
             saleOrderLine.setSaleOrderLineProductId(product.getProductResId());
             log.info(
                     "SaleOrderLineHandler: createSaleOrderLineIfProductExists setSaleOrderLineOrderId {}",
@@ -136,7 +138,7 @@ public class SaleOrderLineHandler {
         try {
             Object[] records = odooClient.searchAndRead(
                     Constants.IR_MODEL,
-                    asList(asList("model", "=", Constants.UOM_MODEL), asList("display_name", "=", name)),
+                    asList(asList("model", "=", Constants.UOM_MODEL), asList("name", "=", name)),
                     null);
             if ((records != null) && (records.length > 0)) {
                 log.info("Fetched uom {} from Odoo with id {}", records[0], name);

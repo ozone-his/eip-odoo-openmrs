@@ -7,13 +7,15 @@
  */
 package com.ozonehis.eip.odooopenmrs.processors;
 
+import com.ozonehis.eip.odooopenmrs.client.OdooClient;
+import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderLineHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +47,9 @@ public class ServiceRequestProcessor implements Processor {
 
     @Autowired
     private SaleOrderLineHandler saleOrderLineHandler;
+
+    @Autowired
+    private OdooClient odooClient;
 
     @Override
     public void process(Exchange exchange) {
@@ -84,38 +89,43 @@ public class ServiceRequestProcessor implements Processor {
                         SaleOrder saleOrder = salesOrderHandler.getSalesOrder(encounterVisitUuid);
                         if (saleOrder != null) {
                             // Sale order exists, update it with the new sale order line
-                            SaleOrder finalSaleOrder = saleOrder;
-                            //                            this.saleOrderLineHandler
-                            //                                    .createSaleOrderLineIfItemExists(serviceRequest)
-                            //                                    .ifPresent(quotationItem -> {
-                            //                                        if
-                            // (finalSaleOrder.hasSaleOrderLine(quotationItem)) {
-                            //                                            log.debug("Sale order line already
-                            // exists. Already processed skipping...");
-                            //                                        } else {
-                            //
-                            // finalSaleOrder.addSaleOrderLine(quotationItem);
-                            //                                        }
-                            //                                    });
+                            Integer saleOrderLineId =
+                                    saleOrderLineHandler.createSaleOrderLineIfProductExists(serviceRequest, saleOrder);
+                            if (saleOrderLineId != null) {
+                                List<Integer> saleOrderLineIdList = new ArrayList<>();
+                                saleOrderLineIdList.add(saleOrderLineId);
+                                saleOrder.setOrderLine(saleOrderLineIdList);
+                            }
+                            log.info("TESTING: IN SERVICE REQUEST saleOrder != null {}", saleOrder);
                             salesOrderHandler.sendSalesOrder(
-                                    producerTemplate, "direct:odoo-update-sales-order-route", finalSaleOrder);
+                                    producerTemplate, "direct:odoo-update-sales-order-route", saleOrder);
                         } else {
-                            saleOrder = saleOrderMapper.toOdoo(encounter);
-                            saleOrder.setOrderPartnerId(partnerHandler.partnerExists(patient.getIdPart()));
-                            //                            saleOrder.setOrderTitle(partner.getPartnerName());
-                            //                            saleOrder.setOrderPartyName(partner.getPartnerRef());
-                            //                            saleOrder.setOrderPartnerName(partner.getPartnerName());
-                            //                            this.saleOrderLineHandler
-                            //                                    .createSaleOrderLineIfItemExists(serviceRequest)
-                            //                                    .ifPresent(saleOrder::addSaleOrderLine);
-                            log.info("TESTING: IN SERVICE REQUEST {}", saleOrder);
-                            salesOrderHandler.sendSalesOrder(
-                                    producerTemplate, "direct:odoo-create-sales-order-route", saleOrder);
+                            // If the sale order does not exist, create it
+                            SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
+                            newSaleOrder.setOrderPartnerId(partnerHandler.partnerExists(patient.getIdPart()));
+                            Object[] records = (Object[]) odooClient.execute(
+                                    com.ozonehis.eip.odooopenmrs.Constants.CREATE_METHOD,
+                                    com.ozonehis.eip.odooopenmrs.Constants.SALE_ORDER_MODEL,
+                                    List.of(OdooUtils.convertObjectToMap(newSaleOrder)),
+                                    null);
+
+                            newSaleOrder.setOrderId((Integer) records[0]);
+                            Integer saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
+                                    serviceRequest, newSaleOrder);
+                            if (saleOrderLineId != null) {
+                                List<Integer> saleOrderLineIdList = new ArrayList<>();
+                                saleOrderLineIdList.add(saleOrderLineId);
+                                newSaleOrder.setOrderLine(saleOrderLineIdList);
+                            }
+                            log.info("TESTING: IN SERVICE REQUEST saleOrder == null {}", newSaleOrder);
+                            //                            salesOrderHandler.sendSalesOrder(
+                            //                                    producerTemplate,
+                            // "direct:odoo-create-sales-order-route", saleOrder);
                         }
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new CamelExecutionException("Error processing ServiceRequest", exchange, e);
         }
     }

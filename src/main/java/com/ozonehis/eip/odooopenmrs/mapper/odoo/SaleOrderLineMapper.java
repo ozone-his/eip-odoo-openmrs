@@ -37,10 +37,9 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
             if (medicationRequest.hasDispenseRequest()) {
                 if (medicationRequest.getDispenseRequest().hasQuantity()) {
                     Quantity quantity = medicationRequest.getDispenseRequest().getQuantity();
-                    log.info("SaleOrderLineMapper: Quantity value {}", quantity.getValue());
                     saleOrderLine.setSaleOrderLineProductUomQty(
                             quantity.getValue().floatValue());
-                    saleOrderLine.setSaleOrderLineProductUom(quantity.getUnit());
+                    saleOrderLine.setSaleOrderLineProductUom(quantity.getCode());
                 }
             }
 
