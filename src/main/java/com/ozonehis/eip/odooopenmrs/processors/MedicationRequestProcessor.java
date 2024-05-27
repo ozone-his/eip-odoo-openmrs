@@ -111,7 +111,7 @@ public class MedicationRequestProcessor implements Processor {
                             // If the sale order does not exist, create it
                             SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
                             newSaleOrder.setOrderPartnerId(partnerHandler.partnerExists(patient.getIdPart()));
-                            Object[] records = (Object[]) odooClient.execute(
+                            Object[] records = (Object[]) odooClient.create(
                                     com.ozonehis.eip.odooopenmrs.Constants.CREATE_METHOD,
                                     com.ozonehis.eip.odooopenmrs.Constants.SALE_ORDER_MODEL,
                                     List.of(OdooUtils.convertObjectToMap(newSaleOrder)),

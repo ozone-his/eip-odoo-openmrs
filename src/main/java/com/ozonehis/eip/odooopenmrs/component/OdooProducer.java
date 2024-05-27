@@ -35,7 +35,7 @@ public class OdooProducer extends DefaultProducer {
 
         if (method.equalsIgnoreCase(Constants.CREATE_METHOD)) {
             Object[] records =
-                    (Object[]) odooClient.execute(method, model, List.of(OdooUtils.convertObjectToMap(body)), null);
+                    (Object[]) odooClient.create(method, model, List.of(OdooUtils.convertObjectToMap(body)), null);
             log.info("OdooProducer: Created {} in Odoo with id: {}", body, records[0]);
         } else if (method.equalsIgnoreCase(Constants.WRITE_METHOD)) {
             Object[] records = odooClient.search(

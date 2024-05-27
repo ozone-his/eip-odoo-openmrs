@@ -1,7 +1,6 @@
 package com.ozonehis.eip.odooopenmrs.client;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -13,13 +12,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+@Slf4j
+@Getter
 @Component
 public class OdooClient {
 
@@ -39,6 +41,10 @@ public class OdooClient {
 
     private XmlRpcClient client;
 
+    private static final String SERVER_OBJECT_URL = "%s/xmlrpc/2/object";
+
+    private static final String SERVER_COMMON_URL = "%s/xmlrpc/2/common";
+
     public OdooClient() {}
 
     public void init() throws IOException {
@@ -48,7 +54,7 @@ public class OdooClient {
 
                     {
                         setEnabledForExtensions(true);
-                        setServerURL(new URL(String.format("%s/xmlrpc/2/object", getUrl())));
+                        setServerURL(new URL(String.format(SERVER_OBJECT_URL, getUrl())));
                     }
                 });
             }
@@ -56,47 +62,25 @@ public class OdooClient {
     }
 
     public void authenticate() throws MalformedURLException {
+        // TODO: Where should we place the init logic
         try {
             init();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         XmlRpcClientConfigImpl common_config = new XmlRpcClientConfigImpl();
-        common_config.setServerURL(new URL(String.format("%s/xmlrpc/2/common", getUrl())));
+        common_config.setServerURL(new URL(String.format(SERVER_COMMON_URL, getUrl())));
 
         try {
             uid = (Integer) client.execute(
                     common_config, "authenticate", asList(getDatabase(), getUsername(), getPassword(), emptyMap()));
         } catch (XmlRpcException e) {
-            e.printStackTrace();
+            log.error("Cannot authenticate to Odoo server error: {}", e.getMessage());
             throw new RuntimeException("Cannot authenticate to Odoo server");
         }
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public String getUid() {
-        if (this.uid == null) {
-            return "";
-        }
-        return String.valueOf(this.uid);
-    }
-
-    public Object execute(String method, String model, List dataParams, HashMap requestParams)
+    public Object create(String method, String model, List dataParams, HashMap requestParams)
             throws XmlRpcException, MalformedURLException {
         authenticateIfNecessary();
         List<Object> params;
@@ -116,36 +100,12 @@ public class OdooClient {
         return client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "write", dataParams));
     }
 
-    public ArrayList<String> getDomainFields(String model) throws XmlRpcException {
-
-        Map<String, Map<String, Object>> fieldsResult = (Map<String, Map<String, Object>>) client.execute(
-                "execute_kw",
-                asList(getDatabase(), uid, getPassword(), model, "fields_get", emptyList(), new HashMap() {
-                    {
-                        put("attributes", asList("string"));
-                    }
-                }));
-
-        return new ArrayList<>(fieldsResult.keySet());
-    }
-
-    /**
-     * Searches and returns entities matching the specified criteria in the odoo instance i.e. by using
-     * the semantics of the odoo search_read web service method.
-     *
-     * @param model    the name of the odoo model to search
-     * @param criteria the search criteria to apply e.g. ["name", "=", "test"], ["id", ">", "2"]
-     * @param fields   optional list of the model fields to include for each returned item's payload
-     * @return an array of matching results
-     * @throws XmlRpcException
-     * @throws MalformedURLException
-     */
     public Object[] searchAndRead(String model, List<Object> criteria, List<String> fields)
             throws XmlRpcException, MalformedURLException {
 
         authenticateIfNecessary();
 
-        List<Object> params = new ArrayList();
+        List<Object> params = new ArrayList<>();
         params.add(getDatabase());
         params.add(uid);
         params.add(getPassword());
@@ -156,25 +116,13 @@ public class OdooClient {
             params.add(singletonMap("fields", fields));
         }
 
-        // TODO Add an API for the criteria argument instead of using a list
         return (Object[]) client.execute("execute_kw", params);
     }
 
-    /**
-     * Searches and returns ids for entities matching the specified criteria in the odoo instance i.e.
-     * by using the semantics of the odoo search web service method.
-     *
-     * @param model    the name of the odoo model to search
-     * @param criteria the search criteria to apply e.g. ["name", "=", "test"], ["id", ">", "2"]
-     * @return an array of matching entity ids
-     * @throws XmlRpcException
-     * @throws MalformedURLException
-     */
     public Object[] search(String model, List<Object> criteria) throws XmlRpcException, MalformedURLException {
 
         authenticateIfNecessary();
 
-        // TODO Add an API for the criteria argument instead of using a list
         return (Object[]) client.execute(
                 "execute_kw",
                 asList(getDatabase(), uid, getPassword(), model, "search", singletonList(singletonList(criteria))));

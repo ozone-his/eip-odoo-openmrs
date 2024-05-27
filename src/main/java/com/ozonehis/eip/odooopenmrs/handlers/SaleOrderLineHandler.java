@@ -85,7 +85,7 @@ public class SaleOrderLineHandler {
                     "SaleOrderLineHandler: createSaleOrderLineIfProductExists setSaleOrderLineOrderId {}",
                     saleOrderLine);
             try {
-                Object[] records = (Object[]) odooClient.execute(
+                Object[] records = (Object[]) odooClient.create(
                         Constants.CREATE_METHOD,
                         Constants.SALE_ORDER_LINE_MODEL,
                         List.of(OdooUtils.convertObjectToMap(saleOrderLine)),
