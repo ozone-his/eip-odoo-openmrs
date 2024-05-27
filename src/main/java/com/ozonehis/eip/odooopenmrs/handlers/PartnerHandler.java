@@ -56,6 +56,8 @@ public class PartnerHandler {
             var headers = new HashMap<String, Object>();
             headers.put(HEADER_FHIR_EVENT_TYPE, "u");
             headers.put(Constants.HEADER_ENABLE_PATIENT_SYNC, true);
+            headers.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "ref");
+            headers.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, patient.getIdPart());
             producerTemplate.sendBodyAndHeaders("direct:patient-to-partner-router", patient, headers);
         } else {
             log.info("Partner with reference id {} does not exist, creating...", patient.getIdPart());

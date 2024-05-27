@@ -7,12 +7,9 @@
  */
 package com.ozonehis.eip.odooopenmrs.processors;
 
-import com.ozonehis.eip.odooopenmrs.client.OdooClient;
-import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderLineHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
-import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import java.util.ArrayList;
@@ -37,9 +34,6 @@ public class ServiceRequestProcessor implements Processor {
     private SaleOrderMapper saleOrderMapper;
 
     @Autowired
-    private PartnerMapper partnerMapper;
-
-    @Autowired
     private SalesOrderHandler salesOrderHandler;
 
     @Autowired
@@ -47,9 +41,6 @@ public class ServiceRequestProcessor implements Processor {
 
     @Autowired
     private SaleOrderLineHandler saleOrderLineHandler;
-
-    @Autowired
-    private OdooClient odooClient;
 
     @Override
     public void process(Exchange exchange) {
@@ -72,56 +63,52 @@ public class ServiceRequestProcessor implements Processor {
             }
 
             if (patient == null || encounter == null || serviceRequest == null) {
-                throw new IllegalArgumentException("Patient, Encounter or ServiceRequest not found in the bundle");
+                throw new CamelExecutionException(
+                        "Invalid Bundle. Bundle must contain Patient, Encounter and ServiceRequest", exchange);
             } else {
+                log.debug("Processing ServiceRequest for Patient with UUID {}", patient.getIdPart());
                 if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                         && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
-                    log.info("Processing ServiceRequest for patient with UUID {}", patient.getIdPart());
-                    var partner = partnerMapper.toOdoo(patient);
                     String eventType = exchange.getMessage().getHeader(Constants.HEADER_FHIR_EVENT_TYPE, String.class);
                     if (eventType == null) {
                         throw new IllegalArgumentException("Event type not found in the exchange headers");
                     }
-                    if ("c".equals(eventType) || "u".equals(eventType)) {
-                        partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
-                        String encounterVisitUuid =
-                                encounter.getPartOf().getReference().split("/")[1];
-                        SaleOrder saleOrder = salesOrderHandler.getSalesOrder(encounterVisitUuid);
-                        if (saleOrder != null) {
-                            // Sale order exists, update it with the new sale order line
-                            Integer saleOrderLineId =
-                                    saleOrderLineHandler.createSaleOrderLineIfProductExists(serviceRequest, saleOrder);
-                            if (saleOrderLineId != null) {
-                                List<Integer> saleOrderLineIdList = new ArrayList<>();
-                                saleOrderLineIdList.add(saleOrderLineId);
-                                saleOrder.setOrderLine(saleOrderLineIdList);
-                            }
-                            log.info("TESTING: IN SERVICE REQUEST saleOrder != null {}", saleOrder);
-                            salesOrderHandler.sendSalesOrder(
-                                    producerTemplate, "direct:odoo-update-sales-order-route", saleOrder);
-                        } else {
-                            // If the sale order does not exist, create it
-                            SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
-                            newSaleOrder.setOrderPartnerId(partnerHandler.partnerExists(patient.getIdPart()));
-                            Object[] records = (Object[]) odooClient.create(
-                                    com.ozonehis.eip.odooopenmrs.Constants.CREATE_METHOD,
-                                    com.ozonehis.eip.odooopenmrs.Constants.SALE_ORDER_MODEL,
-                                    List.of(OdooUtils.convertObjectToMap(newSaleOrder)),
-                                    null);
+                    String encounterVisitUuid =
+                            encounter.getPartOf().getReference().split("/")[1];
+                    SaleOrder saleOrder = salesOrderHandler.getSalesOrderIfExists(encounterVisitUuid);
+                    if (saleOrder != null) {
+                        // If sale order exists create sale order line and link it to sale order
+                        int saleOrderLineId =
+                                saleOrderLineHandler.createSaleOrderLineIfProductExists(serviceRequest, saleOrder);
+                        List<Integer> saleOrderLineIdList = new ArrayList<>();
+                        saleOrderLineIdList.add(saleOrderLineId);
+                        saleOrder.setOrderLine(saleOrderLineIdList);
+                        log.info(
+                                "ServiceRequestProcessor: Created sale order line with id {} and linked to sale order {}",
+                                saleOrderLineId,
+                                saleOrder);
 
-                            newSaleOrder.setOrderId((Integer) records[0]);
-                            Integer saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
-                                    serviceRequest, newSaleOrder);
-                            if (saleOrderLineId != null) {
-                                List<Integer> saleOrderLineIdList = new ArrayList<>();
-                                saleOrderLineIdList.add(saleOrderLineId);
-                                newSaleOrder.setOrderLine(saleOrderLineIdList);
-                            }
-                            log.info("TESTING: IN SERVICE REQUEST saleOrder == null {}", newSaleOrder);
-                            //                            salesOrderHandler.sendSalesOrder(
-                            //                                    producerTemplate,
-                            // "direct:odoo-create-sales-order-route", saleOrder);
-                        }
+                        salesOrderHandler.sendSalesOrder(
+                                producerTemplate, "direct:odoo-update-sales-order-route", saleOrder);
+                    } else {
+                        // If the sale order does not exist, create it, then create sale order line and link it to sale
+                        // order
+                        SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
+                        newSaleOrder.setOrderPartnerId(partnerHandler.partnerExists(patient.getIdPart()));
+                        int newSaleOrderId = salesOrderHandler.createSaleOrder(newSaleOrder);
+                        log.info("ServiceRequestProcessor: Created sale order with id {}", newSaleOrderId);
+                        newSaleOrder.setOrderId(newSaleOrderId);
+
+                        int saleOrderLineId =
+                                saleOrderLineHandler.createSaleOrderLineIfProductExists(serviceRequest, newSaleOrder);
+                        List<Integer> saleOrderLineIdList = new ArrayList<>();
+                        saleOrderLineIdList.add(saleOrderLineId);
+                        newSaleOrder.setOrderLine(saleOrderLineIdList);
+
+                        log.info(
+                                "ServiceRequestProcessor: Created sale order {} and sale order line {} and linked to sale order",
+                                newSaleOrderId,
+                                saleOrderLineId);
                     }
                 }
             }

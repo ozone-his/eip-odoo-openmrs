@@ -28,9 +28,12 @@ public class EncounterProcessor implements Processor {
         Message message = exchange.getMessage();
         Encounter encounter = message.getBody(Encounter.class);
         if (encounter != null && encounter.hasPeriod() && encounter.getPeriod().hasEnd()) {
-            SaleOrder saleOrder = salesOrderHandler.getSalesOrder(encounter.getIdPart());
+            SaleOrder saleOrder = salesOrderHandler.getSalesOrderIfExists(encounter.getIdPart());
             if (saleOrder != null) {
-                saleOrder.setOrderState("draft"); // TODO: Check
+                // TODO: Check how to map correct order state
+                saleOrder.setOrderState("draft");
+                exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "client_order_ref");
+                exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, saleOrder.getOrderClientOrderRef());
                 salesOrderHandler.sendSalesOrder(
                         exchange.getContext().createProducerTemplate(),
                         "direct:odoo-update-sales-order-route",

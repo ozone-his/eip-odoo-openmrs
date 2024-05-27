@@ -54,7 +54,7 @@ public class SalesOrderHandler {
         }
     }
 
-    public SaleOrder getSalesOrder(String id) {
+    public SaleOrder getSalesOrderIfExists(String id) {
         try {
             Object[] records = odooClient.searchAndRead(
                     Constants.SALE_ORDER_MODEL,
@@ -70,7 +70,7 @@ public class SalesOrderHandler {
                 log.info("No Sale order found with id {}", id);
                 return null;
             } else { // TODO: Handle case where multiple sale order with same id exists
-                throw new EIPException(String.format("Multiple Sale order found with id", id));
+                throw new EIPException(String.format("Multiple Sale order found with id %s", id));
             }
         } catch (XmlRpcException | MalformedURLException e) {
             log.error("Error occurred while fetching sales order with id {} error {}", id, e.getMessage(), e);
@@ -78,9 +78,34 @@ public class SalesOrderHandler {
         }
     }
 
+    public int createSaleOrder(SaleOrder saleOrder) {
+        try {
+            Object[] records = (Object[]) odooClient.create(
+                    Constants.CREATE_METHOD,
+                    Constants.SALE_ORDER_MODEL,
+                    List.of(OdooUtils.convertObjectToMap(saleOrder)),
+                    null);
+            if (records == null) {
+                throw new EIPException(
+                        String.format("Got null response while creating for Sale order with %s", saleOrder));
+            } else if (records.length == 1) {
+                log.info("Sale order created with id {} ", records[0]);
+                return (Integer) records[0];
+            } else {
+                throw new EIPException(String.format("Unable to create Sale order with %s", saleOrder));
+            }
+        } catch (Exception e) {
+            log.error("Error occurred while creating sales order with {} error {}", saleOrder, e.getMessage(), e);
+            throw new CamelExecutionException("Error occurred while creating sales order", null, e);
+        }
+    }
+
     public void sendSalesOrder(ProducerTemplate producerTemplate, String endpointUri, SaleOrder saleOrder) {
         var saleOrderHeaders = new HashMap<String, Object>();
         saleOrderHeaders.put(Constants.HEADER_ODOO_ID, saleOrder.getOrderClientOrderRef());
+        saleOrderHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "client_order_ref");
+        saleOrderHeaders.put(
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, saleOrder.getOrderClientOrderRef());
 
         producerTemplate.sendBodyAndHeaders(endpointUri, saleOrder, saleOrderHeaders);
     }

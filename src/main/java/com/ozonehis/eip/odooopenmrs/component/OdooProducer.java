@@ -41,12 +41,18 @@ public class OdooProducer extends DefaultProducer {
                 break;
             case Constants.WRITE_METHOD:
                 log.info("OdooProducer: Updating data {} in Odoo", body);
+                String attributeName =
+                        exchange.getMessage().getHeader(Constants.HEADER_ODOO_ATTRIBUTE_NAME, String.class);
+                String attributeValue =
+                        exchange.getMessage().getHeader(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, String.class);
+                log.info("OdooProducer: Fetching {} model {} with value {}", model, attributeName, attributeValue);
                 records = odooClient.search(
-                        Constants.PARTNER_MODEL,
+                        model,
                         asList(
-                                "ref",
+                                attributeName,
                                 "=",
-                                OdooUtils.convertObjectToMap(body).get("ref"))); // TODO: Check if required and fix
+                                OdooUtils.convertObjectToMap(body).get(attributeValue)));
+                log.info("OdooProducer: Writing {} model for id {}", model, records[0]);
                 Boolean response = (Boolean) odooClient.write(
                         model, asList(asList((Integer) records[0]), OdooUtils.convertObjectToMap(body)));
                 log.info(

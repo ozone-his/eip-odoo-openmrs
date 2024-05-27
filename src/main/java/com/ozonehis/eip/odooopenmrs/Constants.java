@@ -28,6 +28,10 @@ public class Constants {
 
     public static final String HEADER_ODOO_ID = "Odoo.id";
 
+    public static final String HEADER_ODOO_ATTRIBUTE_NAME = "odoo.attribute.name";
+
+    public static final String HEADER_ODOO_ATTRIBUTE_VALUE = "odoo.attribute.value";
+
     public static final String EXCHANGE_PROPERTY_SKIP_ENCOUNTER = "skip.encounter";
 
     public static final String FHIR_RESOURCE_TYPE = "fhir.resource.type";

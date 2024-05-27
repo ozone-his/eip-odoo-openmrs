@@ -7,12 +7,9 @@
  */
 package com.ozonehis.eip.odooopenmrs.processors;
 
-import com.ozonehis.eip.odooopenmrs.client.OdooClient;
-import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderLineHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
-import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import java.util.ArrayList;
@@ -37,9 +34,6 @@ public class MedicationRequestProcessor implements Processor {
     private SaleOrderMapper saleOrderMapper;
 
     @Autowired
-    private PartnerMapper partnerMapper;
-
-    @Autowired
     private SalesOrderHandler salesOrderHandler;
 
     @Autowired
@@ -47,9 +41,6 @@ public class MedicationRequestProcessor implements Processor {
 
     @Autowired
     private SaleOrderLineHandler saleOrderLineHandler;
-
-    @Autowired
-    private OdooClient odooClient;
 
     @Override
     public void process(Exchange exchange) {
@@ -88,77 +79,53 @@ public class MedicationRequestProcessor implements Processor {
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
-                    var partner = partnerMapper.toOdoo(patient);
-                    // If the MedicationRequest is canceled, remove the item from the quotation
                     if (medicationRequest.getStatus().equals(MedicationRequest.MedicationRequestStatus.CANCELLED)) {
-                        handleSaleOrderWithItems(encounterVisitUuid, medicationRequest, exchange, producerTemplate);
+                        // TODO: Handle sale order with item, maybe mark as cancelled
                     } else {
-                        SaleOrder saleOrder = salesOrderHandler.getSalesOrder(encounterVisitUuid);
-                        //                        SaleOrder saleOrder = null;
+                        SaleOrder saleOrder = salesOrderHandler.getSalesOrderIfExists(encounterVisitUuid);
                         if (saleOrder != null) {
-                            // If the sale order exists, update it
-                            Integer saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
+                            // If sale order exists create sale order line and link it to sale order
+                            int saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
                                     medicationRequest, saleOrder);
-                            if (saleOrderLineId != null) {
-                                List<Integer> saleOrderLineIdList = new ArrayList<>();
-                                saleOrderLineIdList.add(saleOrderLineId);
-                                saleOrder.setOrderLine(saleOrderLineIdList);
-                            }
-                            log.info("TESTING: IN MEDICATION REQUEST saleOrder != null {}", saleOrder);
+                            List<Integer> saleOrderLineIdList = new ArrayList<>();
+                            saleOrderLineIdList.add(saleOrderLineId);
+                            saleOrder.setOrderLine(saleOrderLineIdList);
+                            log.info(
+                                    "MedicationRequestProcessor: Created sale order line with id {} and linked to sale order {}",
+                                    saleOrderLineId,
+                                    saleOrder);
+
                             salesOrderHandler.sendSalesOrder(
                                     producerTemplate, "direct:odoo-update-sales-order-route", saleOrder);
                         } else {
-                            // If the sale order does not exist, create it
+                            // If the sale order does not exist, create it, then create sale order line and link it to
+                            // sale order
                             SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
                             newSaleOrder.setOrderPartnerId(partnerHandler.partnerExists(patient.getIdPart()));
-                            Object[] records = (Object[]) odooClient.create(
-                                    com.ozonehis.eip.odooopenmrs.Constants.CREATE_METHOD,
-                                    com.ozonehis.eip.odooopenmrs.Constants.SALE_ORDER_MODEL,
-                                    List.of(OdooUtils.convertObjectToMap(newSaleOrder)),
-                                    null);
+                            int newSaleOrderId = salesOrderHandler.createSaleOrder(newSaleOrder);
+                            log.info("MedicationRequestProcessor: Created sale order with id {}", newSaleOrderId);
+                            newSaleOrder.setOrderId(newSaleOrderId);
 
-                            newSaleOrder.setOrderId((Integer) records[0]);
-                            Integer saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
+                            int saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
                                     medicationRequest, newSaleOrder);
-                            if (saleOrderLineId != null) {
-                                List<Integer> saleOrderLineIdList = new ArrayList<>();
-                                saleOrderLineIdList.add(saleOrderLineId);
-                                newSaleOrder.setOrderLine(saleOrderLineIdList);
-                            }
-                            log.info("TESTING: IN MEDICATION REQUEST saleOrder == null {}", newSaleOrder);
-                            //                            salesOrderHandler.sendSalesOrder(
-                            //                                    producerTemplate,
-                            // "direct:odoo-create-sales-order-route", newSaleOrder);
+                            List<Integer> saleOrderLineIdList = new ArrayList<>();
+                            saleOrderLineIdList.add(saleOrderLineId);
+                            newSaleOrder.setOrderLine(saleOrderLineIdList);
+
+                            log.info(
+                                    "MedicationRequestProcessor: Created sale order {} and sale order line {} and linked to sale order",
+                                    newSaleOrderId,
+                                    saleOrderLineId);
                         }
                     }
                 } else if ("d".equals(eventType)) {
-                    handleSaleOrderWithItems(encounterVisitUuid, medicationRequest, exchange, producerTemplate);
+                    // TODO: Handle sale order with item, when event type is delete
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
                 }
             }
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing MedicationRequest", exchange, e);
-        }
-    }
-
-    private void handleSaleOrderWithItems(
-            String encounterVisitUuid,
-            MedicationRequest medicationRequest,
-            Exchange exchange,
-            ProducerTemplate producerTemplate) {
-        SaleOrder saleOrder = salesOrderHandler.getSalesOrder(encounterVisitUuid);
-        if (saleOrder != null) {
-            log.debug("Removing item from sale order with ID {}", medicationRequest.getIdPart());
-            //            saleOrder.removeSaleOrderLine(medicationRequest.getIdPart());
-            //
-            //            String route = saleOrder.hasSaleOrderLines()
-            //                    ? "direct:odoo-update-sales-order-route"
-            //                    : "direct:odoo-delete-sales-order-route";
-            //            salesOrderHandler.sendSalesOrder(producerTemplate, route, saleOrder);
-        } else {
-            log.debug("Sale order with ID {} already deleted", encounterVisitUuid);
-            exchange.getMessage().setHeader(com.ozonehis.eip.odooopenmrs.Constants.HEADER_EVENT_PROCESSED, true);
         }
     }
 }
