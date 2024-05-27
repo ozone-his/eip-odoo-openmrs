@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class Partner implements OdooDocument {
 
     @JsonProperty("id")
-    private String partnerId;
+    private Integer partnerId;
 
     @JsonProperty("name")
     private String partnerName;

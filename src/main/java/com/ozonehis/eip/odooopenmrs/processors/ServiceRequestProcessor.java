@@ -69,6 +69,7 @@ public class ServiceRequestProcessor implements Processor {
                 log.debug("Processing ServiceRequest for Patient with UUID {}", patient.getIdPart());
                 if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                         && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
+                    int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
                     String eventType = exchange.getMessage().getHeader(Constants.HEADER_FHIR_EVENT_TYPE, String.class);
                     if (eventType == null) {
                         throw new IllegalArgumentException("Event type not found in the exchange headers");
@@ -94,7 +95,7 @@ public class ServiceRequestProcessor implements Processor {
                         // If the sale order does not exist, create it, then create sale order line and link it to sale
                         // order
                         SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
-                        newSaleOrder.setOrderPartnerId(partnerHandler.partnerExists(patient.getIdPart()));
+                        newSaleOrder.setOrderPartnerId(partnerId);
                         int newSaleOrderId = salesOrderHandler.createSaleOrder(newSaleOrder);
                         log.info("ServiceRequestProcessor: Created sale order with id {}", newSaleOrderId);
                         newSaleOrder.setOrderId(newSaleOrderId);

@@ -5,13 +5,11 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 
+import com.ozonehis.eip.odooopenmrs.Constants;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xmlrpc.XmlRpcException;
@@ -80,19 +78,12 @@ public class OdooClient {
         }
     }
 
-    public Object create(String method, String model, List dataParams, HashMap requestParams)
+    public Integer create(String model, List<Map<String, Object>> dataParams)
             throws XmlRpcException, MalformedURLException {
         authenticateIfNecessary();
-        List<Object> params;
 
-        if (requestParams == null) {
-            params = Collections.singletonList(dataParams);
-            return client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, method, params));
-        } else {
-            params = asList(dataParams);
-            return client.execute(
-                    "execute_kw", asList(getDatabase(), uid, getPassword(), model, method, params, requestParams));
-        }
+        return (Integer) client.execute(
+                "execute_kw", asList(getDatabase(), uid, getPassword(), model, Constants.CREATE_METHOD, dataParams));
     }
 
     public Object write(String model, List<Object> dataParams) throws XmlRpcException, MalformedURLException {

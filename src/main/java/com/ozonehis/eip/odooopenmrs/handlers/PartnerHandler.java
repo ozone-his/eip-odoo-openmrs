@@ -1,12 +1,14 @@
 package com.ozonehis.eip.odooopenmrs.handlers;
 
 import static java.util.Arrays.asList;
-import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
+import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
+import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
+import com.ozonehis.eip.odooopenmrs.model.Partner;
 import java.net.MalformedURLException;
-import java.util.HashMap;
+import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
@@ -24,6 +26,9 @@ public class PartnerHandler {
 
     @Autowired
     private OdooClient odooClient;
+
+    @Autowired
+    private PartnerMapper partnerMapper;
 
     public int partnerExists(String partnerRefID) {
         try {
@@ -50,21 +55,50 @@ public class PartnerHandler {
         }
     }
 
-    public void ensurePartnerExistsAndUpdate(ProducerTemplate producerTemplate, Patient patient) {
-        if (partnerExists(patient.getIdPart()) > 0) {
+    public int createPartner(Partner partner) {
+        try {
+            Object record = odooClient.create(Constants.PARTNER_MODEL, List.of(OdooUtils.convertObjectToMap(partner)));
+            if (record == null) {
+                throw new EIPException(String.format("Got null response while creating Partner with %s", partner));
+            } else {
+                log.info("Partner created with id {} ", record);
+                return (Integer) record;
+            }
+        } catch (Exception e) {
+            log.error("Error occurred while creating partner {} error {}", partner, e.getMessage(), e);
+            throw new CamelExecutionException("Error occurred while creating partner", null, e);
+        }
+    }
+
+    public void updatePartner(Partner partner) {
+        try {
+            Boolean response = (Boolean) odooClient.write(
+                    Constants.PARTNER_MODEL,
+                    asList(asList(partner.getPartnerId()), OdooUtils.convertObjectToMap(partner)));
+            if (response == null) {
+                throw new EIPException(String.format("Got null response while updating Partner with %s", partner));
+            } else if (response) {
+                log.info("Partner updated");
+            } else {
+                throw new EIPException(String.format("Unable to update Partner with %s", partner));
+            }
+        } catch (Exception e) {
+            log.error("Error occurred while updating partner {} error {}", partner, e.getMessage(), e);
+            throw new CamelExecutionException("Error occurred while updating partner", null, e);
+        }
+    }
+
+    public int ensurePartnerExistsAndUpdate(ProducerTemplate producerTemplate, Patient patient) {
+        int partnerId = partnerExists(patient.getIdPart());
+        if (partnerId > 0) {
             log.info("Partner with reference id {} already exists, updating...", patient.getIdPart());
-            var headers = new HashMap<String, Object>();
-            headers.put(HEADER_FHIR_EVENT_TYPE, "u");
-            headers.put(Constants.HEADER_ENABLE_PATIENT_SYNC, true);
-            headers.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "ref");
-            headers.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, patient.getIdPart());
-            producerTemplate.sendBodyAndHeaders("direct:patient-to-partner-router", patient, headers);
+            Partner partner = partnerMapper.toOdoo(patient);
+            partner.setPartnerId(partnerId);
+            updatePartner(partner);
+            return partnerId;
         } else {
             log.info("Partner with reference id {} does not exist, creating...", patient.getIdPart());
-            var headers = new HashMap<String, Object>();
-            headers.put(HEADER_FHIR_EVENT_TYPE, "c");
-            headers.put(Constants.HEADER_ENABLE_PATIENT_SYNC, true);
-            producerTemplate.sendBodyAndHeaders("direct:patient-to-partner-router", patient, headers);
+            return createPartner(partnerMapper.toOdoo(patient));
         }
     }
 }

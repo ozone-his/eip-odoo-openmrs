@@ -78,7 +78,7 @@ public class MedicationRequestProcessor implements Processor {
                 }
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
                 if ("c".equals(eventType) || "u".equals(eventType)) {
-                    partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
+                    int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
                     if (medicationRequest.getStatus().equals(MedicationRequest.MedicationRequestStatus.CANCELLED)) {
                         // TODO: Handle sale order with item, maybe mark as cancelled
                     } else {
@@ -101,7 +101,7 @@ public class MedicationRequestProcessor implements Processor {
                             // If the sale order does not exist, create it, then create sale order line and link it to
                             // sale order
                             SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
-                            newSaleOrder.setOrderPartnerId(partnerHandler.partnerExists(patient.getIdPart()));
+                            newSaleOrder.setOrderPartnerId(partnerId);
                             int newSaleOrderId = salesOrderHandler.createSaleOrder(newSaleOrder);
                             log.info("MedicationRequestProcessor: Created sale order with id {}", newSaleOrderId);
                             newSaleOrder.setOrderId(newSaleOrderId);

@@ -45,19 +45,14 @@ public class SaleOrderLineHandler {
 
     public int createSaleOrderLine(SaleOrderLine saleOrderLine) {
         try {
-            Object[] records = (Object[]) odooClient.create(
-                    Constants.CREATE_METHOD,
-                    Constants.SALE_ORDER_LINE_MODEL,
-                    List.of(OdooUtils.convertObjectToMap(saleOrderLine)),
-                    null);
-            if (records == null) {
+            Object record = odooClient.create(
+                    Constants.SALE_ORDER_LINE_MODEL, List.of(OdooUtils.convertObjectToMap(saleOrderLine)));
+            if (record == null) {
                 throw new EIPException(
                         String.format("Got null response while creating for Sale order line with %s", saleOrderLine));
-            } else if (records.length == 1) {
-                log.info("Sale order line created with id {} ", records[0]);
-                return (Integer) records[0];
             } else {
-                throw new EIPException(String.format("Unable to create Sale order line with %s", saleOrderLine));
+                log.info("Sale order line created with id {} ", record);
+                return (Integer) record;
             }
         } catch (Exception e) {
             log.error(

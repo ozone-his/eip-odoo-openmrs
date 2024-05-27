@@ -80,19 +80,14 @@ public class SalesOrderHandler {
 
     public int createSaleOrder(SaleOrder saleOrder) {
         try {
-            Object[] records = (Object[]) odooClient.create(
-                    Constants.CREATE_METHOD,
-                    Constants.SALE_ORDER_MODEL,
-                    List.of(OdooUtils.convertObjectToMap(saleOrder)),
-                    null);
-            if (records == null) {
+            Object record =
+                    odooClient.create(Constants.SALE_ORDER_MODEL, List.of(OdooUtils.convertObjectToMap(saleOrder)));
+            if (record == null) {
                 throw new EIPException(
                         String.format("Got null response while creating for Sale order with %s", saleOrder));
-            } else if (records.length == 1) {
-                log.info("Sale order created with id {} ", records[0]);
-                return (Integer) records[0];
             } else {
-                throw new EIPException(String.format("Unable to create Sale order with %s", saleOrder));
+                log.info("Sale order created with id {} ", record);
+                return (Integer) record;
             }
         } catch (Exception e) {
             log.error("Error occurred while creating sales order with {} error {}", saleOrder, e.getMessage(), e);
