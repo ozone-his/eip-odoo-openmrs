@@ -17,11 +17,14 @@ import com.ozonehis.eip.odooopenmrs.model.Product;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import com.ozonehis.eip.odooopenmrs.model.Uom;
+
 import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
+
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.CamelExecutionException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
@@ -39,135 +42,74 @@ public class SaleOrderLineHandler {
     private OdooClient odooClient;
 
     @Autowired
-    private SalesOrderHandler salesOrderHandler;
+    private ProductHandler productHandler;
+
+    @Autowired
+    private UomHandler uomHandler;
 
     @Autowired
     private SaleOrderLineMapper<Resource> saleOrderLineMapper;
 
-    public SaleOrderLine saleOrderLineExists(int saleOrderId, String productId) {
+    public int createSaleOrderLine(SaleOrderLine saleOrderLine) {
         try {
-            Object[] records = odooClient.searchAndRead(
-                    Constants.SALE_ORDER_LINE_MODEL,
-                    asList(asList("order_id", "=", saleOrderId), asList("product_id", "=", productId)),
-                    null);
-            if ((records != null) && (records.length > 0)) {
-                SaleOrderLine saleOrderLine =
-                        OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrderLine.class);
-                log.info("SaleOrderLineHandler: saleOrderLineExists saleOrderLine: {}", saleOrderLine);
-                return saleOrderLine;
+            Object[] records = (Object[]) odooClient.create(Constants.CREATE_METHOD, Constants.SALE_ORDER_LINE_MODEL, List.of(OdooUtils.convertObjectToMap(saleOrderLine)), null);
+            if (records == null) {
+                throw new EIPException(String.format("Got null response while creating for Sale order line with %s", saleOrderLine));
+            } else if (records.length == 1) {
+                log.info("Sale order line created with id {} ", records[0]);
+                return (Integer) records[0];
+            } else {
+                throw new EIPException(String.format("Unable to create Sale order line with %s", saleOrderLine));
             }
-        } catch (XmlRpcException | MalformedURLException e) {
-            log.error(
-                    "Error while checking if sales order line exists with name {} error {}",
-                    saleOrderId,
-                    e.getMessage(),
-                    e);
+        } catch (Exception e) {
+            log.error("Error occurred while creating sales order line with {} error {}", saleOrderLine, e.getMessage(), e);
+            throw new CamelExecutionException("Error occurred while creating sales order line", null, e);
         }
-        return null;
     }
 
     public Integer createSaleOrderLineIfProductExists(Resource resource, SaleOrder saleOrder) {
-        Product product = getProduct(getItemName(resource));
-        log.info("SaleOrderLineHandler: createSaleOrderLineIfProductExists  product {}", product);
-        if (product != null) {
-            SaleOrderLine saleOrderLine = saleOrderLineMapper.toOdoo(resource);
-            saleOrderLine.setSaleOrderLineOrderId(saleOrder.getOrderId());
-            if (resource instanceof MedicationRequest) {
-                saleOrderLine.setSaleOrderLineProductUom(
-                        (Integer) getUom((String) saleOrderLine.getSaleOrderLineProductUom())
-                                .getUomResId());
-            } else if (resource instanceof ServiceRequest) {
-                saleOrderLine.setSaleOrderLineProductUom(
-                        1); // TODO: Hardcoded to 1 so that `Units` is shown for ServiceRequest
-            }
-            saleOrderLine.setSaleOrderLineProductId(product.getProductResId());
-            log.info(
-                    "SaleOrderLineHandler: createSaleOrderLineIfProductExists setSaleOrderLineOrderId {}",
-                    saleOrderLine);
-            try {
-                Object[] records = (Object[]) odooClient.create(
-                        Constants.CREATE_METHOD,
-                        Constants.SALE_ORDER_LINE_MODEL,
-                        List.of(OdooUtils.convertObjectToMap(saleOrderLine)),
-                        null);
-                if ((records != null) && (records.length > 0)) {
-                    log.info(
-                            "SaleOrderLineHandler: createSaleOrderLineIfProductExists saleOrderLineId: {}", records[0]);
-                    return (Integer) records[0];
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+        Product product = productHandler.getProduct(resource);
+        log.info("SaleOrderLineHandler: Fetched Product {}", product);
+
+        SaleOrderLine saleOrderLine = saleOrderLineMapper.toOdoo(resource);
+        saleOrderLine.setSaleOrderLineProductId(product.getProductResId());
+        saleOrderLine.setSaleOrderLineOrderId(saleOrder.getOrderId());
+        if (resource instanceof MedicationRequest) {
+            String uomExternalId = (String) saleOrderLine.getSaleOrderLineProductUom();
+            Uom uom = uomHandler.getUom(uomExternalId);
+            log.info("SaleOrderLineHandler: Fetched Uom {}", uom);
+            // Store Uom res_id in productUom to display unit in Odoo
+            saleOrderLine.setSaleOrderLineProductUom(uom.getUomResId());
+        } else if (resource instanceof ServiceRequest) {
+            // Hardcoded to 1 so that `Units` is shown for ServiceRequest
+            saleOrderLine.setSaleOrderLineProductUom(1);
         }
-        log.info(
-                "SaleOrderLineHandler: createSaleOrderLineIfProductExists unable to create saleOrderLine with product {}",
-                product);
-        return null;
+
+        return createSaleOrderLine(saleOrderLine);
     }
 
-    private String getItemName(Resource resource) {
-        if (resource instanceof ServiceRequest serviceRequest) {
-            log.info(
-                    "SaleOrderLineHandler: serviceRequest getItemName: {}",
-                    serviceRequest.getCode().getCodingFirstRep().getCode());
-            return serviceRequest.getCode().getCodingFirstRep().getCode();
-        } else if (resource instanceof MedicationRequest medicationRequest) {
-            log.info(
-                    "SaleOrderLineHandler: medicationRequest getItemName: {}",
-                    medicationRequest.getMedicationReference().getReference().split("/")[1]);
-            return medicationRequest.getMedicationReference().getReference().split("/")[1];
-        } else {
-            throw new IllegalArgumentException(
-                    "Unsupported resource type: " + resource.getClass().getName());
-        }
-    }
-
-    // TODO: Fix to fetch UUID of drug
-    private String getProductUuid(Resource resource) {
-        if (resource instanceof ServiceRequest serviceRequest) {
-            return serviceRequest.getCode().getCodingFirstRep().getCode();
-        } else if (resource instanceof MedicationRequest medicationRequest) {
-            return medicationRequest.getMedicationReference().getReference().split("/")[1];
-        } else {
-            throw new IllegalArgumentException(
-                    "Unsupported resource type: " + resource.getClass().getName());
-        }
-    }
-
-    public Uom getUom(String name) {
-        try {
-            Object[] records = odooClient.searchAndRead(
-                    Constants.IR_MODEL,
-                    asList(asList("model", "=", Constants.UOM_MODEL), asList("name", "=", name)),
-                    null);
-            if ((records != null) && (records.length > 0)) {
-                log.info("Fetched uom {} from Odoo with id {}", records[0], name);
-                return OdooUtils.convertToObject((Map<String, Object>) records[0], Uom.class);
-            } else {
-                log.info("No uom found with id {}", name);
-                throw new EIPException(String.format("No uom found with id %s", name));
-            }
-        } catch (MalformedURLException | XmlRpcException e) {
-            throw new RuntimeException(
-                    String.format("Error occurred while fetching uom from odoo with id %s", name), e);
-        }
-    }
-
-    public Product getProduct(String externalId) {
-        try {
-            Object[] records = odooClient.searchAndRead(
-                    Constants.IR_MODEL,
-                    asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", externalId)),
-                    null);
-            if ((records != null) && (records.length == 1)) {
-                log.info("Fetched product {} from Odoo with id {}", records[0], externalId);
-                return OdooUtils.convertToObject((Map<String, Object>) records[0], Product.class);
-            }
-        } catch (MalformedURLException | XmlRpcException e) {
-            throw new RuntimeException(
-                    String.format("Error occurred while fetching product from odoo with id %s", externalId), e);
-        }
-        log.info("No product found with id {}", externalId);
-        return null;
-    }
+//    public SaleOrderLine getSaleOrderLineIfExists(int saleOrderId, String productId) {
+//        try {
+//            Object[] records = odooClient.searchAndRead(
+//                    Constants.SALE_ORDER_LINE_MODEL,
+//                    asList(asList("order_id", "=", saleOrderId), asList("product_id", "=", productId)),
+//                    null);
+//            if (records == null) {
+//                throw new EIPException(String.format("Got null response while fetching for Sale order line with sale order id %s product id %s", saleOrderId, productId));
+//            } else if (records.length == 1) {
+//                SaleOrderLine saleOrderLine =
+//                        OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrderLine.class);
+//                log.info("Sale order line exists with sale order id {} product id {} sale order line {}", saleOrderId, productId, saleOrderLine);
+//                return saleOrderLine;
+//            } else if (records.length == 0) {
+//                log.info("No Sale order line found with sale order id {} product id {}", saleOrderId, productId);
+//                return null;
+//            } else { //TODO: Handle case where multiple sale order lines with same sale order id and product id
+//                throw new EIPException(String.format("Multiple Sale order line found with sale order id %s product id %s", saleOrderId, productId));
+//            }
+//        } catch (XmlRpcException | MalformedURLException e) {
+//            log.error("Error occurred while fetching sales order line with sale order id {} product id {} error {}", saleOrderId, productId, e.getMessage(), e);
+//            throw new CamelExecutionException("Error occurred while fetching sales order line", null, e);
+//        }
+//    }
 }

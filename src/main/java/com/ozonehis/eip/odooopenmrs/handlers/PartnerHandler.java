@@ -11,7 +11,6 @@ import java.util.HashMap;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelException;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.ProducerTemplate;
 import org.apache.xmlrpc.XmlRpcException;

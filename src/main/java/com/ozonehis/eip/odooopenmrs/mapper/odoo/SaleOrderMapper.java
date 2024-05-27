@@ -25,13 +25,11 @@ public class SaleOrderMapper implements ToOdooMapping<Encounter, SaleOrder> {
             String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
             saleOrder.setOrderClientOrderRef(encounterVisitUuid);
             saleOrder.setOrderTypeName("Sales Order");
-            saleOrder.setOrderState("draft"); // TODO Add a check
-            //            quotation.setQuotationTo("Customer"); TODO: Check if present in Odoo
+            saleOrder.setOrderState("draft"); // TODO: This should be in the business logic and not mapper
         } else {
             throw new IllegalArgumentException(
                     "The Encounter does not have a partOf reference. Cannot map to Sale Order.");
         }
-
         return saleOrder;
     }
 }

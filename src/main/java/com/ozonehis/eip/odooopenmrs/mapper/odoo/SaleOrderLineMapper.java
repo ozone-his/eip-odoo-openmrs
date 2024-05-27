@@ -21,19 +21,16 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
     public SaleOrderLine toOdoo(R resource) {
         SaleOrderLine saleOrderLine = new SaleOrderLine();
         if (resource instanceof ServiceRequest serviceRequest) {
-            //            saleOrderLine.setSaleOrderLineOrderId(serviceRequest.getIdPart());
             if (serviceRequest.hasCode()) {
                 saleOrderLine.setSaleOrderLineName(
-                        serviceRequest.getCode().getCodingFirstRep().getCode()); // TODO: Check what to map?
+                        serviceRequest.getCode().getCodingFirstRep().getCode());
             }
             saleOrderLine.setSaleOrderLineProductUomQty(1.0f); // default quantity is 1 for serviceRequests.
             String requesterDisplay = serviceRequest.getRequester().getDisplay();
             String serviceDisplay = serviceRequest.getCode().getText();
-            // TODO: Check if present in Odoo
             saleOrderLine.setSaleOrderLineName(serviceDisplay + " | Requester: " + requesterDisplay);
 
         } else if (resource instanceof MedicationRequest medicationRequest) {
-            //            saleOrderLine.setSaleOrderLineOrderId(medicationRequest.getIdPart());
             if (medicationRequest.hasDispenseRequest()) {
                 if (medicationRequest.getDispenseRequest().hasQuantity()) {
                     Quantity quantity = medicationRequest.getDispenseRequest().getQuantity();
@@ -49,7 +46,7 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
                             .getMedicationReference()
                             .getReference()
                             .split("/")[1];
-                    saleOrderLine.setSaleOrderLineName(saleOrderLine.getSaleOrderLineName() + " | " + medicationCode);
+                    saleOrderLine.setSaleOrderLineName(medicationCode);
                 }
             }
 
@@ -57,9 +54,8 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
             String medicationDisplay =
                     medicationRequest.getMedicationReference().getDisplay();
             saleOrderLine.setSaleOrderLineName(saleOrderLine.getSaleOrderLineName() + " | " + medicationDisplay
-                    + " | Requester: " + requesterDisplay); // TODO: Check if present in Odoo
+                    + " | Requester: " + requesterDisplay);
             // Add dosage instructions to the notes.
-            // TODO: Check if present in Odoo
             saleOrderLine.setSaleOrderLineName(saleOrderLine.getSaleOrderLineName() + " | Notes: "
                     + constructDosageInstructionsText(medicationRequest));
 

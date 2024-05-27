@@ -13,14 +13,18 @@ import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.CamelExecutionException;
 import org.apache.camel.ProducerTemplate;
 import org.apache.xmlrpc.XmlRpcException;
+import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,45 +36,52 @@ public class SalesOrderHandler {
     @Autowired
     private OdooClient odooClient;
 
-    public SaleOrder salesOrderExists(String name) {
+    public Integer salesOrderExists(String id) {
         try {
-            Object[] records = odooClient.search(Constants.SALE_ORDER_MODEL, asList("client_order_ref", "=", name));
-            if ((records != null) && (records.length > 0)) {
-                return OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
+            Object[] records = odooClient.search(Constants.SALE_ORDER_MODEL, asList("client_order_ref", "=", id));
+            if (records == null) {
+                throw new EIPException(String.format("Got null response while searching for SaleOrder with id %s", id));
+            } else if (records.length == 1) {
+                log.info("Sale Order exists with id {} record {}", id, records[0]);
+                return (Integer) records[0];
+            } else if (records.length == 0) {
+                log.info("No Sale Order found with id {}", id);
+                return 0;
+            } else {
+                throw new EIPException(String.format("Multiple Sale order exists with id %s", id));
             }
         } catch (XmlRpcException | MalformedURLException e) {
-            log.error("Error while checking if sales order exists with name {} error {}", name, e.getMessage(), e);
+            log.error("Error occurred while checking if sale order exists with id {} error {}", id, e.getMessage(), e);
+            throw new CamelExecutionException("Error occurred while checking if sale order exists", null, e);
         }
-        return null;
     }
 
-    public SaleOrder getSalesOrder(String name) {
+    public SaleOrder getSalesOrder(String id) {
         try {
-            Object[] records = odooClient.searchAndRead(
-                    Constants.SALE_ORDER_MODEL,
-                    asList(asList("client_order_ref", "=", name)),
-                    Constants.orderDefaultAttributes);
-            if ((records != null) && (records.length == 1)) {
-                log.info("Fetched Sales Order: {}", records[0]);
-                SaleOrder fetchedSalesOrder =
+            Object[] records = odooClient.searchAndRead(Constants.SALE_ORDER_MODEL, List.of(asList("client_order_ref", "=", id)), Constants.orderDefaultAttributes);
+            if (records == null) {
+                throw new EIPException(String.format("Got null response while fetching for Sale order with id %s", id));
+            } else if (records.length == 1) {
+                SaleOrder saleOrder =
                         OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
-                List<Object> partnerIdList = (List<Object>) fetchedSalesOrder.getOrderPartnerId();
-                fetchedSalesOrder.setOrderPartnerId((Integer) partnerIdList.get(0));
-                log.info("Fetched Sales Order updated: {}", fetchedSalesOrder);
-                return fetchedSalesOrder;
+                log.info("Sale order exists with id {} sale order {}", id, saleOrder);
+                return saleOrder;
+            } else if (records.length == 0) {
+                log.info("No Sale order found with id {}", id);
+                return null;
+            } else { //TODO: Handle case where multiple sale order with same id exists
+                throw new EIPException(String.format("Multiple Sale order found with id", id));
             }
         } catch (XmlRpcException | MalformedURLException e) {
-            log.error("Error while checking if sales order exists with name {} error {}", name, e.getMessage(), e);
+            log.error("Error occurred while fetching sales order with id {} error {}", id, e.getMessage(), e);
+            throw new CamelExecutionException("Error occurred while fetching sales order", null, e);
         }
-        return null;
     }
 
     public void sendSalesOrder(ProducerTemplate producerTemplate, String endpointUri, SaleOrder saleOrder) {
-        var quotationHeaders = new HashMap<String, Object>();
-        quotationHeaders.put(Constants.HEADER_ODOO_DOCTYPE, Constants.SALE_ORDER_MODEL);
-        quotationHeaders.put(Constants.HEADER_ODOO_RESOURCE, saleOrder);
-        quotationHeaders.put(Constants.HEADER_ODOO_ID, saleOrder.getOrderClientOrderRef());
+        var saleOrderHeaders = new HashMap<String, Object>();
+        saleOrderHeaders.put(Constants.HEADER_ODOO_ID, saleOrder.getOrderClientOrderRef());
 
-        producerTemplate.sendBodyAndHeaders(endpointUri, saleOrder, quotationHeaders);
+        producerTemplate.sendBodyAndHeaders(endpointUri, saleOrder, saleOrderHeaders);
     }
 }

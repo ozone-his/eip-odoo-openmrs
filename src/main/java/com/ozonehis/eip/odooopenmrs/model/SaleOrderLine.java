@@ -13,23 +13,21 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SaleOrderLine implements OdooDocument {
 
-    @Nonnull
     @JsonProperty("id")
     private Integer saleOrderLineId;
 
-    @Nonnull
     @JsonProperty("name")
     private String saleOrderLineName; // Stores Description
 
     @JsonProperty("order_id")
-    private Integer saleOrderLineOrderId; // TODO: Check if List<Object>
+    private Integer saleOrderLineOrderId;
 
     @JsonProperty("product_id")
-    private Integer saleOrderLineProductId; // TODO: Check if List<Object>
+    private Integer saleOrderLineProductId;
 
     @JsonProperty("product_uom_qty")
     private Float saleOrderLineProductUomQty;
 
     @JsonProperty("product_uom")
-    private Object saleOrderLineProductUom; // TODO: Check if List<Object>
+    private Object saleOrderLineProductUom; // Can be used as a list or Integer
 }

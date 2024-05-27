@@ -12,14 +12,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Product implements OdooDocument {
+
     @JsonProperty("id")
     private Integer productId;
 
-    @Nonnull
     @JsonProperty("display_name")
     private String productDisplayName; // Product Name
 
-    @Nonnull
     @JsonProperty("name")
     private String productName; // Product ID
 

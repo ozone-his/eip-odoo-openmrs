@@ -11,10 +11,14 @@ import static java.util.Arrays.asList;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
+import com.ozonehis.eip.odooopenmrs.handlers.CountryHandler;
+import com.ozonehis.eip.odooopenmrs.handlers.CountryStateHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
+
 import java.net.MalformedURLException;
 import java.util.*;
+
 import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.*;
 import org.openmrs.eip.EIPException;
@@ -31,10 +35,14 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
     private static final String ADDRESS1_EXTENSION = "http://fhir.openmrs.org/ext/address#address1";
 
     private static final String ADDRESS2_EXTENSION = "http://fhir.openmrs.org/ext/address#address2";
+
     private static final Logger log = LoggerFactory.getLogger(PartnerMapper.class);
 
     @Autowired
-    private OdooClient odooClient;
+    private CountryHandler countryHandler;
+
+    @Autowired
+    private CountryStateHandler countryStateHandler;
 
     @Override
     public Partner toOdoo(Patient patient) {
@@ -44,12 +52,10 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
         Partner partner = new Partner();
         partner.setPartnerRef(patient.getIdPart());
         partner.setPartnerActive(patient.getActive());
-        // TODO: Gender not available in Odoo
-        //        if (patient.hasGender()) {
-        //            mapGender(patient.getGender()).ifPresent(customer::setGender);
-        //        }
         String patientName = getPatientName(patient).orElse("");
         String patientIdentifier = getPreferredPatientIdentifier(patient).orElse("");
+        partner.setPartnerComment(patientIdentifier);
+        //TODO: Check if we need to append patientIdentifier in name
         partner.setPartnerName(patientName + " - " + patientIdentifier);
 
         addAddress(patient, partner);
@@ -70,17 +76,12 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
     }
 
     protected void addAddress(Patient patient, Partner partner) {
-        log.info(
-                "PartnerMapper: Patient addAddress {},{},{}",
-                patient.getAddress(),
-                patient.getAddress().get(0).getUse(),
-                patient.getAddress().get(0).getCity());
         if (patient.hasAddress()) {
             patient.getAddress().forEach(fhirAddress -> {
                 partner.setPartnerCity(fhirAddress.getCity());
-                partner.setPartnerCountryId(getCountryIdFromOdoo(fhirAddress.getCountry()));
+                partner.setPartnerCountryId(countryHandler.getCountryId(fhirAddress.getCountry()));
                 partner.setPartnerZip(fhirAddress.getPostalCode());
-                partner.setPartnerStateId(getStateIdFromOdoo(fhirAddress.getPostalCode()));
+                partner.setPartnerStateId(countryStateHandler.getStateId(fhirAddress.getPostalCode()));
                 if (fhirAddress.getType() != null) {
                     partner.setPartnerType(fhirAddress.getType().getDisplay());
                 }
@@ -106,39 +107,6 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
                                     extension.getValue().toString()));
                 }
             });
-        }
-    }
-
-    private Integer getStateIdFromOdoo(String stateName) {
-        try {
-            Object[] records = odooClient.search(Constants.COUNTRY_STATE_MODEL, asList("name", "=", stateName));
-            if (records.length > 1) {
-                throw new EIPException(
-                        String.format("Found %s states in odoo matching name: %s", records.length, stateName));
-            } else if (records.length == 0) {
-                log.warn("No state found in odoo matching name: {}", stateName);
-                return null;
-            }
-            return (Integer) records[0];
-        } catch (XmlRpcException | MalformedURLException e) {
-            throw new RuntimeException("Error occurred while fetching state from Odoo", e);
-        }
-    }
-
-    private Integer getCountryIdFromOdoo(String countryName) {
-        try {
-            Object[] records = odooClient.search(Constants.COUNTRY_MODEL, asList("name", "=", countryName));
-            if (records.length > 1) {
-                throw new EIPException(
-                        String.format("Found %s countries in odoo matching name: %s", records.length, countryName));
-            } else if (records.length == 0) {
-                log.warn("No country found in odoo matching name: {}", countryName);
-                return null;
-            }
-            return (Integer) records[0];
-        } catch (XmlRpcException | MalformedURLException e) {
-            throw new RuntimeException(
-                    String.format("Error occurred while fetching country from Odoo %s", e.getMessage()), e);
         }
     }
 }

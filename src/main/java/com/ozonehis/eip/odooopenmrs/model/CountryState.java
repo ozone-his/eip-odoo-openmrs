@@ -13,15 +13,13 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CountryState implements OdooDocument {
 
-    @Nonnull
     @JsonProperty("id")
     private Integer countryStateId;
 
-    @Nonnull
     @JsonProperty("name")
     private String countryStateName;
 
-    @Nonnull
+
     @JsonProperty("code")
     private String countryStateCode; // Check if required
 }
