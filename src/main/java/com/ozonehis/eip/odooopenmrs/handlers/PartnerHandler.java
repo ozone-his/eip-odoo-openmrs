@@ -5,10 +5,8 @@ import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
-
 import java.net.MalformedURLException;
 import java.util.HashMap;
-
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
@@ -31,7 +29,8 @@ public class PartnerHandler {
         try {
             Object[] records = odooClient.search(Constants.PARTNER_MODEL, asList("ref", "=", partnerRefID));
             if (records == null) {
-                throw new EIPException(String.format("Got null response while searching for Partner with reference id %s", partnerRefID));
+                throw new EIPException(String.format(
+                        "Got null response while searching for Partner with reference id %s", partnerRefID));
             } else if (records.length == 1) {
                 log.info("Partner exists with reference id {} record {}", partnerRefID, records[0]);
                 return (Integer) records[0];
@@ -42,7 +41,11 @@ public class PartnerHandler {
                 throw new EIPException(String.format("Multiple Partners exists with reference id %s", partnerRefID));
             }
         } catch (XmlRpcException | MalformedURLException e) {
-            log.error("Error occurred while checking if partner exists with reference id {} error {}", partnerRefID, e.getMessage(), e);
+            log.error(
+                    "Error occurred while checking if partner exists with reference id {} error {}",
+                    partnerRefID,
+                    e.getMessage(),
+                    e);
             throw new CamelExecutionException("Error occurred while checking if partner exists", null, e);
         }
     }

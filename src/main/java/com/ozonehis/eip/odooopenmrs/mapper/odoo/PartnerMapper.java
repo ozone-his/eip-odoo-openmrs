@@ -7,21 +7,12 @@
  */
 package com.ozonehis.eip.odooopenmrs.mapper.odoo;
 
-import static java.util.Arrays.asList;
-
-import com.ozonehis.eip.odooopenmrs.Constants;
-import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.handlers.CountryHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.CountryStateHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
-
-import java.net.MalformedURLException;
 import java.util.*;
-
-import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.*;
-import org.openmrs.eip.EIPException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +46,7 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
         String patientName = getPatientName(patient).orElse("");
         String patientIdentifier = getPreferredPatientIdentifier(patient).orElse("");
         partner.setPartnerComment(patientIdentifier);
-        //TODO: Check if we need to append patientIdentifier in name
+        // TODO: Check if we need to append patientIdentifier in name
         partner.setPartnerName(patientName + " - " + patientIdentifier);
 
         addAddress(patient, partner);

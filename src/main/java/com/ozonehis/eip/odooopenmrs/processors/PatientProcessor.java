@@ -36,8 +36,6 @@ public class PatientProcessor implements Processor {
         Partner partner = mapper.toOdoo(patient);
 
         var headers = message.getHeaders();
-        headers.put(Constants.HEADER_ODOO_RESOURCE, partner);
-        headers.put(Constants.HEADER_ODOO_DOCTYPE, "partner");
 
         String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
         if ("u".equals(eventType) || "d".equals(eventType)) {

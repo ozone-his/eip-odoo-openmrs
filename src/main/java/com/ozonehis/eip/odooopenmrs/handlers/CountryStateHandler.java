@@ -1,17 +1,16 @@
 package com.ozonehis.eip.odooopenmrs.handlers;
 
+import static java.util.Arrays.asList;
+
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
+import java.net.MalformedURLException;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xmlrpc.XmlRpcException;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.net.MalformedURLException;
-
-import static java.util.Arrays.asList;
 
 @Slf4j
 @Setter
@@ -36,5 +35,4 @@ public class CountryStateHandler {
             throw new RuntimeException("Error occurred while fetching state from Odoo", e);
         }
     }
-
 }

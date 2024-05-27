@@ -1,9 +1,13 @@
 package com.ozonehis.eip.odooopenmrs.handlers;
 
+import static java.util.Arrays.asList;
+
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import com.ozonehis.eip.odooopenmrs.model.Product;
+import java.net.MalformedURLException;
+import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
@@ -14,11 +18,6 @@ import org.hl7.fhir.r4.model.ServiceRequest;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.net.MalformedURLException;
-import java.util.Map;
-
-import static java.util.Arrays.asList;
 
 @Slf4j
 @Setter
@@ -36,7 +35,8 @@ public class ProductHandler {
                     asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", externalId)),
                     null);
             if (records == null) {
-                throw new EIPException(String.format("Got null response while fetching for Product with id %s", externalId));
+                throw new EIPException(
+                        String.format("Got null response while fetching for Product with id %s", externalId));
             } else if (records.length == 1) {
                 log.info("Product exists with id {} record {}", externalId, records[0]);
                 return OdooUtils.convertToObject((Map<String, Object>) records[0], Product.class);
@@ -58,11 +58,13 @@ public class ProductHandler {
             log.info("ProductHandler: ServiceRequest code {}", id);
             return id;
         } else if (resource instanceof MedicationRequest medicationRequest) {
-            String id = medicationRequest.getMedicationReference().getReference().split("/")[1];
+            String id =
+                    medicationRequest.getMedicationReference().getReference().split("/")[1];
             log.info("ProductHandler: MedicationRequest reference {}", id);
             return id;
         } else {
-            throw new IllegalArgumentException("Unsupported resource type: " + resource.getClass().getName());
+            throw new IllegalArgumentException(
+                    "Unsupported resource type: " + resource.getClass().getName());
         }
     }
 }
