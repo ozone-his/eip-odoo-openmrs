@@ -1,6 +1,8 @@
 package com.ozonehis.eip.odooopenmrs.component;
 
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.camel.*;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriEndpoint;
@@ -15,17 +17,21 @@ import org.slf4j.LoggerFactory;
 @UriEndpoint(firstVersion = "1.0.0", scheme = "odoo", title = "Odoo", syntax = "odoo:method/model", producerOnly = true)
 public class OdooEndpoint extends DefaultEndpoint {
 
-    @UriPath(description = "Odoo method name Eg. write")
+    @Getter
+    @Setter
+    @UriPath(description = "Odoo method name Eg. write, create")
     @Metadata(required = true)
     private String method;
 
-    @UriPath(description = "Odoo model name Eg. res.partner")
+    @Setter
+    @Getter
+    @UriPath(description = "Odoo model name Eg. res.partner, sale.order")
     @Metadata(required = true)
     private String model;
 
     private static final Logger log = LoggerFactory.getLogger(OdooEndpoint.class);
 
-    private OdooClient odooClient;
+    private final OdooClient odooClient;
 
     public OdooEndpoint(String endpointUri, Component component, String method, String model, OdooClient odooClient) {
         super(endpointUri, component);
@@ -47,22 +53,7 @@ public class OdooEndpoint extends DefaultEndpoint {
 
     @Override
     public Consumer createConsumer(Processor processor) {
+        log.error("Odoo camel component consumer not supported");
         throw new UnsupportedOperationException();
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public String getMethod() {
-        return method;
-    }
-
-    public void setMethod(String method) {
-        this.method = method;
     }
 }

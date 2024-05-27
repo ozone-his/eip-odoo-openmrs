@@ -26,10 +26,6 @@ public class Constants {
 
     public static final String WRITE_METHOD = "write";
 
-    public static final String HEADER_ODOO_RESOURCE = "Odoo.resource";
-
-    public static final String HEADER_ODOO_DOCTYPE = "Odoo.doctype";
-
     public static final String HEADER_ODOO_ID = "Odoo.id";
 
     public static final String EXCHANGE_PROPERTY_SKIP_ENCOUNTER = "skip.encounter";

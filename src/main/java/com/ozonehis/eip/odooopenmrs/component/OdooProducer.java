@@ -5,7 +5,9 @@ import static java.util.Arrays.asList;
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
+
 import java.util.List;
+
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultProducer;
@@ -14,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 public class OdooProducer extends DefaultProducer {
 
-    private OdooClient odooClient;
+    private final OdooClient odooClient;
 
     private static final Logger log = LoggerFactory.getLogger(OdooProducer.class);
 
@@ -29,28 +31,27 @@ public class OdooProducer extends DefaultProducer {
 
         String model = ((OdooEndpoint) getEndpoint()).getModel();
         String method = ((OdooEndpoint) getEndpoint()).getMethod();
-        log.info("OdooProducer: Endpoint {}", getEndpoint());
-        log.info("OdooProducer: Model: {}, Method {}", model, method);
-        log.info("OdooProducer: OdooClient {}", odooClient);
+        log.info("OdooProducer: Endpoint {} Model: {}, Method {} ", getEndpoint(), model, method);
 
-        if (method.equalsIgnoreCase(Constants.CREATE_METHOD)) {
-            Object[] records =
-                    (Object[]) odooClient.create(method, model, List.of(OdooUtils.convertObjectToMap(body)), null);
-            log.info("OdooProducer: Created {} in Odoo with id: {}", body, records[0]);
-        } else if (method.equalsIgnoreCase(Constants.WRITE_METHOD)) {
-            Object[] records = odooClient.search(
-                    Constants.PARTNER_MODEL,
-                    asList("ref", "=", OdooUtils.convertObjectToMap(body).get("ref")));
-            Boolean response = (Boolean)
-                    odooClient.write(model, asList(asList((Integer) records[0]), OdooUtils.convertObjectToMap(body)));
-            log.info("OdooProducer: Updated {} in Odoo with id: {}", body, records[0]);
-            log.info(
-                    "OdooProducer: Map: {} response {} search id {}",
-                    OdooUtils.convertObjectToMap(body),
-                    response,
-                    records[0]);
+        Object[] records = null;
+        switch (method) {
+            case Constants.CREATE_METHOD:
+                log.info("OdooProducer: Creating data {} in Odoo", body);
+                records = (Object[]) odooClient.create(method, model, List.of(OdooUtils.convertObjectToMap(body)), null);
+                log.info("OdooProducer: Created data {} in Odoo with id: {}", body, records[0]);
+                break;
+            case Constants.WRITE_METHOD:
+                log.info("OdooProducer: Updating data {} in Odoo", body);
+                records = odooClient.search(
+                        Constants.PARTNER_MODEL,
+                        asList("ref", "=", OdooUtils.convertObjectToMap(body).get("ref"))); // TODO: Check if required and fix
+                Boolean response = (Boolean)
+                        odooClient.write(model, asList(asList((Integer) records[0]), OdooUtils.convertObjectToMap(body)));
+                log.info("OdooProducer: Updated data {} in Odoo with search id {} response: {}", OdooUtils.convertObjectToMap(body), records[0], response);
+                break;
+            default:
+                log.error("OdooProducer: Unimplemented method name in Odoo component {} with body {}", method, body);
+                break;
         }
-
-        log.info("OdooProducer: Body: {}", body);
     }
 }

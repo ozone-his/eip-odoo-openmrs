@@ -1,7 +1,9 @@
 package com.ozonehis.eip.odooopenmrs.component;
 
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
+
 import java.util.Map;
+
 import org.apache.camel.Endpoint;
 import org.apache.camel.spi.annotations.Component;
 import org.apache.camel.support.DefaultComponent;
@@ -20,10 +22,10 @@ public class OdooComponent extends DefaultComponent {
 
     @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) {
-        logger.info("Creating odoo endpoint with parameters: {} remaining: {}", parameters, remaining);
+        logger.info("Creating odoo endpoint with uri: {} remaining: {} parameters: {} ", uri, remaining, parameters);
         String[] parts = remaining.split("/", 2);
         if (parts.length != 2) {
-            throw new IllegalArgumentException("Invalid URI format. The expected format is 'odoo:method/model'.");
+            throw new IllegalArgumentException("Invalid URI format. The expected format is 'odoo:method/model'");
         }
         return new OdooEndpoint(uri, this, parts[0], parts[1], odooClient);
     }
