@@ -34,26 +34,6 @@ public class SalesOrderHandler {
     @Autowired
     private OdooClient odooClient;
 
-    public Integer salesOrderExists(String id) {
-        try {
-            Object[] records = odooClient.search(Constants.SALE_ORDER_MODEL, asList("client_order_ref", "=", id));
-            if (records == null) {
-                throw new EIPException(String.format("Got null response while searching for SaleOrder with id %s", id));
-            } else if (records.length == 1) {
-                log.info("Sale Order exists with id {} record {}", id, records[0]);
-                return (Integer) records[0];
-            } else if (records.length == 0) {
-                log.info("No Sale Order found with id {}", id);
-                return 0;
-            } else {
-                throw new EIPException(String.format("Multiple Sale order exists with id %s", id));
-            }
-        } catch (XmlRpcException | MalformedURLException e) {
-            log.error("Error occurred while checking if sale order exists with id {} error {}", id, e.getMessage(), e);
-            throw new CamelExecutionException("Error occurred while checking if sale order exists", null, e);
-        }
-    }
-
     public SaleOrder getSalesOrderIfExists(String id) {
         try {
             Object[] records = odooClient.searchAndRead(
@@ -78,25 +58,8 @@ public class SalesOrderHandler {
         }
     }
 
-    public int createSaleOrder(SaleOrder saleOrder) {
-        try {
-            Object record =
-                    odooClient.create(Constants.SALE_ORDER_MODEL, List.of(OdooUtils.convertObjectToMap(saleOrder)));
-            if (record == null) {
-                throw new EIPException(
-                        String.format("Got null response while creating for Sale order with %s", saleOrder));
-            } else {
-                log.info("Sale order created with id {} ", record);
-                return (Integer) record;
-            }
-        } catch (Exception e) {
-            log.error("Error occurred while creating sales order with {} error {}", saleOrder, e.getMessage(), e);
-            throw new CamelExecutionException("Error occurred while creating sales order", null, e);
-        }
-    }
-
     public void sendSalesOrder(ProducerTemplate producerTemplate, String endpointUri, SaleOrder saleOrder) {
-        var saleOrderHeaders = new HashMap<String, Object>();
+        Map<String, Object> saleOrderHeaders = new HashMap<>();
         saleOrderHeaders.put(Constants.HEADER_ODOO_ID, saleOrder.getOrderClientOrderRef());
         saleOrderHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "client_order_ref");
         saleOrderHeaders.put(

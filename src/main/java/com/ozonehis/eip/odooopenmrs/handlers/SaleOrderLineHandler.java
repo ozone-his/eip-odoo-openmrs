@@ -18,7 +18,6 @@ import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import com.ozonehis.eip.odooopenmrs.model.Uom;
 import java.net.MalformedURLException;
-import java.util.List;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -48,28 +47,7 @@ public class SaleOrderLineHandler {
     @Autowired
     private SaleOrderLineMapper<Resource> saleOrderLineMapper;
 
-    public int createSaleOrderLine(SaleOrderLine saleOrderLine) {
-        try {
-            Object record = odooClient.create(
-                    Constants.SALE_ORDER_LINE_MODEL, List.of(OdooUtils.convertObjectToMap(saleOrderLine)));
-            if (record == null) {
-                throw new EIPException(
-                        String.format("Got null response while creating for Sale order line with %s", saleOrderLine));
-            } else {
-                log.info("Sale order line created with id {} ", record);
-                return (Integer) record;
-            }
-        } catch (Exception e) {
-            log.error(
-                    "Error occurred while creating sales order line with {} error {}",
-                    saleOrderLine,
-                    e.getMessage(),
-                    e);
-            throw new CamelExecutionException("Error occurred while creating sales order line", null, e);
-        }
-    }
-
-    public Integer createSaleOrderLineIfProductExists(Resource resource, SaleOrder saleOrder) {
+    public SaleOrderLine buildSaleOrderLineIfProductExists(Resource resource, SaleOrder saleOrder) {
         Product product = productHandler.getProduct(resource);
         log.info("SaleOrderLineHandler: Fetched Product {}", product);
         if (product == null) { // TODO: Check should we allow product not found
@@ -101,7 +79,7 @@ public class SaleOrderLineHandler {
             saleOrderLine.setSaleOrderLineProductUom(1);
         }
 
-        return createSaleOrderLine(saleOrderLine);
+        return saleOrderLine;
     }
 
     public SaleOrderLine getSaleOrderLineIfExists(int saleOrderId, String productId) {

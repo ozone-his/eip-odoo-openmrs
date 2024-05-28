@@ -12,6 +12,7 @@ import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderLineHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -78,40 +79,50 @@ public class ServiceRequestProcessor implements Processor {
                     SaleOrder saleOrder = salesOrderHandler.getSalesOrderIfExists(encounterVisitUuid);
                     if (saleOrder != null) {
                         // If sale order exists create sale order line and link it to sale order
-                        Integer saleOrderLineId =
-                                saleOrderLineHandler.createSaleOrderLineIfProductExists(serviceRequest, saleOrder);
-                        if (saleOrderLineId == null) {
+                        SaleOrderLine saleOrderLine =
+                                saleOrderLineHandler.buildSaleOrderLineIfProductExists(serviceRequest, saleOrder);
+                        if (saleOrderLine == null) {
                             log.info(
                                     "ServiceRequestProcessor: Skipping create sale order line for encounter Visit {}",
                                     encounterVisitUuid);
                             return;
                         }
+
+                        producerTemplate.sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
                         log.info(
                                 "ServiceRequestProcessor: Created sale order line {} and linked to sale order {}",
-                                saleOrderLineId,
+                                saleOrderLine,
                                 saleOrder);
                     } else {
                         // If the sale order does not exist, create it, then create sale order line and link it to sale
                         // order
                         SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
                         newSaleOrder.setOrderPartnerId(partnerId);
-                        int newSaleOrderId = salesOrderHandler.createSaleOrder(newSaleOrder);
-                        log.info("ServiceRequestProcessor: Created sale order with id {}", newSaleOrderId);
-                        newSaleOrder.setOrderId(newSaleOrderId);
+                        newSaleOrder.setOrderClientOrderRef(encounterVisitUuid);
 
-                        Integer saleOrderLineId =
-                                saleOrderLineHandler.createSaleOrderLineIfProductExists(serviceRequest, newSaleOrder);
-                        if (saleOrderLineId == null) {
-                            log.info(
-                                    "ServiceRequestProcessor: Skipping create sale order line and sale order for encounter Visit {}",
-                                    encounterVisitUuid);
-                            return;
-                        }
-
+                        salesOrderHandler.sendSalesOrder(
+                                producerTemplate, "direct:odoo-create-sales-order-route", newSaleOrder);
                         log.info(
-                                "ServiceRequestProcessor: Created sale order {} and sale order line {} and linked to sale order",
-                                newSaleOrderId,
-                                saleOrderLineId);
+                                "ServiceRequestProcessor: Created sale order with client_order_ref {}",
+                                encounterVisitUuid);
+
+                        SaleOrder fetchedSaleOrder = salesOrderHandler.getSalesOrderIfExists(encounterVisitUuid);
+                        if (fetchedSaleOrder != null) {
+                            SaleOrderLine saleOrderLine = saleOrderLineHandler.buildSaleOrderLineIfProductExists(
+                                    serviceRequest, fetchedSaleOrder);
+                            if (saleOrderLine == null) {
+                                log.info(
+                                        "ServiceRequestProcessor: Skipping create sale order line and sale order for encounter Visit {}",
+                                        encounterVisitUuid);
+                                return;
+                            }
+
+                            producerTemplate.sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
+                            log.info(
+                                    "ServiceRequestProcessor: Created sale order {} and sale order line {} and linked to sale order",
+                                    fetchedSaleOrder.getOrderId(),
+                                    saleOrderLine);
+                        }
                     }
                 }
             }

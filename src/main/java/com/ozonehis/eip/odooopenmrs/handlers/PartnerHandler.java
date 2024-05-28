@@ -4,11 +4,11 @@ import static java.util.Arrays.asList;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
-import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
 import java.net.MalformedURLException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
@@ -43,7 +43,8 @@ public class PartnerHandler {
                 log.info("No Partner found with reference id {}", partnerRefID);
                 return 0;
             } else {
-                throw new EIPException(String.format("Multiple Partners exists with reference id %s", partnerRefID));
+                log.info("Multiple Partners exists with reference id {}", partnerRefID);
+                return (Integer) records[0];
             }
         } catch (XmlRpcException | MalformedURLException e) {
             log.error(
@@ -55,50 +56,24 @@ public class PartnerHandler {
         }
     }
 
-    public int createPartner(Partner partner) {
-        try {
-            Object record = odooClient.create(Constants.PARTNER_MODEL, List.of(OdooUtils.convertObjectToMap(partner)));
-            if (record == null) {
-                throw new EIPException(String.format("Got null response while creating Partner with %s", partner));
-            } else {
-                log.info("Partner created with id {} ", record);
-                return (Integer) record;
-            }
-        } catch (Exception e) {
-            log.error("Error occurred while creating partner {} error {}", partner, e.getMessage(), e);
-            throw new CamelExecutionException("Error occurred while creating partner", null, e);
-        }
-    }
-
-    public void updatePartner(Partner partner) {
-        try {
-            Boolean response = odooClient.write(
-                    Constants.PARTNER_MODEL,
-                    asList(asList(partner.getPartnerId()), OdooUtils.convertObjectToMap(partner)));
-            if (response == null) {
-                throw new EIPException(String.format("Got null response while updating Partner with %s", partner));
-            } else if (response) {
-                log.info("Partner updated");
-            } else {
-                throw new EIPException(String.format("Unable to update Partner with %s", partner));
-            }
-        } catch (Exception e) {
-            log.error("Error occurred while updating partner {} error {}", partner, e.getMessage(), e);
-            throw new CamelExecutionException("Error occurred while updating partner", null, e);
-        }
-    }
-
     public int ensurePartnerExistsAndUpdate(ProducerTemplate producerTemplate, Patient patient) {
         int partnerId = partnerExists(patient.getIdPart());
         if (partnerId > 0) {
             log.info("Partner with reference id {} already exists, updating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
-            partner.setPartnerId(partnerId);
-            updatePartner(partner);
+            Map<String, Object> partnerHeaders = new HashMap<>();
+            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "ref");
+            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, partner.getPartnerRef());
+            producerTemplate.sendBodyAndHeaders("direct:odoo-update-partner-route", partner, partnerHeaders);
             return partnerId;
         } else {
             log.info("Partner with reference id {} does not exist, creating...", patient.getIdPart());
-            return createPartner(partnerMapper.toOdoo(patient));
+            Partner partner = partnerMapper.toOdoo(patient);
+            Map<String, Object> partnerHeaders = new HashMap<>();
+            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "ref");
+            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, partner.getPartnerRef());
+            producerTemplate.sendBodyAndHeaders("direct:odoo-create-partner-route", partner, partnerHeaders);
+            return partnerExists(partner.getPartnerRef());
         }
     }
 }
