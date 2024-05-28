@@ -42,7 +42,7 @@ public class ProductHandler {
                 return OdooUtils.convertToObject((Map<String, Object>) records[0], Product.class);
             } else if (records.length == 0) {
                 log.info("No Product found with id {}", externalId);
-                throw new EIPException(String.format("No Product found with id %s", externalId));
+                return null;
             } else {
                 throw new EIPException(String.format("Multiple Products exists with id %s", externalId));
             }

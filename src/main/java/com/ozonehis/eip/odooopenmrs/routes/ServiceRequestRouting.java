@@ -20,10 +20,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ServiceRequestRouting extends RouteBuilder {
 
-    private static final String SERVICE_REQUEST_TO_SALE_ORDER_ROUTER = "service-request-to-sale-order-router";
-
-    private static final String SERVICE_REQUEST_TO_SALE_ORDER_PROCESSOR = "service-request-to-sale-order-processor";
-
     private static final String SERVICE_REQUEST_ID = "service.request.id";
 
     private static final String SERVICE_REQUEST_INCLUDE_PARAMS = "ServiceRequest:encounter,ServiceRequest:patient";
@@ -39,7 +35,7 @@ public class ServiceRequestRouting extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:fhir-servicerequest")
-                .routeId(SERVICE_REQUEST_TO_SALE_ORDER_ROUTER)
+                .routeId("service-request-to-sale-order-router")
                 .process(exchange -> {
                     ServiceRequest serviceRequest = exchange.getMessage().getBody(ServiceRequest.class);
                     exchange.setProperty(Constants.FHIR_RESOURCE_TYPE, serviceRequest.fhirType());
@@ -52,10 +48,10 @@ public class ServiceRequestRouting extends RouteBuilder {
                 .end();
 
         from("direct:service-request-to-sale-order-processor")
-                .routeId(SERVICE_REQUEST_TO_SALE_ORDER_PROCESSOR)
+                .routeId("service-request-to-sale-order-processor")
                 .process(serviceRequestProcessor)
                 .log(
-                        LoggingLevel.DEBUG,
+                        LoggingLevel.INFO,
                         "ServiceRequest with ID ${exchangeProperty." + SERVICE_REQUEST_ID + "} processed.")
                 .end();
         // spotless:on

@@ -72,7 +72,7 @@ public class PartnerHandler {
 
     public void updatePartner(Partner partner) {
         try {
-            Boolean response = (Boolean) odooClient.write(
+            Boolean response = odooClient.write(
                     Constants.PARTNER_MODEL,
                     asList(asList(partner.getPartnerId()), OdooUtils.convertObjectToMap(partner)));
             if (response == null) {

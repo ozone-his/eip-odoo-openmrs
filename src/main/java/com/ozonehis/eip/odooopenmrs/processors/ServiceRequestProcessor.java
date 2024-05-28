@@ -12,7 +12,6 @@ import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderLineHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +65,7 @@ public class ServiceRequestProcessor implements Processor {
                 throw new CamelExecutionException(
                         "Invalid Bundle. Bundle must contain Patient, Encounter and ServiceRequest", exchange);
             } else {
-                log.debug("Processing ServiceRequest for Patient with UUID {}", patient.getIdPart());
+                log.info("Processing ServiceRequest for Patient with UUID {}", patient.getIdPart());
                 if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                         && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
                     int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
@@ -79,18 +78,18 @@ public class ServiceRequestProcessor implements Processor {
                     SaleOrder saleOrder = salesOrderHandler.getSalesOrderIfExists(encounterVisitUuid);
                     if (saleOrder != null) {
                         // If sale order exists create sale order line and link it to sale order
-                        int saleOrderLineId =
+                        Integer saleOrderLineId =
                                 saleOrderLineHandler.createSaleOrderLineIfProductExists(serviceRequest, saleOrder);
-                        List<Integer> saleOrderLineIdList = new ArrayList<>();
-                        saleOrderLineIdList.add(saleOrderLineId);
-                        saleOrder.setOrderLine(saleOrderLineIdList);
+                        if (saleOrderLineId == null) {
+                            log.info(
+                                    "ServiceRequestProcessor: Skipping create sale order line for encounter Visit {}",
+                                    encounterVisitUuid);
+                            return;
+                        }
                         log.info(
-                                "ServiceRequestProcessor: Created sale order line with id {} and linked to sale order {}",
+                                "ServiceRequestProcessor: Created sale order line {} and linked to sale order {}",
                                 saleOrderLineId,
                                 saleOrder);
-
-                        salesOrderHandler.sendSalesOrder(
-                                producerTemplate, "direct:odoo-update-sales-order-route", saleOrder);
                     } else {
                         // If the sale order does not exist, create it, then create sale order line and link it to sale
                         // order
@@ -100,11 +99,14 @@ public class ServiceRequestProcessor implements Processor {
                         log.info("ServiceRequestProcessor: Created sale order with id {}", newSaleOrderId);
                         newSaleOrder.setOrderId(newSaleOrderId);
 
-                        int saleOrderLineId =
+                        Integer saleOrderLineId =
                                 saleOrderLineHandler.createSaleOrderLineIfProductExists(serviceRequest, newSaleOrder);
-                        List<Integer> saleOrderLineIdList = new ArrayList<>();
-                        saleOrderLineIdList.add(saleOrderLineId);
-                        newSaleOrder.setOrderLine(saleOrderLineIdList);
+                        if (saleOrderLineId == null) {
+                            log.info(
+                                    "ServiceRequestProcessor: Skipping create sale order line and sale order for encounter Visit {}",
+                                    encounterVisitUuid);
+                            return;
+                        }
 
                         log.info(
                                 "ServiceRequestProcessor: Created sale order {} and sale order line {} and linked to sale order",

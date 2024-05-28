@@ -20,11 +20,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class MedicationRequestRouting extends RouteBuilder {
 
-    private static final String MEDICATION_REQUEST_TO_SALE_ORDER_ROUTER = "medication-request-to-sale-order-router";
-
-    private static final String MEDICATION_REQUEST_TO_SALE_ORDER_PROCESSOR =
-            "medication-request-to-sale-order-processor";
-
     private static final String MEDICATION_REQUEST_ID = "medication.request.id";
 
     private static final String MEDICATION_REQUEST_INCLUDE_PARAMS =
@@ -37,7 +32,7 @@ public class MedicationRequestRouting extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:fhir-medicationrequest")
-                .routeId(MEDICATION_REQUEST_TO_SALE_ORDER_ROUTER)
+                .routeId("medication-request-to-sale-order-router")
                 .process(exchange -> {
                     MedicationRequest medicationRequest = exchange.getMessage().getBody(MedicationRequest.class);
                     exchange.setProperty(Constants.FHIR_RESOURCE_TYPE, medicationRequest.fhirType());
@@ -52,10 +47,10 @@ public class MedicationRequestRouting extends RouteBuilder {
                 .end();
 
         from("direct:medication-request-to-sale-order-processor")
-                .routeId(MEDICATION_REQUEST_TO_SALE_ORDER_PROCESSOR)
+                .routeId("medication-request-to-sale-order-processor")
                 .process(medicationRequestProcessor)
                 .log(
-                        LoggingLevel.DEBUG,
+                        LoggingLevel.INFO,
                         "MedicationRequest with ID ${exchangeProperty." + MEDICATION_REQUEST_ID + "} processed.")
                 .end();
         // spotless:on

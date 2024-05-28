@@ -12,7 +12,6 @@ import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderLineHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +70,7 @@ public class MedicationRequestProcessor implements Processor {
                         "Invalid Bundle. Bundle must contain Patient, Encounter, MedicationRequest and Medication",
                         exchange);
             } else {
-                log.debug("Processing MedicationRequest for Patient with UUID {}", patient.getIdPart());
+                log.info("Processing MedicationRequest for Patient with UUID {}", patient.getIdPart());
                 String eventType = exchange.getMessage().getHeader(Constants.HEADER_FHIR_EVENT_TYPE, String.class);
                 if (eventType == null) {
                     throw new IllegalArgumentException("Event type not found in the exchange headers.");
@@ -85,18 +84,18 @@ public class MedicationRequestProcessor implements Processor {
                         SaleOrder saleOrder = salesOrderHandler.getSalesOrderIfExists(encounterVisitUuid);
                         if (saleOrder != null) {
                             // If sale order exists create sale order line and link it to sale order
-                            int saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
+                            Integer saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
                                     medicationRequest, saleOrder);
-                            List<Integer> saleOrderLineIdList = new ArrayList<>();
-                            saleOrderLineIdList.add(saleOrderLineId);
-                            saleOrder.setOrderLine(saleOrderLineIdList);
+                            if (saleOrderLineId == null) {
+                                log.info(
+                                        "MedicationRequestProcessor: Skipping create sale order line for encounter Visit {}",
+                                        encounterVisitUuid);
+                                return;
+                            }
                             log.info(
-                                    "MedicationRequestProcessor: Created sale order line with id {} and linked to sale order {}",
+                                    "MedicationRequestProcessor: Created sale order line {} and linked to sale order {}",
                                     saleOrderLineId,
                                     saleOrder);
-
-                            salesOrderHandler.sendSalesOrder(
-                                    producerTemplate, "direct:odoo-update-sales-order-route", saleOrder);
                         } else {
                             // If the sale order does not exist, create it, then create sale order line and link it to
                             // sale order
@@ -106,11 +105,14 @@ public class MedicationRequestProcessor implements Processor {
                             log.info("MedicationRequestProcessor: Created sale order with id {}", newSaleOrderId);
                             newSaleOrder.setOrderId(newSaleOrderId);
 
-                            int saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
+                            Integer saleOrderLineId = saleOrderLineHandler.createSaleOrderLineIfProductExists(
                                     medicationRequest, newSaleOrder);
-                            List<Integer> saleOrderLineIdList = new ArrayList<>();
-                            saleOrderLineIdList.add(saleOrderLineId);
-                            newSaleOrder.setOrderLine(saleOrderLineIdList);
+                            if (saleOrderLineId == null) {
+                                log.info(
+                                        "MedicationRequestProcessor: Skipping create sale order line and sale order for encounter Visit {}",
+                                        encounterVisitUuid);
+                                return;
+                            }
 
                             log.info(
                                     "MedicationRequestProcessor: Created sale order {} and sale order line {} and linked to sale order",
