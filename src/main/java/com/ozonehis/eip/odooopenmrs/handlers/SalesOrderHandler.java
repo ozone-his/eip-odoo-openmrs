@@ -58,13 +58,38 @@ public class SalesOrderHandler {
         }
     }
 
+    public List<Integer> getSaleOrderIdsByPartnerId(String partnerId) {
+        try {
+            Object[] records = odooClient.search(Constants.SALE_ORDER_MODEL, asList("partner_id", "=", partnerId));
+            if (records == null) {
+                throw new EIPException(
+                        String.format("Got null response while fetching for Sale order with partner id %s", partnerId));
+            } else if (records.length > 0) {
+                List<Integer> saleOrderIdsList = OdooUtils.convertToListOfInteger(records);
+                log.info("Sale order ids {} with partner id {} ", saleOrderIdsList, partnerId);
+                return saleOrderIdsList;
+            } else {
+                log.info("No Sale order found with partner id {}", partnerId);
+                return null;
+            }
+        } catch (XmlRpcException | MalformedURLException e) {
+            log.error(
+                    "Error occurred while fetching sale order ids with partner id {} error {}",
+                    partnerId,
+                    e.getMessage(),
+                    e);
+            throw new CamelExecutionException("Error occurred while fetching sale order ids", null, e);
+        }
+    }
+
     public void sendSalesOrder(ProducerTemplate producerTemplate, String endpointUri, SaleOrder saleOrder) {
         Map<String, Object> saleOrderHeaders = new HashMap<>();
-        saleOrderHeaders.put(Constants.HEADER_ODOO_ID, saleOrder.getOrderClientOrderRef());
-        saleOrderHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "client_order_ref");
-        saleOrderHeaders.put(
-                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, saleOrder.getOrderClientOrderRef());
-
+        if (endpointUri.contains("update")) {
+            saleOrderHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+            saleOrderHeaders.put(
+                    com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE,
+                    List.of(saleOrder.getOrderId()));
+        }
         producerTemplate.sendBodyAndHeaders(endpointUri, saleOrder, saleOrderHeaders);
     }
 }

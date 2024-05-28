@@ -10,6 +10,7 @@ package com.ozonehis.eip.odooopenmrs.processors;
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+import java.util.List;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
@@ -30,10 +31,8 @@ public class EncounterProcessor implements Processor {
         if (encounter != null && encounter.hasPeriod() && encounter.getPeriod().hasEnd()) {
             SaleOrder saleOrder = salesOrderHandler.getSalesOrderIfExists(encounter.getIdPart());
             if (saleOrder != null) {
-                // TODO: Check how to map correct order state
-                saleOrder.setOrderState("draft");
-                exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "client_order_ref");
-                exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, saleOrder.getOrderClientOrderRef());
+                exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+                exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(saleOrder.getOrderId()));
                 salesOrderHandler.sendSalesOrder(
                         exchange.getContext().createProducerTemplate(),
                         "direct:odoo-update-sales-order-route",

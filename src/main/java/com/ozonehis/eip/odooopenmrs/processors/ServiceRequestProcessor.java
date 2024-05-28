@@ -13,7 +13,9 @@ import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
@@ -70,6 +72,21 @@ public class ServiceRequestProcessor implements Processor {
                 if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                         && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
                     int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
+                    log.info("ServiceRequestProcessor: Is Patient deceased {}", patient.hasDeceased());
+                    if (patient.hasDeceased() && false) {
+                        List<Integer> saleOrderPartnerIds =
+                                salesOrderHandler.getSaleOrderIdsByPartnerId(String.valueOf(partnerId));
+                        Map<String, Object> saleOrderHeaders = new HashMap<>();
+                        saleOrderHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+                        saleOrderHeaders.put(
+                                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE,
+                                saleOrderPartnerIds);
+                        SaleOrder saleOrder = new SaleOrder();
+                        saleOrder.setOrderState("cancel");
+                        producerTemplate.sendBodyAndHeaders(
+                                "direct:odoo-update-sales-order-route", saleOrder, saleOrderHeaders);
+                        return;
+                    }
                     String eventType = exchange.getMessage().getHeader(Constants.HEADER_FHIR_EVENT_TYPE, String.class);
                     if (eventType == null) {
                         throw new IllegalArgumentException("Event type not found in the exchange headers");
@@ -98,6 +115,7 @@ public class ServiceRequestProcessor implements Processor {
                         // order
                         SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
                         newSaleOrder.setOrderPartnerId(partnerId);
+                        newSaleOrder.setOrderState("draft");
                         newSaleOrder.setOrderClientOrderRef(encounterVisitUuid);
 
                         salesOrderHandler.sendSalesOrder(

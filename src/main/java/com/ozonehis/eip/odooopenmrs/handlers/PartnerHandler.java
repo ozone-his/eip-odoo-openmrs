@@ -4,10 +4,12 @@ import static java.util.Arrays.asList;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
+import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
 import java.net.MalformedURLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -30,21 +32,24 @@ public class PartnerHandler {
     @Autowired
     private PartnerMapper partnerMapper;
 
-    public int partnerExists(String partnerRefID) {
+    public Partner partnerExists(String partnerRefID) {
         try {
-            Object[] records = odooClient.search(Constants.PARTNER_MODEL, asList("ref", "=", partnerRefID));
+            Object[] records = odooClient.searchAndRead(
+                    Constants.PARTNER_MODEL,
+                    List.of(asList("ref", "=", partnerRefID)),
+                    Constants.partnerDefaultAttributes);
             if (records == null) {
                 throw new EIPException(String.format(
                         "Got null response while searching for Partner with reference id %s", partnerRefID));
             } else if (records.length == 1) {
                 log.info("Partner exists with reference id {} record {}", partnerRefID, records[0]);
-                return (Integer) records[0];
+                return OdooUtils.convertToObject((Map<String, Object>) records[0], Partner.class);
             } else if (records.length == 0) {
                 log.info("No Partner found with reference id {}", partnerRefID);
-                return 0;
+                return null;
             } else {
                 log.info("Multiple Partners exists with reference id {}", partnerRefID);
-                return (Integer) records[0];
+                return OdooUtils.convertToObject((Map<String, Object>) records[0], Partner.class);
             }
         } catch (XmlRpcException | MalformedURLException e) {
             log.error(
@@ -57,23 +62,26 @@ public class PartnerHandler {
     }
 
     public int ensurePartnerExistsAndUpdate(ProducerTemplate producerTemplate, Patient patient) {
-        int partnerId = partnerExists(patient.getIdPart());
-        if (partnerId > 0) {
+        Partner fetchedPartner = partnerExists(patient.getIdPart());
+        if (fetchedPartner != null && fetchedPartner.getPartnerId() > 0) {
+            int partnerId = fetchedPartner.getPartnerId();
             log.info("Partner with reference id {} already exists, updating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
+            // TODO: Set Partner as inactive if Patient has decreased
+            //            if (patient.hasDeceased()) {
+            //                partner.setPartnerActive(false);
+            //            }
             Map<String, Object> partnerHeaders = new HashMap<>();
-            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "ref");
-            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, partner.getPartnerRef());
+            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(partnerId));
             producerTemplate.sendBodyAndHeaders("direct:odoo-update-partner-route", partner, partnerHeaders);
             return partnerId;
         } else {
             log.info("Partner with reference id {} does not exist, creating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
             Map<String, Object> partnerHeaders = new HashMap<>();
-            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "ref");
-            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, partner.getPartnerRef());
             producerTemplate.sendBodyAndHeaders("direct:odoo-create-partner-route", partner, partnerHeaders);
-            return partnerExists(partner.getPartnerRef());
+            return partnerExists(partner.getPartnerRef()).getPartnerId();
         }
     }
 }

@@ -2,7 +2,6 @@ package com.ozonehis.eip.odooopenmrs;
 
 import static java.util.Arrays.asList;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class Constants {
@@ -58,5 +57,6 @@ public class Constants {
     public static final List<String> orderDefaultAttributes =
             asList("id", "client_order_ref", "partner_id", "state", "order_line");
 
-    public List<String> partnerDefaultAttributes = Arrays.asList("id", "name", "ref", "create_date");
+    public static final List<String> partnerDefaultAttributes =
+            asList("id", "name", "ref", "street", "street2", "city", "zip", "active", "comment");
 }

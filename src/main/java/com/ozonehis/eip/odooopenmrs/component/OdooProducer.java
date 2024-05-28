@@ -8,7 +8,6 @@ import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import java.util.List;
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
-import org.apache.camel.Message;
 import org.apache.camel.support.DefaultProducer;
 import org.openmrs.eip.EIPException;
 import org.slf4j.Logger;
@@ -38,10 +37,12 @@ public class OdooProducer extends DefaultProducer {
                 create(model, body);
                 break;
             case Constants.WRITE_METHOD:
-                Object id = search(model, body, exchange.getMessage());
-                if (id != null) {
-                    write(model, body, (Integer) id);
-                }
+                String attributeName =
+                        exchange.getMessage().getHeader(Constants.HEADER_ODOO_ATTRIBUTE_NAME, String.class);
+                Object attributeValue =
+                        exchange.getMessage().getHeader(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, Object.class);
+                write(model, body, (List<Integer>) attributeValue);
+                break;
             default:
                 log.error("OdooProducer: Unimplemented method name in Odoo component {} with body {}", method, body);
                 break;
@@ -57,32 +58,9 @@ public class OdooProducer extends DefaultProducer {
         log.info("OdooProducer: Created data {} in Odoo with id: {}", body, record);
     }
 
-    private Object search(String model, Object body, Message message) throws Exception {
-        log.info("OdooProducer: Searching data {} in Odoo", body);
-        String attributeName = message.getHeader(Constants.HEADER_ODOO_ATTRIBUTE_NAME, String.class);
-        String attributeValue = message.getHeader(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, String.class);
-        if (attributeName == null || attributeValue == null) {
-            return null;
-        }
-        log.info("OdooProducer: Fetching {} model {} with value {}", model, attributeName, attributeValue);
-
-        Object[] records = odooClient.search(
-                model,
-                asList(attributeName, "=", OdooUtils.convertObjectToMap(body).get(attributeValue)));
-        if (records.length > 1) {
-            log.info("Found {} {} in odoo with matching value: {}", records.length, model, attributeValue);
-            return records[0];
-        } else if (records.length == 0) {
-            log.error("No {} found in odoo with matching name: {}", model, attributeName);
-            return null;
-        } else {
-            return records[0];
-        }
-    }
-
-    private void write(String model, Object body, int id) throws Exception {
-        log.info("OdooProducer: Writing {} model for id {}", model, id);
-        Boolean response = odooClient.write(model, asList(asList(id), OdooUtils.convertObjectToMap(body)));
+    private void write(String model, Object body, List<Integer> ids) throws Exception {
+        log.info("OdooProducer: Writing {} model for id {}", model, ids);
+        Boolean response = odooClient.write(model, asList(ids, OdooUtils.convertObjectToMap(body)));
         if (response == null) {
             throw new EIPException(String.format(
                     "Got null response while updating %s with %s", model, OdooUtils.convertObjectToMap(body)));
