@@ -29,7 +29,8 @@ public class EncounterProcessor implements Processor {
         Message message = exchange.getMessage();
         Encounter encounter = message.getBody(Encounter.class);
         if (encounter != null && encounter.hasPeriod() && encounter.getPeriod().hasEnd()) {
-            SaleOrder saleOrder = salesOrderHandler.getSalesOrderIfExists(encounter.getIdPart());
+            String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
+            SaleOrder saleOrder = salesOrderHandler.getDraftSalesOrderIfExistsByVisitId(encounterVisitUuid);
             if (saleOrder != null) {
                 exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
                 exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(saleOrder.getOrderId()));

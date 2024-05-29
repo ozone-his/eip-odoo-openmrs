@@ -56,7 +56,7 @@ public class SaleOrderLineHandler {
 
         // Check if Sale order line order exists in Sale order
         SaleOrderLine fetchedSaleOrderLine =
-                getSaleOrderLineIfExists(saleOrder.getOrderId(), String.valueOf(product.getProductResId()));
+                getSaleOrderLineIfExists(saleOrder.getOrderId(), product.getProductResId());
         log.info("SaleOrderLineHandler: Fetched fetchedSaleOrderLine {}", fetchedSaleOrderLine);
         if (fetchedSaleOrderLine != null) {
             log.info(
@@ -82,7 +82,7 @@ public class SaleOrderLineHandler {
         return saleOrderLine;
     }
 
-    public SaleOrderLine getSaleOrderLineIfExists(int saleOrderId, String productId) {
+    public SaleOrderLine getSaleOrderLineIfExists(int saleOrderId, int productId) {
         try {
             Object[] records = odooClient.searchAndRead(
                     Constants.SALE_ORDER_LINE_MODEL,

@@ -12,7 +12,9 @@ import static java.util.Arrays.asList;
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
+import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.ProducerTemplate;
 import org.apache.xmlrpc.XmlRpcException;
+import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Resource;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,26 +39,66 @@ public class SalesOrderHandler {
     @Autowired
     private OdooClient odooClient;
 
-    public SaleOrder getSalesOrderIfExists(String id) {
+    @Autowired
+    private SaleOrderLineHandler saleOrderLineHandler;
+
+    @Autowired
+    private SaleOrderMapper saleOrderMapper;
+
+    public SaleOrder getDraftSalesOrderIfExistsByPartnerId(int partnerId) {
         try {
             Object[] records = odooClient.searchAndRead(
                     Constants.SALE_ORDER_MODEL,
-                    List.of(asList("client_order_ref", "=", id)),
+                    List.of(asList("partner_id", "=", partnerId), asList("state", "=", "draft")),
                     Constants.orderDefaultAttributes);
             if (records == null) {
-                throw new EIPException(String.format("Got null response while fetching for Sale order with id %s", id));
+                throw new EIPException(
+                        String.format("Got null response while fetching for Sale order with partner_id %s", partnerId));
             } else if (records.length == 1) {
                 SaleOrder saleOrder = OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
-                log.info("Sale order exists with id {} sale order {}", id, saleOrder);
+                log.info("Sale order exists with partner_id {} sale order {}", partnerId, saleOrder);
                 return saleOrder;
             } else if (records.length == 0) {
-                log.info("No Sale order found with id {}", id);
+                log.info("No Sale order found with partner_id {}", partnerId);
                 return null;
             } else { // TODO: Handle case where multiple sale order with same id exists
-                throw new EIPException(String.format("Multiple Sale order found with id %s", id));
+                throw new EIPException(String.format("Multiple Sale order found with partner_id %s", partnerId));
             }
         } catch (XmlRpcException | MalformedURLException e) {
-            log.error("Error occurred while fetching sales order with id {} error {}", id, e.getMessage(), e);
+            log.error(
+                    "Error occurred while fetching sales order with partner_id {} error {}",
+                    partnerId,
+                    e.getMessage(),
+                    e);
+            throw new CamelExecutionException("Error occurred while fetching sales order", null, e);
+        }
+    }
+
+    public SaleOrder getDraftSalesOrderIfExistsByVisitId(String visitId) {
+        try {
+            Object[] records = odooClient.searchAndRead(
+                    Constants.SALE_ORDER_MODEL,
+                    List.of(asList("client_order_ref", "=", visitId), asList("state", "=", "draft")),
+                    Constants.orderDefaultAttributes);
+            if (records == null) {
+                throw new EIPException(String.format(
+                        "Got null response while fetching for Sale order with client_order_ref %s", visitId));
+            } else if (records.length == 1) {
+                SaleOrder saleOrder = OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
+                log.info("Sale order exists with client_order_ref {} sale order {}", visitId, saleOrder);
+                return saleOrder;
+            } else if (records.length == 0) {
+                log.info("No Sale order found with client_order_ref {}", visitId);
+                return null;
+            } else { // TODO: Handle case where multiple sale order with same id exists
+                throw new EIPException(String.format("Multiple Sale order found with client_order_ref %s", visitId));
+            }
+        } catch (XmlRpcException | MalformedURLException e) {
+            log.error(
+                    "Error occurred while fetching sales order with client_order_ref {} error {}",
+                    visitId,
+                    e.getMessage(),
+                    e);
             throw new CamelExecutionException("Error occurred while fetching sales order", null, e);
         }
     }
@@ -91,5 +136,71 @@ public class SalesOrderHandler {
                     List.of(saleOrder.getOrderId()));
         }
         producerTemplate.sendBodyAndHeaders(endpointUri, saleOrder, saleOrderHeaders);
+    }
+
+    public void cancelSaleOrderIfPatientDeceased(Patient patient, int partnerId, ProducerTemplate producerTemplate) {
+        log.info("Is Patient deceased {}", patient.hasDeceased());
+        if (patient.hasDeceased() && false) { // TODO: Fix this all the patients are deceased in demo data
+            List<Integer> saleOrderPartnerIds = getSaleOrderIdsByPartnerId(String.valueOf(partnerId));
+            Map<String, Object> saleOrderHeaders = new HashMap<>();
+            saleOrderHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+            saleOrderHeaders.put(
+                    com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, saleOrderPartnerIds);
+            SaleOrder saleOrder = new SaleOrder();
+            saleOrder.setOrderState("cancel");
+            producerTemplate.sendBodyAndHeaders("direct:odoo-update-sales-order-route", saleOrder, saleOrderHeaders);
+        }
+    }
+
+    public void updateSaleOrderIfExistsWithSaleOrderLine(
+            Resource resource, SaleOrder saleOrder, String encounterVisitUuid, ProducerTemplate producerTemplate) {
+        // If sale order exists create sale order line and link it to sale order
+        SaleOrderLine saleOrderLine = saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder);
+        if (saleOrderLine == null) {
+            log.info(
+                    "{}: Skipping create sale order line for encounter Visit {}",
+                    resource.getClass().getName(),
+                    encounterVisitUuid);
+            return;
+        }
+
+        producerTemplate.sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
+        log.info(
+                "{}: Created sale order line {} and linked to sale order {}",
+                resource.getClass().getName(),
+                saleOrderLine,
+                saleOrder);
+    }
+
+    public void createSaleOrderWithSaleOrderLine(
+            Resource resource, Encounter encounter, int partnerId, ProducerTemplate producerTemplate) {
+        // If the sale order does not exist, create it, then create sale order line and link it to sale order
+        SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
+        newSaleOrder.setOrderPartnerId(partnerId);
+        newSaleOrder.setOrderState("draft");
+
+        sendSalesOrder(producerTemplate, "direct:odoo-create-sales-order-route", newSaleOrder);
+        log.info(
+                "{}: Created sale order with partner_id {}", resource.getClass().getName(), partnerId);
+
+        SaleOrder fetchedSaleOrder = getDraftSalesOrderIfExistsByPartnerId(partnerId);
+        if (fetchedSaleOrder != null) {
+            SaleOrderLine saleOrderLine =
+                    saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, fetchedSaleOrder);
+            if (saleOrderLine == null) {
+                log.info(
+                        "{}: Skipping create sale order line and sale order for partner_id {}",
+                        resource.getClass().getName(),
+                        partnerId);
+                return;
+            }
+
+            producerTemplate.sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
+            log.info(
+                    "{}: Created sale order {} and sale order line {} and linked to sale order",
+                    resource.getClass().getName(),
+                    fetchedSaleOrder.getOrderId(),
+                    saleOrderLine);
+        }
     }
 }

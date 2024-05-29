@@ -19,10 +19,10 @@ public class SaleOrderLine implements OdooDocument {
     private String saleOrderLineName; // Stores Description
 
     @JsonProperty("order_id")
-    private Integer saleOrderLineOrderId;
+    private Object saleOrderLineOrderId;
 
     @JsonProperty("product_id")
-    private Integer saleOrderLineProductId;
+    private Object saleOrderLineProductId;
 
     @JsonProperty("product_uom_qty")
     private Float saleOrderLineProductUomQty;
