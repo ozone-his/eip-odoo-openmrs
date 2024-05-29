@@ -42,17 +42,7 @@ public class PatientRouting extends RouteBuilder {
                 .filter(isPatientSyncEnabled())
                 .log(LoggingLevel.INFO, "Patient sync is enabled")
                 .process(patientProcessor)
-                .choice()
-                .when(header(HEADER_FHIR_EVENT_TYPE).isEqualTo("c"))
-                .toD("direct:odoo-create-partner-route")
-                .when(header(HEADER_FHIR_EVENT_TYPE).isEqualTo("u"))
-                .toD("direct:odoo-update-partner-route")
-                .when(header(HEADER_FHIR_EVENT_TYPE).isEqualTo("d"))
-                .toD("direct:odoo-delete-partner-route")
-                .otherwise()
                 .log(LoggingLevel.WARN, "Unsupported event type: ${header." + HEADER_FHIR_EVENT_TYPE + "}")
-                .end()
-                .end()
                 .end();
 
         from("direct:fhir-patient")

@@ -84,4 +84,13 @@ public class PartnerHandler {
             return partnerExists(partner.getPartnerRef()).getPartnerId();
         }
     }
+
+    public void sendPartner(ProducerTemplate producerTemplate, String endpointUri, Partner partner) {
+        Map<String, Object> headers = new HashMap<>();
+        if (endpointUri.contains("update")) {
+            headers.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+            headers.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(partner.getPartnerId()));
+        }
+        producerTemplate.sendBodyAndHeaders(endpointUri, partner, headers);
+    }
 }

@@ -13,8 +13,6 @@ import com.ozonehis.eip.odooopenmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
 import java.util.*;
 import org.hl7.fhir.r4.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,8 +24,6 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
     private static final String ADDRESS1_EXTENSION = "http://fhir.openmrs.org/ext/address#address1";
 
     private static final String ADDRESS2_EXTENSION = "http://fhir.openmrs.org/ext/address#address2";
-
-    private static final Logger log = LoggerFactory.getLogger(PartnerMapper.class);
 
     @Autowired
     private CountryHandler countryHandler;
