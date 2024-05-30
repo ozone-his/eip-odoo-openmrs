@@ -67,20 +67,17 @@ public class PartnerHandler {
             int partnerId = fetchedPartner.getPartnerId();
             log.info("Partner with reference id {} already exists, updating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
+            partner.setPartnerId(partnerId);
             // TODO: Set Partner as inactive if Patient has decreased
             //            if (patient.hasDeceased()) {
             //                partner.setPartnerActive(false);
             //            }
-            Map<String, Object> partnerHeaders = new HashMap<>();
-            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-            partnerHeaders.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(partnerId));
-            producerTemplate.sendBodyAndHeaders("direct:odoo-update-partner-route", partner, partnerHeaders);
+            sendPartner(producerTemplate, "direct:odoo-update-partner-route", partner);
             return partnerId;
         } else {
             log.info("Partner with reference id {} does not exist, creating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
-            Map<String, Object> partnerHeaders = new HashMap<>();
-            producerTemplate.sendBodyAndHeaders("direct:odoo-create-partner-route", partner, partnerHeaders);
+            sendPartner(producerTemplate, "direct:odoo-create-partner-route", partner);
             return partnerExists(partner.getPartnerRef()).getPartnerId();
         }
     }

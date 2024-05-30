@@ -42,8 +42,7 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
         String patientName = getPatientName(patient).orElse("");
         String patientIdentifier = getPreferredPatientIdentifier(patient).orElse("");
         partner.setPartnerComment(patientIdentifier);
-        // TODO: Check if we need to append patientIdentifier in name
-        partner.setPartnerName(patientName + " - " + patientIdentifier);
+        partner.setPartnerName(patientName);
 
         addAddress(patient, partner);
         return partner;

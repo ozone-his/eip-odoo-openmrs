@@ -18,10 +18,13 @@ import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import com.ozonehis.eip.odooopenmrs.model.Uom;
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
+import org.apache.camel.ProducerTemplate;
 import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
@@ -117,5 +120,16 @@ public class SaleOrderLineHandler {
                     e);
             throw new CamelExecutionException("Error occurred while fetching sales order line", null, e);
         }
+    }
+
+    public void sendSalesOrderLine(ProducerTemplate producerTemplate, String endpointUri, SaleOrderLine saleOrderLine) {
+        Map<String, Object> saleOrderLineHeaders = new HashMap<>();
+        if (endpointUri.contains("update") || endpointUri.contains("delete")) {
+            saleOrderLineHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+            saleOrderLineHeaders.put(
+                    com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE,
+                    List.of(saleOrderLine.getSaleOrderLineId()));
+        }
+        producerTemplate.sendBodyAndHeaders(endpointUri, saleOrderLine, saleOrderLineHeaders);
     }
 }

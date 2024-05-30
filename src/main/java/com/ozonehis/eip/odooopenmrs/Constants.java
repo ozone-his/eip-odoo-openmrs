@@ -25,6 +25,8 @@ public class Constants {
 
     public static final String WRITE_METHOD = "write";
 
+    public static final String UNLINK_METHOD = "unlink";
+
     public static final String HEADER_ODOO_ATTRIBUTE_NAME = "odoo.attribute.name";
 
     public static final String HEADER_ODOO_ATTRIBUTE_VALUE = "odoo.attribute.value";

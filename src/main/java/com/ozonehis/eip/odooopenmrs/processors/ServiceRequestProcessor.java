@@ -8,9 +8,7 @@
 package com.ozonehis.eip.odooopenmrs.processors;
 
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
-import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderLineHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
-import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import java.util.List;
 import lombok.Setter;
@@ -30,16 +28,10 @@ import org.springframework.stereotype.Component;
 public class ServiceRequestProcessor implements Processor {
 
     @Autowired
-    private SaleOrderMapper saleOrderMapper;
-
-    @Autowired
     private SalesOrderHandler salesOrderHandler;
 
     @Autowired
     private PartnerHandler partnerHandler;
-
-    @Autowired
-    private SaleOrderLineHandler saleOrderLineHandler;
 
     @Override
     public void process(Exchange exchange) {

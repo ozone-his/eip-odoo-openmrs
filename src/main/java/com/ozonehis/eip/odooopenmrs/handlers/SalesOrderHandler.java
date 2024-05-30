@@ -13,6 +13,7 @@ import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
+import com.ozonehis.eip.odooopenmrs.model.Product;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import java.net.MalformedURLException;
@@ -25,6 +26,7 @@ import org.apache.camel.CamelExecutionException;
 import org.apache.camel.ProducerTemplate;
 import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Resource;
 import org.openmrs.eip.EIPException;
@@ -44,6 +46,9 @@ public class SalesOrderHandler {
 
     @Autowired
     private SaleOrderMapper saleOrderMapper;
+
+    @Autowired
+    private ProductHandler productHandler;
 
     public SaleOrder getDraftSalesOrderIfExistsByPartnerId(int partnerId) {
         try {
@@ -201,6 +206,34 @@ public class SalesOrderHandler {
                     resource.getClass().getName(),
                     fetchedSaleOrder.getOrderId(),
                     saleOrderLine);
+        }
+    }
+
+    public void deleteSaleOrderLine(
+            int partnerId, MedicationRequest medicationRequest, ProducerTemplate producerTemplate) {
+        SaleOrder saleOrder = getDraftSalesOrderIfExistsByPartnerId(partnerId);
+        if (saleOrder != null) {
+            Product product = productHandler.getProduct(medicationRequest);
+            if (product != null) {
+                SaleOrderLine saleOrderLine = saleOrderLineHandler.getSaleOrderLineIfExists(
+                        saleOrder.getOrderId(), product.getProductResId());
+                saleOrderLineHandler.sendSalesOrderLine(
+                        producerTemplate, "direct:odoo-delete-sale-order-line-route", saleOrderLine);
+
+                // Check if sale order has no sale order line, then cancel the sale order
+                cancelSaleOrderWhenNoSaleOrderLine(partnerId, producerTemplate);
+            }
+        }
+    }
+
+    private void cancelSaleOrderWhenNoSaleOrderLine(int partnerId, ProducerTemplate producerTemplate) {
+        SaleOrder saleOrder = getDraftSalesOrderIfExistsByPartnerId(partnerId);
+        if (saleOrder != null
+                && (saleOrder.getOrderLine() == null || saleOrder.getOrderLine().isEmpty())) {
+            log.info("MedicationRequest: Count of sale order line {}", saleOrder.getOrderLine());
+            saleOrder.setOrderState("cancel");
+            saleOrder.setOrderPartnerId((Integer) partnerId);
+            sendSalesOrder(producerTemplate, "direct:odoo-update-sales-order-route", saleOrder);
         }
     }
 }

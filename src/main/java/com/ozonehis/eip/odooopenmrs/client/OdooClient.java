@@ -92,6 +92,12 @@ public class OdooClient {
                 client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "write", dataParams));
     }
 
+    public Boolean delete(String model, List<Object> dataParams) throws XmlRpcException, MalformedURLException {
+        authenticateIfNecessary();
+        return (Boolean)
+                client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "unlink", dataParams));
+    }
+
     public Object[] searchAndRead(String model, List<Object> criteria, List<String> fields)
             throws XmlRpcException, MalformedURLException {
 

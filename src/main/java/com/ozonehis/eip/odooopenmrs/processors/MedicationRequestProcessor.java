@@ -8,7 +8,6 @@
 package com.ozonehis.eip.odooopenmrs.processors;
 
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
-import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderLineHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
@@ -37,9 +36,6 @@ public class MedicationRequestProcessor implements Processor {
 
     @Autowired
     private PartnerHandler partnerHandler;
-
-    @Autowired
-    private SaleOrderLineHandler saleOrderLineHandler;
 
     @Override
     public void process(Exchange exchange) {
@@ -88,6 +84,8 @@ public class MedicationRequestProcessor implements Processor {
                             salesOrderHandler.createSaleOrderWithSaleOrderLine(
                                     medicationRequest, encounter, partnerId, producerTemplate);
                         }
+                    } else {
+                        salesOrderHandler.deleteSaleOrderLine(partnerId, medicationRequest, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {
                     // TODO: Handle sale order with item, when event type is delete
