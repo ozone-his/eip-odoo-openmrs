@@ -76,16 +76,17 @@ public class MedicationRequestProcessor implements Processor {
                     int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
                     salesOrderHandler.cancelSaleOrderIfPatientDeceased(patient, partnerId, producerTemplate);
                     if (!medicationRequest.getStatus().equals(MedicationRequest.MedicationRequestStatus.CANCELLED)) {
-                        SaleOrder saleOrder = salesOrderHandler.getDraftSalesOrderIfExistsByPartnerId(partnerId);
+                        SaleOrder saleOrder = salesOrderHandler.getDraftSalesOrderIfExistsByVisitId(encounterVisitUuid);
                         if (saleOrder != null) {
                             salesOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
                                     medicationRequest, saleOrder, encounterVisitUuid, producerTemplate);
                         } else {
                             salesOrderHandler.createSaleOrderWithSaleOrderLine(
-                                    medicationRequest, encounter, partnerId, producerTemplate);
+                                    medicationRequest, encounter, partnerId, encounterVisitUuid, producerTemplate);
                         }
                     } else {
-                        salesOrderHandler.deleteSaleOrderLine(partnerId, medicationRequest, producerTemplate);
+                        salesOrderHandler.deleteSaleOrderLine(
+                                partnerId, medicationRequest, encounterVisitUuid, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {
                     // TODO: Handle sale order with item, when event type is delete

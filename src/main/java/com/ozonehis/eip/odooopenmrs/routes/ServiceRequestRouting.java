@@ -36,6 +36,8 @@ public class ServiceRequestRouting extends RouteBuilder {
         // spotless:off
         from("direct:fhir-servicerequest")
                 .routeId("service-request-to-sale-order-router")
+                .filter(body().isNotNull())
+                .filter(exchange -> exchange.getMessage().getBody() instanceof ServiceRequest)
                 .process(exchange -> {
                     ServiceRequest serviceRequest = exchange.getMessage().getBody(ServiceRequest.class);
                     exchange.setProperty(Constants.FHIR_RESOURCE_TYPE, serviceRequest.fhirType());

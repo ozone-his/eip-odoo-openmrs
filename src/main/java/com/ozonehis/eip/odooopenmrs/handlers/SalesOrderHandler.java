@@ -178,7 +178,11 @@ public class SalesOrderHandler {
     }
 
     public void createSaleOrderWithSaleOrderLine(
-            Resource resource, Encounter encounter, int partnerId, ProducerTemplate producerTemplate) {
+            Resource resource,
+            Encounter encounter,
+            int partnerId,
+            String encounterVisitUuid,
+            ProducerTemplate producerTemplate) {
         // If the sale order does not exist, create it, then create sale order line and link it to sale order
         SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
         newSaleOrder.setOrderPartnerId(partnerId);
@@ -188,7 +192,7 @@ public class SalesOrderHandler {
         log.info(
                 "{}: Created sale order with partner_id {}", resource.getClass().getName(), partnerId);
 
-        SaleOrder fetchedSaleOrder = getDraftSalesOrderIfExistsByPartnerId(partnerId);
+        SaleOrder fetchedSaleOrder = getDraftSalesOrderIfExistsByVisitId(encounterVisitUuid);
         if (fetchedSaleOrder != null) {
             SaleOrderLine saleOrderLine =
                     saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, fetchedSaleOrder);
@@ -210,8 +214,11 @@ public class SalesOrderHandler {
     }
 
     public void deleteSaleOrderLine(
-            int partnerId, MedicationRequest medicationRequest, ProducerTemplate producerTemplate) {
-        SaleOrder saleOrder = getDraftSalesOrderIfExistsByPartnerId(partnerId);
+            int partnerId,
+            MedicationRequest medicationRequest,
+            String encounterVisitUuid,
+            ProducerTemplate producerTemplate) {
+        SaleOrder saleOrder = getDraftSalesOrderIfExistsByVisitId(encounterVisitUuid);
         if (saleOrder != null) {
             Product product = productHandler.getProduct(medicationRequest);
             if (product != null) {
@@ -221,13 +228,14 @@ public class SalesOrderHandler {
                         producerTemplate, "direct:odoo-delete-sale-order-line-route", saleOrderLine);
 
                 // Check if sale order has no sale order line, then cancel the sale order
-                cancelSaleOrderWhenNoSaleOrderLine(partnerId, producerTemplate);
+                cancelSaleOrderWhenNoSaleOrderLine(partnerId, encounterVisitUuid, producerTemplate);
             }
         }
     }
 
-    private void cancelSaleOrderWhenNoSaleOrderLine(int partnerId, ProducerTemplate producerTemplate) {
-        SaleOrder saleOrder = getDraftSalesOrderIfExistsByPartnerId(partnerId);
+    private void cancelSaleOrderWhenNoSaleOrderLine(
+            int partnerId, String encounterVisitUuid, ProducerTemplate producerTemplate) {
+        SaleOrder saleOrder = getDraftSalesOrderIfExistsByVisitId(encounterVisitUuid);
         if (saleOrder != null
                 && (saleOrder.getOrderLine() == null || saleOrder.getOrderLine().isEmpty())) {
             log.info("MedicationRequest: Count of sale order line {}", saleOrder.getOrderLine());

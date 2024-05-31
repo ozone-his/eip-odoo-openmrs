@@ -7,8 +7,6 @@
  */
 package com.ozonehis.eip.odooopenmrs.routes;
 
-import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
-
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.processors.PatientProcessor;
 import lombok.Setter;
@@ -42,7 +40,6 @@ public class PatientRouting extends RouteBuilder {
                 .filter(isPatientSyncEnabled())
                 .log(LoggingLevel.INFO, "Patient sync is enabled")
                 .process(patientProcessor)
-                .log(LoggingLevel.WARN, "Unsupported event type: ${header." + HEADER_FHIR_EVENT_TYPE + "}")
                 .end();
 
         from("direct:fhir-patient")

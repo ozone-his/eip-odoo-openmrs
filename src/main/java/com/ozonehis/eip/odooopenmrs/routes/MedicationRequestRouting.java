@@ -33,6 +33,8 @@ public class MedicationRequestRouting extends RouteBuilder {
         // spotless:off
         from("direct:fhir-medicationrequest")
                 .routeId("medication-request-to-sale-order-router")
+                .filter(body().isNotNull())
+                .filter(exchange -> exchange.getMessage().getBody() instanceof MedicationRequest)
                 .process(exchange -> {
                     MedicationRequest medicationRequest = exchange.getMessage().getBody(MedicationRequest.class);
                     exchange.setProperty(Constants.FHIR_RESOURCE_TYPE, medicationRequest.fhirType());

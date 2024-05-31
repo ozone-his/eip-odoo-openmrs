@@ -68,13 +68,13 @@ public class ServiceRequestProcessor implements Processor {
                     salesOrderHandler.cancelSaleOrderIfPatientDeceased(patient, partnerId, producerTemplate);
                     if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                             && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
-                        SaleOrder saleOrder = salesOrderHandler.getDraftSalesOrderIfExistsByPartnerId(partnerId);
+                        SaleOrder saleOrder = salesOrderHandler.getDraftSalesOrderIfExistsByVisitId(encounterVisitUuid);
                         if (saleOrder != null) {
                             salesOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
                                     serviceRequest, saleOrder, encounterVisitUuid, producerTemplate);
                         } else {
                             salesOrderHandler.createSaleOrderWithSaleOrderLine(
-                                    serviceRequest, encounter, partnerId, producerTemplate);
+                                    serviceRequest, encounter, partnerId, encounterVisitUuid, producerTemplate);
                         }
                     }
                 } else if ("d".equals(eventType)) {
