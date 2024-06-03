@@ -1,8 +1,13 @@
 package com.ozonehis.eip.odooopenmrs.mapper.odoo;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
+
 import com.ozonehis.eip.odooopenmrs.handlers.CountryHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.CountryStateHandler;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
+import java.util.Collections;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.HumanName;
@@ -14,12 +19,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
-import java.util.Collections;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.openMocks;
 
 class PartnerMapperTest {
     private static final String ADDRESS_EXTENSION_URL = "http://fhir.openmrs.org/ext/address";
@@ -137,10 +136,8 @@ class PartnerMapperTest {
         fhirAddress
                 .addExtension()
                 .setUrl(ADDRESS_EXTENSION_URL)
-                .addExtension(new Extension(
-                        ADDRESS1_EXTENSION, new StringType("Test Address Line 1")))
-                .addExtension(new Extension(
-                        ADDRESS2_EXTENSION, new StringType("Test Address Line 2")));
+                .addExtension(new Extension(ADDRESS1_EXTENSION, new StringType("Test Address Line 1")))
+                .addExtension(new Extension(ADDRESS2_EXTENSION, new StringType("Test Address Line 2")));
         return fhirAddress;
     }
 }

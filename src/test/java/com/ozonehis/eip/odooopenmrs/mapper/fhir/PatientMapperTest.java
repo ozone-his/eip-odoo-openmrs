@@ -1,11 +1,11 @@
 package com.ozonehis.eip.odooopenmrs.mapper.fhir;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.ozonehis.eip.odooopenmrs.model.Partner;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class PatientMapperTest {
 
@@ -22,11 +22,10 @@ class PatientMapperTest {
         Partner partner = new Partner();
         partner.setPartnerRef("123");
 
-        //Act
+        // Act
         Patient patient = patientMapper.toFhir(partner);
 
         // Assert
         assertEquals("123", patient.getId());
     }
-
 }

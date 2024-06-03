@@ -1,7 +1,10 @@
 package com.ozonehis.eip.odooopenmrs.routes.saleorder;
 
+import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.camel.Endpoint;
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -13,11 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.openmrs.eip.fhir.Constants;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 @UseAdviceWith
 public class UpdateSaleOrderRouteTest extends CamelSpringTestSupport {
@@ -40,9 +38,7 @@ public class UpdateSaleOrderRouteTest extends CamelSpringTestSupport {
 
             @Override
             public void configure() {
-                weaveByToUri("odoo://write/sale.order")
-                        .replace()
-                        .to("mock:update-sale-order");
+                weaveByToUri("odoo://write/sale.order").replace().to("mock:update-sale-order");
             }
         });
 
@@ -62,13 +58,14 @@ public class UpdateSaleOrderRouteTest extends CamelSpringTestSupport {
         updateHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
         updateHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, saleOrder.getOrderId());
 
-
         // Expectations
         MockEndpoint mockUpdateSaleOrderEndpoint = getMockEndpoint("mock:update-sale-order");
         mockUpdateSaleOrderEndpoint.expectedMessageCount(1);
         mockUpdateSaleOrderEndpoint.expectedHeaderReceived(Constants.HEADER_FHIR_EVENT_TYPE, "u");
-        mockUpdateSaleOrderEndpoint.expectedHeaderReceived(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-        mockUpdateSaleOrderEndpoint.expectedHeaderReceived(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, 12);
+        mockUpdateSaleOrderEndpoint.expectedHeaderReceived(
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+        mockUpdateSaleOrderEndpoint.expectedHeaderReceived(
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, 12);
         mockUpdateSaleOrderEndpoint.setResultWaitTime(100);
 
         // Act

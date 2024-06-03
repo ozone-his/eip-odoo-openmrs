@@ -1,7 +1,10 @@
 package com.ozonehis.eip.odooopenmrs.routes.partner;
 
+import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 import com.ozonehis.eip.odooopenmrs.model.Partner;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.camel.Endpoint;
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -13,11 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.openmrs.eip.fhir.Constants;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 @UseAdviceWith
 public class DeletePartnerRouteTest extends CamelSpringTestSupport {
@@ -40,9 +38,7 @@ public class DeletePartnerRouteTest extends CamelSpringTestSupport {
 
             @Override
             public void configure() {
-                weaveByToUri("odoo://unlink/res.partner")
-                        .replace()
-                        .to("mock:delete-partner");
+                weaveByToUri("odoo://unlink/res.partner").replace().to("mock:delete-partner");
             }
         });
 
@@ -62,13 +58,14 @@ public class DeletePartnerRouteTest extends CamelSpringTestSupport {
         deleteHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
         deleteHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, partner.getPartnerId());
 
-
         // Expectations
         MockEndpoint mockDeletePartnerEndpoint = getMockEndpoint("mock:delete-partner");
         mockDeletePartnerEndpoint.expectedMessageCount(1);
         mockDeletePartnerEndpoint.expectedHeaderReceived(Constants.HEADER_FHIR_EVENT_TYPE, "d");
-        mockDeletePartnerEndpoint.expectedHeaderReceived(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-        mockDeletePartnerEndpoint.expectedHeaderReceived(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, 12);
+        mockDeletePartnerEndpoint.expectedHeaderReceived(
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+        mockDeletePartnerEndpoint.expectedHeaderReceived(
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, 12);
         mockDeletePartnerEndpoint.setResultWaitTime(100);
 
         // Act

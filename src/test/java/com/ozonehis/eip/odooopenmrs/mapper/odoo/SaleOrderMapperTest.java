@@ -1,16 +1,15 @@
 package com.ozonehis.eip.odooopenmrs.mapper.odoo;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Reference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SaleOrderMapperTest {
 
@@ -30,7 +29,7 @@ class SaleOrderMapperTest {
         // Act
         SaleOrder saleOrder = saleOrderMapper.toOdoo(encounter);
 
-        //verify
+        // verify
         assertNotNull(saleOrder);
         assertEquals("1234", saleOrder.getOrderClientOrderRef());
         assertEquals("Sale Order", saleOrder.getOrderTypeName());
@@ -42,7 +41,7 @@ class SaleOrderMapperTest {
         // Act
         SaleOrder saleOrder = saleOrderMapper.toOdoo(null);
 
-        //verify
+        // verify
         assertNull(saleOrder);
     }
 

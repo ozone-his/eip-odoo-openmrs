@@ -1,7 +1,10 @@
 package com.ozonehis.eip.odooopenmrs.routes.partner;
 
+import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 import com.ozonehis.eip.odooopenmrs.model.Partner;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.camel.Endpoint;
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -13,11 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.openmrs.eip.fhir.Constants;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 @UseAdviceWith
 public class UpdatePartnerRouteTest extends CamelSpringTestSupport {
@@ -40,9 +38,7 @@ public class UpdatePartnerRouteTest extends CamelSpringTestSupport {
 
             @Override
             public void configure() {
-                weaveByToUri("odoo://write/res.partner")
-                        .replace()
-                        .to("mock:update-partner");
+                weaveByToUri("odoo://write/res.partner").replace().to("mock:update-partner");
             }
         });
 
@@ -62,13 +58,14 @@ public class UpdatePartnerRouteTest extends CamelSpringTestSupport {
         updateHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
         updateHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, partner.getPartnerId());
 
-
         // Expectations
         MockEndpoint mockUpdatePartnerEndpoint = getMockEndpoint("mock:update-partner");
         mockUpdatePartnerEndpoint.expectedMessageCount(1);
         mockUpdatePartnerEndpoint.expectedHeaderReceived(Constants.HEADER_FHIR_EVENT_TYPE, "u");
-        mockUpdatePartnerEndpoint.expectedHeaderReceived(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-        mockUpdatePartnerEndpoint.expectedHeaderReceived(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, 12);
+        mockUpdatePartnerEndpoint.expectedHeaderReceived(
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+        mockUpdatePartnerEndpoint.expectedHeaderReceived(
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, 12);
         mockUpdatePartnerEndpoint.setResultWaitTime(100);
 
         // Act

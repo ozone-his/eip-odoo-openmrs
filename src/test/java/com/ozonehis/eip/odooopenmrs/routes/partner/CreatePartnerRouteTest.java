@@ -1,9 +1,10 @@
 package com.ozonehis.eip.odooopenmrs.routes.partner;
 
-
 import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 import com.ozonehis.eip.odooopenmrs.model.Partner;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.camel.Endpoint;
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -15,9 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.openmrs.eip.fhir.Constants;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @UseAdviceWith
 public class CreatePartnerRouteTest extends CamelSpringTestSupport {
@@ -40,9 +38,7 @@ public class CreatePartnerRouteTest extends CamelSpringTestSupport {
 
             @Override
             public void configure() {
-                weaveByToUri("odoo://create/res.partner")
-                        .replace()
-                        .to("mock:create-partner");
+                weaveByToUri("odoo://create/res.partner").replace().to("mock:create-partner");
             }
         });
 
@@ -56,7 +52,7 @@ public class CreatePartnerRouteTest extends CamelSpringTestSupport {
         partner.setPartnerRef("12345");
         partner.setPartnerName("John Doe");
 
-        Map<String,Object> createHeaders = new HashMap<>();
+        Map<String, Object> createHeaders = new HashMap<>();
         createHeaders.put(Constants.HEADER_FHIR_EVENT_TYPE, "c");
 
         // Expectations

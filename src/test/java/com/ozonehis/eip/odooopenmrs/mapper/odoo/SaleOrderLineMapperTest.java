@@ -1,7 +1,11 @@
 package com.ozonehis.eip.odooopenmrs.mapper.odoo;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
+import java.util.List;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Dosage;
@@ -15,12 +19,6 @@ import org.hl7.fhir.r4.model.Timing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SaleOrderLineMapperTest {
 
@@ -126,7 +124,9 @@ class SaleOrderLineMapperTest {
         assertNotNull(saleOrderLine);
         assertEquals(10.0f, saleOrderLine.getSaleOrderLineProductUomQty());
         assertEquals("15AAAAAAAAAAA", saleOrderLine.getSaleOrderLineProductUom());
-        assertEquals("medication | 10.0 Tablet | 7 Tablet - thrice daily - 10 day | Orderer: requester", saleOrderLine.getSaleOrderLineName());
+        assertEquals(
+                "medication | 10.0 Tablet | 7 Tablet - thrice daily - 10 day | Orderer: requester",
+                saleOrderLine.getSaleOrderLineName());
     }
 
     @Test
@@ -135,5 +135,4 @@ class SaleOrderLineMapperTest {
         Resource unsupportedResource = new Patient();
         assertThrows(IllegalArgumentException.class, () -> saleOrderLineMapper.toOdoo(unsupportedResource));
     }
-
 }

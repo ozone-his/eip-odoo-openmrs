@@ -1,7 +1,10 @@
 package com.ozonehis.eip.odooopenmrs.routes.saleorder;
 
+import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.camel.Endpoint;
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -13,11 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.openmrs.eip.fhir.Constants;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 @UseAdviceWith
 public class DeleteSaleOrderRouteTest extends CamelSpringTestSupport {
@@ -40,9 +38,7 @@ public class DeleteSaleOrderRouteTest extends CamelSpringTestSupport {
 
             @Override
             public void configure() {
-                weaveByToUri("odoo://unlink/sale.order")
-                        .replace()
-                        .to("mock:delete-sale-order");
+                weaveByToUri("odoo://unlink/sale.order").replace().to("mock:delete-sale-order");
             }
         });
 
@@ -62,13 +58,14 @@ public class DeleteSaleOrderRouteTest extends CamelSpringTestSupport {
         deleteHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
         deleteHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, saleOrder.getOrderId());
 
-
         // Expectations
         MockEndpoint mockDeleteSaleOrderEndpoint = getMockEndpoint("mock:delete-sale-order");
         mockDeleteSaleOrderEndpoint.expectedMessageCount(1);
         mockDeleteSaleOrderEndpoint.expectedHeaderReceived(Constants.HEADER_FHIR_EVENT_TYPE, "d");
-        mockDeleteSaleOrderEndpoint.expectedHeaderReceived(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-        mockDeleteSaleOrderEndpoint.expectedHeaderReceived(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, 12);
+        mockDeleteSaleOrderEndpoint.expectedHeaderReceived(
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+        mockDeleteSaleOrderEndpoint.expectedHeaderReceived(
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, 12);
         mockDeleteSaleOrderEndpoint.setResultWaitTime(100);
 
         // Act

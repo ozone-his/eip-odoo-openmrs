@@ -1,7 +1,10 @@
 package com.ozonehis.eip.odooopenmrs.routes.saleorder;
 
+import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.camel.Endpoint;
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -13,11 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.openmrs.eip.fhir.Constants;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 @UseAdviceWith
 public class CreateSaleOrderRouteTest extends CamelSpringTestSupport {
@@ -40,9 +38,7 @@ public class CreateSaleOrderRouteTest extends CamelSpringTestSupport {
 
             @Override
             public void configure() {
-                weaveByToUri("odoo://create/sale.order")
-                        .replace()
-                        .to("mock:create-sale-order");
+                weaveByToUri("odoo://create/sale.order").replace().to("mock:create-sale-order");
             }
         });
 
@@ -56,7 +52,7 @@ public class CreateSaleOrderRouteTest extends CamelSpringTestSupport {
         saleOrder.setOrderClientOrderRef("12345");
         saleOrder.setOrderState("draft");
 
-        Map<String,Object> createHeaders = new HashMap<>();
+        Map<String, Object> createHeaders = new HashMap<>();
         createHeaders.put(Constants.HEADER_FHIR_EVENT_TYPE, "c");
 
         // Expectations
