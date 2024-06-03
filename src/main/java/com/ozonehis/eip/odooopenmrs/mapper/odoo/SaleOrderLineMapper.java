@@ -21,10 +21,6 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
     public SaleOrderLine toOdoo(R resource) {
         SaleOrderLine saleOrderLine = new SaleOrderLine();
         if (resource instanceof ServiceRequest serviceRequest) {
-            if (serviceRequest.hasCode()) {
-                saleOrderLine.setSaleOrderLineName(
-                        serviceRequest.getCode().getCodingFirstRep().getCode());
-            }
             saleOrderLine.setSaleOrderLineProductUomQty(1.0f); // default quantity is 1 for serviceRequests.
             String requesterDisplay = serviceRequest.getRequester().getDisplay();
             String serviceDisplay = serviceRequest.getCode().getText();

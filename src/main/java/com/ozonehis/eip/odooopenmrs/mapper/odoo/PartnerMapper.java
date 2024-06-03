@@ -67,7 +67,7 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
                 partner.setPartnerCity(fhirAddress.getCity());
                 partner.setPartnerCountryId(countryHandler.getCountryId(fhirAddress.getCountry()));
                 partner.setPartnerZip(fhirAddress.getPostalCode());
-                partner.setPartnerStateId(countryStateHandler.getStateId(fhirAddress.getPostalCode()));
+                partner.setPartnerStateId(countryStateHandler.getStateId(fhirAddress.getState()));
                 if (fhirAddress.getType() != null) {
                     partner.setPartnerType(fhirAddress.getType().getDisplay());
                 }

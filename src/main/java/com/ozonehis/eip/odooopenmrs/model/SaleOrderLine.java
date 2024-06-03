@@ -28,5 +28,5 @@ public class SaleOrderLine implements OdooDocument {
     private Float saleOrderLineProductUomQty;
 
     @JsonProperty("product_uom")
-    private Object saleOrderLineProductUom; // Can be used as a list or Integer
+    private Object saleOrderLineProductUom; // Can be used as a list or Integer, Stores code of product or product name
 }
