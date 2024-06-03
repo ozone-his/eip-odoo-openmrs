@@ -314,7 +314,7 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 
         producerTemplate.send(OdooTestConstants.URI_ORDER_HANDLER, exchange);
 
-        assertMessageLogged(Level.WARN, "Don't know how to handle Order with action: " + action);
+        assertMessageLogged(Level.WARN, "Don't know how to handle SaleOrder with action: " + action);
     }
 
     @Test
@@ -332,6 +332,6 @@ public class OdooOrderHandlerRouteTest extends BaseOrderOdooRouteTest {
 
         producerTemplate.send(OdooTestConstants.URI_ORDER_HANDLER, exchange);
 
-        assertMessageLogged(Level.WARN, "Don't know how to handle Order with action: " + action);
+        assertMessageLogged(Level.WARN, "Don't know how to handle SaleOrder with action: " + action);
     }
 }
