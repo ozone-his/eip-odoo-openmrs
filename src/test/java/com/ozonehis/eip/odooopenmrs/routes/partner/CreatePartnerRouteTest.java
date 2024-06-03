@@ -33,7 +33,7 @@ public class CreatePartnerRouteTest extends CamelSpringTestSupport {
     }
 
     @BeforeEach
-    void setup() throws Exception {
+    public void setup() throws Exception {
         adviceWith("odoo-create-partner-route", context, new AdviceWithRouteBuilder() {
 
             @Override

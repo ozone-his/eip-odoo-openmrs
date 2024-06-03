@@ -39,12 +39,12 @@ class PartnerMapperTest {
     private static AutoCloseable mocksCloser;
 
     @BeforeEach
-    void setup() {
+    public void setup() {
         mocksCloser = openMocks(this);
     }
 
     @AfterAll
-    static void close() throws Exception {
+    public static void close() throws Exception {
         mocksCloser.close();
     }
 

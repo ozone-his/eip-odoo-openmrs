@@ -1,6 +1,10 @@
 package com.ozonehis.eip.odooopenmrs.routes.saleorderline;
 
+import static org.apache.camel.builder.AdviceWith.adviceWith;
+
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.camel.Endpoint;
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -12,11 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.openmrs.eip.fhir.Constants;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 @UseAdviceWith
 public class UpdateSaleOrderLineRouteTest extends CamelSpringTestSupport {
@@ -34,7 +33,7 @@ public class UpdateSaleOrderLineRouteTest extends CamelSpringTestSupport {
     }
 
     @BeforeEach
-    void setup() throws Exception {
+    public void setup() throws Exception {
         adviceWith("odoo-update-sale-order-line-route", context, new AdviceWithRouteBuilder() {
 
             @Override
@@ -58,7 +57,8 @@ public class UpdateSaleOrderLineRouteTest extends CamelSpringTestSupport {
         Map<String, Object> updateHeaders = new HashMap<>();
         updateHeaders.put(Constants.HEADER_FHIR_EVENT_TYPE, "u");
         updateHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-        updateHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, saleOrderLine.getSaleOrderLineId());
+        updateHeaders.put(
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, saleOrderLine.getSaleOrderLineId());
 
         // Expectations
         MockEndpoint mockUpdateSaleOrderLineEndpoint = getMockEndpoint("mock:update-sale-order-line");

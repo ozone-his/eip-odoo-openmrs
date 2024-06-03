@@ -1,6 +1,10 @@
 package com.ozonehis.eip.odooopenmrs.routes.saleorderline;
 
+import static org.apache.camel.builder.AdviceWith.adviceWith;
+
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.camel.Endpoint;
 import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -12,11 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.openmrs.eip.fhir.Constants;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.camel.builder.AdviceWith.adviceWith;
 
 @UseAdviceWith
 public class CreateSaleOrderLineRouteTest extends CamelSpringTestSupport {
@@ -34,7 +33,7 @@ public class CreateSaleOrderLineRouteTest extends CamelSpringTestSupport {
     }
 
     @BeforeEach
-    void setup() throws Exception {
+    public void setup() throws Exception {
         adviceWith("odoo-create-sale-order-line-route", context, new AdviceWithRouteBuilder() {
 
             @Override

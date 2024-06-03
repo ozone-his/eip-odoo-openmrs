@@ -41,12 +41,12 @@ class SaleOrderLineMapperTest {
     private SaleOrderLineMapper<Resource> saleOrderLineMapper;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         saleOrderLineMapper = new SaleOrderLineMapper<>();
     }
 
     @Test
-    void shouldMapServiceRequestToSaleOrderLine() {
+    public void shouldMapServiceRequestToSaleOrderLine() {
         // setup
         ServiceRequest serviceRequest = new ServiceRequest();
         serviceRequest.setId(SERVICE_REQUEST_ID);
@@ -77,7 +77,7 @@ class SaleOrderLineMapperTest {
     }
 
     @Test
-    void shouldMapMedicationRequestToSaleOrderLine() {
+    public void shouldMapMedicationRequestToSaleOrderLine() {
         // setup
         MedicationRequest medicationRequest = new MedicationRequest();
         medicationRequest.setId(MEDICATION_REQUEST_ID);
@@ -131,7 +131,7 @@ class SaleOrderLineMapperTest {
 
     @Test
     @DisplayName("Should throw exception for unsupported resource type")
-    void shouldThrowExceptionForUnsupportedResourceType() {
+    public void shouldThrowExceptionForUnsupportedResourceType() {
         Resource unsupportedResource = new Patient();
         assertThrows(IllegalArgumentException.class, () -> saleOrderLineMapper.toOdoo(unsupportedResource));
     }

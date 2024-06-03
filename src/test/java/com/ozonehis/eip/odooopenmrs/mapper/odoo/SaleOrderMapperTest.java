@@ -16,7 +16,7 @@ class SaleOrderMapperTest {
     private SaleOrderMapper saleOrderMapper;
 
     @BeforeEach
-    void setup() {
+    public void setup() {
         saleOrderMapper = new SaleOrderMapper();
     }
 
@@ -46,7 +46,7 @@ class SaleOrderMapperTest {
     }
 
     @Test
-    void shouldThrowIllegalArgumentExceptionWhenEncounterPartOfReferenceIsNull() {
+    public void shouldThrowIllegalArgumentExceptionWhenEncounterPartOfReferenceIsNull() {
         // setup
         Encounter encounter = new Encounter();
 
