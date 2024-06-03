@@ -32,7 +32,7 @@ class SaleOrderMapperTest {
         // verify
         assertNotNull(saleOrder);
         assertEquals("1234", saleOrder.getOrderClientOrderRef());
-        assertEquals("Sale Order", saleOrder.getOrderTypeName());
+        assertEquals("Sales Order", saleOrder.getOrderTypeName());
         assertEquals("draft", saleOrder.getOrderState());
     }
 
