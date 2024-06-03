@@ -20,7 +20,7 @@ public class DeleteSaleOrderLineRoute extends RouteBuilder {
         from("direct:odoo-delete-sale-order-line-route")
                 .routeId("odoo-delete-sale-order-line-route")
                 .to("odoo://unlink/sale.order.line")
-                .log(LoggingLevel.INFO, "Sales order line deleted.")
+                .log(LoggingLevel.INFO, "Sale order line deleted.")
                 .end();
         // spotless:on
     }

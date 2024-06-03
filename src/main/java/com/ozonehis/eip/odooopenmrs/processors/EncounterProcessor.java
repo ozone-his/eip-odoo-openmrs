@@ -8,7 +8,7 @@
 package com.ozonehis.eip.odooopenmrs.processors;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
-import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
+import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderHandler;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import java.util.List;
 import org.apache.camel.Exchange;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 public class EncounterProcessor implements Processor {
 
     @Autowired
-    private SalesOrderHandler salesOrderHandler;
+    private SaleOrderHandler saleOrderHandler;
 
     @Override
     public void process(Exchange exchange) throws Exception {
@@ -30,13 +30,13 @@ public class EncounterProcessor implements Processor {
         Encounter encounter = message.getBody(Encounter.class);
         if (encounter != null && encounter.hasPeriod() && encounter.getPeriod().hasEnd()) {
             String encounterVisitUuid = encounter.getIdPart();
-            SaleOrder saleOrder = salesOrderHandler.getDraftSalesOrderIfExistsByVisitId(encounterVisitUuid);
+            SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
             if (saleOrder != null) {
                 exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
                 exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(saleOrder.getOrderId()));
-                salesOrderHandler.sendSalesOrder(
+                saleOrderHandler.sendSaleOrder(
                         exchange.getContext().createProducerTemplate(),
-                        "direct:odoo-update-sales-order-route",
+                        "direct:odoo-update-sale-order-route",
                         saleOrder);
             } else {
                 exchange.setProperty(Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER, true);

@@ -8,7 +8,7 @@
 package com.ozonehis.eip.odooopenmrs.processors;
 
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
-import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
+import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import java.util.List;
@@ -32,7 +32,7 @@ public class MedicationRequestProcessor implements Processor {
     private SaleOrderMapper saleOrderMapper;
 
     @Autowired
-    private SalesOrderHandler salesOrderHandler;
+    private SaleOrderHandler saleOrderHandler;
 
     @Autowired
     private PartnerHandler partnerHandler;
@@ -74,18 +74,18 @@ public class MedicationRequestProcessor implements Processor {
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
-                    salesOrderHandler.cancelSaleOrderIfPatientDeceased(patient, partnerId, producerTemplate);
+                    saleOrderHandler.cancelSaleOrderIfPatientDeceased(patient, partnerId, producerTemplate);
                     if (!medicationRequest.getStatus().equals(MedicationRequest.MedicationRequestStatus.CANCELLED)) {
-                        SaleOrder saleOrder = salesOrderHandler.getDraftSalesOrderIfExistsByVisitId(encounterVisitUuid);
+                        SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
                         if (saleOrder != null) {
-                            salesOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
+                            saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
                                     medicationRequest, saleOrder, encounterVisitUuid, producerTemplate);
                         } else {
-                            salesOrderHandler.createSaleOrderWithSaleOrderLine(
+                            saleOrderHandler.createSaleOrderWithSaleOrderLine(
                                     medicationRequest, encounter, partnerId, encounterVisitUuid, producerTemplate);
                         }
                     } else {
-                        salesOrderHandler.deleteSaleOrderLine(
+                        saleOrderHandler.deleteSaleOrderLine(
                                 partnerId, medicationRequest, encounterVisitUuid, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {

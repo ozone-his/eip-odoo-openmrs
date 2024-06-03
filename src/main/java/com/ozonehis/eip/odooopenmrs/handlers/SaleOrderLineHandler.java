@@ -63,7 +63,7 @@ public class SaleOrderLineHandler {
         log.info("SaleOrderLineHandler: Fetched fetchedSaleOrderLine {}", fetchedSaleOrderLine);
         if (fetchedSaleOrderLine != null) {
             log.info(
-                    "SaleOrderLineHandler: Sale order line already exists for sales order {} Skipping create new sale order line",
+                    "SaleOrderLineHandler: Sale order line already exists for sale order {} Skipping create new sale order line",
                     saleOrder);
             return null;
         }
@@ -113,16 +113,16 @@ public class SaleOrderLineHandler {
             }
         } catch (XmlRpcException | MalformedURLException e) {
             log.error(
-                    "Error occurred while fetching sales order line with sale order id {} product id {} error {}",
+                    "Error occurred while fetching sale order line with sale order id {} product id {} error {}",
                     saleOrderId,
                     productId,
                     e.getMessage(),
                     e);
-            throw new CamelExecutionException("Error occurred while fetching sales order line", null, e);
+            throw new CamelExecutionException("Error occurred while fetching sale order line", null, e);
         }
     }
 
-    public void sendSalesOrderLine(ProducerTemplate producerTemplate, String endpointUri, SaleOrderLine saleOrderLine) {
+    public void sendSaleOrderLine(ProducerTemplate producerTemplate, String endpointUri, SaleOrderLine saleOrderLine) {
         Map<String, Object> saleOrderLineHeaders = new HashMap<>();
         if (endpointUri.contains("update") || endpointUri.contains("delete")) {
             saleOrderLineHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");

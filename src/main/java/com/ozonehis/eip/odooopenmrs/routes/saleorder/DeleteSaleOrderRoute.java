@@ -12,15 +12,15 @@ import org.apache.camel.builder.RouteBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DeleteSalesOrderRoute extends RouteBuilder {
+public class DeleteSaleOrderRoute extends RouteBuilder {
 
     @Override
     public void configure() {
         // spotless:off
-        from("direct:odoo-delete-sales-order-route")
-                .routeId("odoo-delete-sales-order-route")
+        from("direct:odoo-delete-sale-order-route")
+                .routeId("odoo-delete-sale-order-route")
                 .to("odoo://unlink/sale.order")
-                .log(LoggingLevel.INFO, "Sales order deleted.")
+                .log(LoggingLevel.INFO, "Sale order deleted.")
                 .end();
         // spotless:on
     }

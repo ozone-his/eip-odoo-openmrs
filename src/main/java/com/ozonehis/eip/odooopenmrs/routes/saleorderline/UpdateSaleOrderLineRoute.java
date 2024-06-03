@@ -20,7 +20,7 @@ public class UpdateSaleOrderLineRoute extends RouteBuilder {
         from("direct:odoo-update-sale-order-line-route")
                 .routeId("odoo-update-sale-order-line-route")
                 .to("odoo://write/sale.order.line")
-                .log(LoggingLevel.INFO, "Sales order line updated.")
+                .log(LoggingLevel.INFO, "Sale order line updated.")
                 .end();
         // spotless:on
     }

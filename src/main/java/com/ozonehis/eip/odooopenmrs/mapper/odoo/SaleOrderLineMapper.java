@@ -44,7 +44,7 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
                             + " | Orderer: " + requesterDisplay);
 
         } else {
-            throw new IllegalArgumentException("Sales Order Mapper Unsupported resource type: "
+            throw new IllegalArgumentException("Sale Order Mapper Unsupported resource type: "
                     + resource.getClass().getName());
         }
         return saleOrderLine;

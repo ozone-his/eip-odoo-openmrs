@@ -24,8 +24,8 @@ public class EncounterRouting extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         // spotless:off
-        from("direct:encounter-to-sales-order-router")
-                .routeId("encounter-to-sales-order-router")
+        from("direct:encounter-to-sale-order-router")
+                .routeId("encounter-to-sale-order-router")
                 .process(encounterProcessor)
                 .choice()
                 .when(simple("${exchangeProperty." + Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER + "} == true"))
@@ -36,10 +36,10 @@ public class EncounterRouting extends RouteBuilder {
                 .end();
 
         from("direct:fhir-encounter")
-                .routeId("fhir-encounter-to-sales-order-router")
+                .routeId("fhir-encounter-to-sale-order-router")
                 .filter(body().isNotNull())
                 .filter(exchange -> exchange.getMessage().getBody() instanceof Encounter)
-                .to("direct:encounter-to-sales-order-router")
+                .to("direct:encounter-to-sale-order-router")
                 .end();
         // spotless:on
     }

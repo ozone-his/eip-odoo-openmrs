@@ -8,7 +8,7 @@
 package com.ozonehis.eip.odooopenmrs.processors;
 
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
-import com.ozonehis.eip.odooopenmrs.handlers.SalesOrderHandler;
+import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderHandler;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import java.util.List;
 import lombok.Setter;
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 public class ServiceRequestProcessor implements Processor {
 
     @Autowired
-    private SalesOrderHandler salesOrderHandler;
+    private SaleOrderHandler saleOrderHandler;
 
     @Autowired
     private PartnerHandler partnerHandler;
@@ -65,15 +65,15 @@ public class ServiceRequestProcessor implements Processor {
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
-                    salesOrderHandler.cancelSaleOrderIfPatientDeceased(patient, partnerId, producerTemplate);
+                    saleOrderHandler.cancelSaleOrderIfPatientDeceased(patient, partnerId, producerTemplate);
                     if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                             && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
-                        SaleOrder saleOrder = salesOrderHandler.getDraftSalesOrderIfExistsByVisitId(encounterVisitUuid);
+                        SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
                         if (saleOrder != null) {
-                            salesOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
+                            saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
                                     serviceRequest, saleOrder, encounterVisitUuid, producerTemplate);
                         } else {
-                            salesOrderHandler.createSaleOrderWithSaleOrderLine(
+                            saleOrderHandler.createSaleOrderWithSaleOrderLine(
                                     serviceRequest, encounter, partnerId, encounterVisitUuid, producerTemplate);
                         }
                     }

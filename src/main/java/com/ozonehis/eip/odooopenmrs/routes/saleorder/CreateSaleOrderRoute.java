@@ -12,15 +12,15 @@ import org.apache.camel.builder.RouteBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CreateSalesOrderRoute extends RouteBuilder {
+public class CreateSaleOrderRoute extends RouteBuilder {
 
     @Override
     public void configure() {
         // spotless:off
-        from("direct:odoo-create-sales-order-route")
-                .routeId("odoo-create-sales-order-route")
+        from("direct:odoo-create-sale-order-route")
+                .routeId("odoo-create-sale-order-route")
                 .to("odoo://create/sale.order")
-                .log(LoggingLevel.INFO, "Sales order created.")
+                .log(LoggingLevel.INFO, "Sale order created.")
                 .end();
         // spotless:on
     }

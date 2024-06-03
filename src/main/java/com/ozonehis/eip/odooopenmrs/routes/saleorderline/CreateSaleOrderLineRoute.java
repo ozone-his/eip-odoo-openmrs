@@ -20,7 +20,7 @@ public class CreateSaleOrderLineRoute extends RouteBuilder {
         from("direct:odoo-create-sale-order-line-route")
                 .routeId("odoo-create-sale-order-line-route")
                 .to("odoo://create/sale.order.line")
-                .log(LoggingLevel.INFO, "Sales order line created.")
+                .log(LoggingLevel.INFO, "Sale order line created.")
                 .end();
         // spotless:on
     }
