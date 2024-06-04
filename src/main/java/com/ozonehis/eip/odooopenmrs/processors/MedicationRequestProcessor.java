@@ -9,7 +9,6 @@ package com.ozonehis.eip.odooopenmrs.processors;
 
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderHandler;
-import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import java.util.List;
 import lombok.Setter;
@@ -27,9 +26,6 @@ import org.springframework.stereotype.Component;
 @Setter
 @Component
 public class MedicationRequestProcessor implements Processor {
-
-    @Autowired
-    private SaleOrderMapper saleOrderMapper;
 
     @Autowired
     private SaleOrderHandler saleOrderHandler;
