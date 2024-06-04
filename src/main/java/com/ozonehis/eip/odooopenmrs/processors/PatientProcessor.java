@@ -9,6 +9,7 @@ package com.ozonehis.eip.odooopenmrs.processors;
 
 import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
+import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
@@ -23,6 +24,10 @@ import org.hl7.fhir.r4.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Setter
 @Getter
 @Component
@@ -36,7 +41,7 @@ public class PatientProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) {
-        try (ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate()) {
+        try {
             Message message = exchange.getMessage();
             Patient patient = message.getBody(Patient.class);
             Partner partner = mapper.toOdoo(patient);
@@ -47,18 +52,17 @@ public class PatientProcessor implements Processor {
 
             String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
             Partner fetchedPartner = partnerHandler.partnerExists(partner.getPartnerRef());
-            if (fetchedPartner != null && eventType.equals("c")) {
+            if (fetchedPartner != null) {
                 partner.setPartnerId(fetchedPartner.getPartnerId());
-                message.setHeader(HEADER_FHIR_EVENT_TYPE, "u");
-                return;
-            }
+                Map<String, Object> headers = new HashMap<>();
+                headers.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+                headers.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(partner.getPartnerId()));
 
-            if ("c".equals(eventType)) {
-                partnerHandler.sendPartner(producerTemplate, "direct:odoo-create-partner-route", partner);
-            } else if ("u".equals(eventType)) {
-                partnerHandler.sendPartner(producerTemplate, "direct:odoo-update-partner-route", partner);
-            } else if ("d".equals(eventType)) {
-                partnerHandler.sendPartner(producerTemplate, "direct:odoo-delete-partner-route", partner);
+                if (eventType.equals("c") || eventType.equals("u")) {
+                    headers.put(HEADER_FHIR_EVENT_TYPE, "u");
+                }
+                exchange.getMessage().setHeaders(headers);
+                exchange.getMessage().setBody(partner);
             }
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing Patient", exchange, e);

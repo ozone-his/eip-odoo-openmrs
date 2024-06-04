@@ -10,13 +10,19 @@ package com.ozonehis.eip.odooopenmrs.processors;
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderHandler;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.hl7.fhir.r4.model.Encounter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
 @Component
 public class EncounterProcessor implements Processor {
@@ -25,19 +31,23 @@ public class EncounterProcessor implements Processor {
     private SaleOrderHandler saleOrderHandler;
 
     @Override
-    public void process(Exchange exchange) throws Exception {
+    public void process(Exchange exchange) {
         Message message = exchange.getMessage();
         Encounter encounter = message.getBody(Encounter.class);
         if (encounter != null && encounter.hasPeriod() && encounter.getPeriod().hasEnd()) {
-            String encounterVisitUuid = encounter.getIdPart();
+            String encounterVisitUuid = encounter.getIdPart(); // TODO: Check if this should be referenceId
             SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
             if (saleOrder != null) {
-                exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-                exchange.setProperty(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(saleOrder.getOrderId()));
-                saleOrderHandler.sendSaleOrder(
-                        exchange.getContext().createProducerTemplate(),
-                        "direct:odoo-update-sale-order-route",
-                        saleOrder);
+                Map<String, Object> headers = new HashMap<>();
+                // Check if Sale Order needs to be moved from `draft` state to `sale` state
+                // saleOrder.setOrderState("sale");
+                headers.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
+                headers.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(saleOrder.getOrderId()));
+                headers.put(HEADER_FHIR_EVENT_TYPE, "u");
+
+                exchange.getMessage().setHeaders(headers);
+                exchange.getMessage().setBody(saleOrder);
+                exchange.setProperty(Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER, false);
             } else {
                 exchange.setProperty(Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER, true);
             }

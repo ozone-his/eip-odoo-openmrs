@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
+
 @Setter
 @Component
 public class PatientRouting extends RouteBuilder {
@@ -36,15 +38,25 @@ public class PatientRouting extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:patient-to-partner-router")
-                .routeId("patient-to-partner-router")
-                .filter(isPatientSyncEnabled())
-                .log(LoggingLevel.INFO, "Patient sync is enabled")
-                .process(patientProcessor)
-                .end();
+            .routeId("patient-to-partner-router")
+            .filter(isPatientSyncEnabled())
+            .log(LoggingLevel.INFO, "Patient sync is enabled")
+            .process(patientProcessor)
+            .choice()
+                .when(header(HEADER_FHIR_EVENT_TYPE).isEqualTo("c"))
+                    .toD("direct:odoo-create-partner-route")
+                .endChoice()
+                .when(header(HEADER_FHIR_EVENT_TYPE).isEqualTo("u"))
+                    .toD("direct:odoo-update-partner-route")
+                .endChoice()
+                .when(header(HEADER_FHIR_EVENT_TYPE).isEqualTo("d"))
+                    .toD("direct:odoo-delete-partner-route")
+                .endChoice()
+            .end();
 
         from("direct:fhir-patient")
-                .routeId("fhir-patient-to-partner-router")
-                .to("direct:patient-to-partner-router")
+            .routeId("fhir-patient-to-partner-router")
+            .to("direct:patient-to-partner-router")
                 .end();
         // spotless:on
     }

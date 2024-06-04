@@ -25,21 +25,22 @@ public class EncounterRouting extends RouteBuilder {
     public void configure() throws Exception {
         // spotless:off
         from("direct:encounter-to-sale-order-router")
-                .routeId("encounter-to-sale-order-router")
-                .process(encounterProcessor)
-                .choice()
+            .routeId("encounter-to-sale-order-router")
+            .process(encounterProcessor)
+            .choice()
                 .when(simple("${exchangeProperty." + Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER + "} == true"))
-                .log(LoggingLevel.INFO, "Skipping encounter processing")
+                    .log(LoggingLevel.INFO, "Skipping encounter processing")
                 .otherwise()
-                .log(LoggingLevel.INFO, "Processing encounter")
+                    .log(LoggingLevel.INFO, "Processing encounter")
+                    .to("direct:odoo-update-sale-order-route")
                 .end()
-                .end();
+            .end();
 
         from("direct:fhir-encounter")
-                .routeId("fhir-encounter-to-sale-order-router")
-                .filter(body().isNotNull())
-                .filter(exchange -> exchange.getMessage().getBody() instanceof Encounter)
-                .to("direct:encounter-to-sale-order-router")
+            .routeId("fhir-encounter-to-sale-order-router")
+            .filter(body().isNotNull())
+            .filter(exchange -> exchange.getMessage().getBody() instanceof Encounter)
+            .to("direct:encounter-to-sale-order-router")
                 .end();
         // spotless:on
     }
