@@ -64,7 +64,7 @@ class ProductHandlerTest {
     }
 
     @Test
-    public void shouldReturnProductWhenOnlyOneIdFoundMatchingMedicationRequestId()
+    public void shouldReturnProductWhenOnlyOneProductExistsWithMedicationRequestId()
             throws MalformedURLException, XmlRpcException {
         // Setup
         MedicationRequest medicationRequest = getMedicationRequest();

@@ -36,7 +36,8 @@ class CountryStateHandlerTest {
     }
 
     @Test
-    public void shouldReturnCountryStateIdWhenOnlyOneIdFound() throws MalformedURLException, XmlRpcException {
+    public void shouldReturnCountryStateIdWhenOnlyOneCountryStateExistsWithId()
+            throws MalformedURLException, XmlRpcException {
         // Setup
         String countryStateName = "Berlin";
         Integer[] countryIds = {10};
@@ -54,7 +55,8 @@ class CountryStateHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenMultipleIdsAreFoundWithSameName() throws MalformedURLException, XmlRpcException {
+    public void shouldThrowErrorWhenMultipleCountryStateExistsWithSameId()
+            throws MalformedURLException, XmlRpcException {
         // Setup
         String countryStateName = "Berlin";
         Integer[] countryIds = {10, 11};
@@ -68,7 +70,7 @@ class CountryStateHandlerTest {
     }
 
     @Test
-    public void shouldReturnNullWhenNoCountryFoundWithName() throws MalformedURLException, XmlRpcException {
+    public void shouldReturnNullWhenNoCountryFoundWithId() throws MalformedURLException, XmlRpcException {
         // Setup
         String countryStateName = "Berlin";
         Integer[] countryIds = {};

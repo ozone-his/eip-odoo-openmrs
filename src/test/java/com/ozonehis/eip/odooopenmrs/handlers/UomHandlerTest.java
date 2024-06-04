@@ -39,7 +39,7 @@ class UomHandlerTest {
     }
 
     @Test
-    public void shouldReturnUomWhenOnlyOneIdFound() throws MalformedURLException, XmlRpcException {
+    public void shouldReturnUomWhenOnlyOneUomExistsWithId() throws MalformedURLException, XmlRpcException {
         // Setup
         String externalId = "198AAAAAAAAAAA";
 
@@ -64,8 +64,7 @@ class UomHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenMultipleIdsAreFoundWithSameExternalId()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldThrowErrorWhenMultipleUomExistsWithSameIds() throws MalformedURLException, XmlRpcException {
         // Setup
         String externalId = "208AAAAAAAAAAA";
 
@@ -85,7 +84,7 @@ class UomHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenNoUomFoundWithExternalId() throws MalformedURLException, XmlRpcException {
+    public void shouldThrowErrorWhenNoUomFoundWithId() throws MalformedURLException, XmlRpcException {
         // Setup
         String externalId = "198AAAAAAAAAAA";
 

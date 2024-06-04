@@ -49,7 +49,7 @@ public class PartnerHandler {
                 return null;
             } else {
                 log.info("Multiple Partners exists with reference id {}", partnerRefID);
-                return OdooUtils.convertToObject((Map<String, Object>) records[0], Partner.class);
+                throw new EIPException(String.format("Multiple Partners exists with reference id%s", partnerRefID));
             }
         } catch (XmlRpcException | MalformedURLException e) {
             log.error(
@@ -68,10 +68,6 @@ public class PartnerHandler {
             log.info("Partner with reference id {} already exists, updating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
             partner.setPartnerId(partnerId);
-            // TODO: Set Partner as inactive if Patient has decreased
-            //            if (patient.hasDeceased()) {
-            //                partner.setPartnerActive(false);
-            //            }
             sendPartner(producerTemplate, "direct:odoo-update-partner-route", partner);
             return partnerId;
         } else {
