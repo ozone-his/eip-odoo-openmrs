@@ -68,8 +68,8 @@ public class MedicationRequestProcessor implements Processor {
                     throw new IllegalArgumentException("Event type not found in the exchange headers.");
                 }
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
+                int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
                 if ("c".equals(eventType) || "u".equals(eventType)) {
-                    int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
                     if (!medicationRequest.getStatus().equals(MedicationRequest.MedicationRequestStatus.CANCELLED)) {
                         SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
                         if (saleOrder != null) {
@@ -80,11 +80,16 @@ public class MedicationRequestProcessor implements Processor {
                                     medicationRequest, encounter, partnerId, encounterVisitUuid, producerTemplate);
                         }
                     } else {
+                        // Executed when MODIFY option is selected in OpenMRS
                         saleOrderHandler.deleteSaleOrderLine(
                                 partnerId, medicationRequest, encounterVisitUuid, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {
-                    // TODO: Handle sale order with item, when event type is delete
+                    // Executed when DISCONTINUE option is selected in OpenMRS
+                    saleOrderHandler.deleteSaleOrderLine(
+                            partnerId, medicationRequest, encounterVisitUuid, producerTemplate);
+                    saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
+                            partnerId, encounterVisitUuid, producerTemplate);
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
                 }

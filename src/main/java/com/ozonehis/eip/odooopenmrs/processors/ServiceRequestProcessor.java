@@ -10,7 +10,9 @@ package com.ozonehis.eip.odooopenmrs.processors;
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderHandler;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+
 import java.util.List;
+
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
@@ -63,8 +65,8 @@ public class ServiceRequestProcessor implements Processor {
                     throw new IllegalArgumentException("Event type not found in the exchange headers.");
                 }
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
+                int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
                 if ("c".equals(eventType) || "u".equals(eventType)) {
-                    int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
                     if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                             && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
                         SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
@@ -75,9 +77,17 @@ public class ServiceRequestProcessor implements Processor {
                             saleOrderHandler.createSaleOrderWithSaleOrderLine(
                                     serviceRequest, encounter, partnerId, encounterVisitUuid, producerTemplate);
                         }
+                    } else {
+                        // Executed when MODIFY option is selected in OpenMRS
+                        saleOrderHandler.deleteSaleOrderLine(
+                                partnerId, serviceRequest, encounterVisitUuid, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {
-                    // TODO: Handle sale order with item, when event type is delete
+                    // Executed when DISCONTINUE option is selected in OpenMRS
+                    saleOrderHandler.deleteSaleOrderLine(
+                            partnerId, serviceRequest, encounterVisitUuid, producerTemplate);
+                    saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
+                            partnerId, encounterVisitUuid, producerTemplate);
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
                 }

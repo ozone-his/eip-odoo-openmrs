@@ -147,30 +147,30 @@ public class SaleOrderHandler {
 
     public void deleteSaleOrderLine(
             int partnerId,
-            MedicationRequest medicationRequest,
+            Resource resource,
             String encounterVisitUuid,
             ProducerTemplate producerTemplate) {
         SaleOrder saleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
         if (saleOrder != null) {
-            Product product = productHandler.getProduct(medicationRequest);
+            Product product = productHandler.getProduct(resource);
             if (product != null) {
                 SaleOrderLine saleOrderLine = saleOrderLineHandler.getSaleOrderLineIfExists(
                         saleOrder.getOrderId(), product.getProductResId());
-                saleOrderLineHandler.sendSaleOrderLine(
-                        producerTemplate, "direct:odoo-delete-sale-order-line-route", saleOrderLine);
-
-                // Check if sale order has no sale order line, then cancel the sale order
-                cancelSaleOrderWhenNoSaleOrderLine(partnerId, encounterVisitUuid, producerTemplate);
+                if (saleOrderLine != null) {
+                    saleOrderLineHandler.sendSaleOrderLine(
+                            producerTemplate, "direct:odoo-delete-sale-order-line-route", saleOrderLine);
+                }
             }
         }
     }
 
-    private void cancelSaleOrderWhenNoSaleOrderLine(
+    // Check if sale order has no sale order line, then cancel the sale order
+    public void cancelSaleOrderWhenNoSaleOrderLine(
             int partnerId, String encounterVisitUuid, ProducerTemplate producerTemplate) {
         SaleOrder saleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
         if (saleOrder != null
                 && (saleOrder.getOrderLine() == null || saleOrder.getOrderLine().isEmpty())) {
-            log.info("MedicationRequest: Count of sale order line {}", saleOrder.getOrderLine());
+            log.info("SaleOrderHandler: Count of sale order line {}", saleOrder.getOrderLine());
             saleOrder.setOrderState("cancel");
             saleOrder.setOrderPartnerId((Integer) partnerId);
             sendSaleOrder(producerTemplate, "direct:odoo-update-sale-order-route", saleOrder);
