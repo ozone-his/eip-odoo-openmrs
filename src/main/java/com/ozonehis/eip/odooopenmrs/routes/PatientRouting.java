@@ -15,6 +15,7 @@ import lombok.Setter;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Predicate;
 import org.apache.camel.builder.RouteBuilder;
+import org.hl7.fhir.r4.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -39,6 +40,7 @@ public class PatientRouting extends RouteBuilder {
         // spotless:off
         from("direct:patient-to-partner-router")
                 .routeId("patient-to-partner-router")
+                .filter(exchange -> exchange.getMessage().getBody() instanceof Patient)
                 .filter(isPatientSyncEnabled())
                 .log(LoggingLevel.INFO, "Patient sync is enabled")
                 .process(patientProcessor)

@@ -62,8 +62,8 @@ public class PatientProcessor implements Processor {
                     headers.put(HEADER_FHIR_EVENT_TYPE, "d");
                 }
                 exchange.getMessage().setHeaders(headers);
-                exchange.getMessage().setBody(partner);
             }
+            exchange.getMessage().setBody(partner);
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing Patient", exchange, e);
         }
