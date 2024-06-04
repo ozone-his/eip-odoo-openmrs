@@ -44,13 +44,15 @@ public class PatientProcessor implements Processor {
             if (patient == null || partner == null) {
                 return;
             }
+
+            String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
             Partner fetchedPartner = partnerHandler.partnerExists(partner.getPartnerRef());
-            if (fetchedPartner != null) {
+            if (fetchedPartner != null && eventType.equals("c")) {
                 partner.setPartnerId(fetchedPartner.getPartnerId());
-                partnerHandler.sendPartner(producerTemplate, "direct:odoo-update-partner-route", partner);
+                message.setHeader(HEADER_FHIR_EVENT_TYPE, "u");
                 return;
             }
-            String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
+
             if ("c".equals(eventType)) {
                 partnerHandler.sendPartner(producerTemplate, "direct:odoo-create-partner-route", partner);
             } else if ("u".equals(eventType)) {
