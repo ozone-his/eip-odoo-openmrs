@@ -74,7 +74,6 @@ public class MedicationRequestProcessor implements Processor {
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
-                    saleOrderHandler.cancelSaleOrderIfPatientDeceased(patient, partnerId, producerTemplate);
                     if (!medicationRequest.getStatus().equals(MedicationRequest.MedicationRequestStatus.CANCELLED)) {
                         SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
                         if (saleOrder != null) {

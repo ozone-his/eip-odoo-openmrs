@@ -65,7 +65,6 @@ public class ServiceRequestProcessor implements Processor {
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
-                    saleOrderHandler.cancelSaleOrderIfPatientDeceased(patient, partnerId, producerTemplate);
                     if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                             && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
                         SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);

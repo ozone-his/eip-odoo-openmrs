@@ -27,7 +27,6 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
-import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Resource;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,35 +48,6 @@ public class SaleOrderHandler {
 
     @Autowired
     private ProductHandler productHandler;
-
-    public SaleOrder getDraftSaleOrderIfExistsByPartnerId(int partnerId) {
-        try {
-            Object[] records = odooClient.searchAndRead(
-                    Constants.SALE_ORDER_MODEL,
-                    List.of(asList("partner_id", "=", partnerId), asList("state", "=", "draft")),
-                    Constants.orderDefaultAttributes);
-            if (records == null) {
-                throw new EIPException(
-                        String.format("Got null response while fetching for Sale order with partner_id %s", partnerId));
-            } else if (records.length == 1) {
-                SaleOrder saleOrder = OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
-                log.info("Sale order exists with partner_id {} sale order {}", partnerId, saleOrder);
-                return saleOrder;
-            } else if (records.length == 0) {
-                log.info("No Sale order found with partner_id {}", partnerId);
-                return null;
-            } else { // TODO: Handle case where multiple sale order with same id exists
-                throw new EIPException(String.format("Multiple Sale order found with partner_id %s", partnerId));
-            }
-        } catch (XmlRpcException | MalformedURLException e) {
-            log.error(
-                    "Error occurred while fetching sale order with partner_id {} error {}",
-                    partnerId,
-                    e.getMessage(),
-                    e);
-            throw new CamelExecutionException("Error occurred while fetching sale order", null, e);
-        }
-    }
 
     public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId) {
         try {
@@ -108,30 +78,6 @@ public class SaleOrderHandler {
         }
     }
 
-    public List<Integer> getSaleOrderIdsByPartnerId(String partnerId) {
-        try {
-            Object[] records = odooClient.search(Constants.SALE_ORDER_MODEL, asList("partner_id", "=", partnerId));
-            if (records == null) {
-                throw new EIPException(
-                        String.format("Got null response while fetching for Sale order with partner id %s", partnerId));
-            } else if (records.length > 0) {
-                List<Integer> saleOrderIdsList = OdooUtils.convertToListOfInteger(records);
-                log.info("Sale order ids {} with partner id {} ", saleOrderIdsList, partnerId);
-                return saleOrderIdsList;
-            } else {
-                log.info("No Sale order found with partner id {}", partnerId);
-                return null;
-            }
-        } catch (XmlRpcException | MalformedURLException e) {
-            log.error(
-                    "Error occurred while fetching sale order ids with partner id {} error {}",
-                    partnerId,
-                    e.getMessage(),
-                    e);
-            throw new CamelExecutionException("Error occurred while fetching sale order ids", null, e);
-        }
-    }
-
     public void sendSaleOrder(ProducerTemplate producerTemplate, String endpointUri, SaleOrder saleOrder) {
         Map<String, Object> saleOrderHeaders = new HashMap<>();
         if (endpointUri.contains("update")) {
@@ -141,20 +87,6 @@ public class SaleOrderHandler {
                     List.of(saleOrder.getOrderId()));
         }
         producerTemplate.sendBodyAndHeaders(endpointUri, saleOrder, saleOrderHeaders);
-    }
-
-    public void cancelSaleOrderIfPatientDeceased(Patient patient, int partnerId, ProducerTemplate producerTemplate) {
-        log.info("Is Patient deceased {}", patient.hasDeceased());
-        if (patient.hasDeceased() && false) { // TODO: Fix this all the patients are deceased in demo data
-            List<Integer> saleOrderPartnerIds = getSaleOrderIdsByPartnerId(String.valueOf(partnerId));
-            Map<String, Object> saleOrderHeaders = new HashMap<>();
-            saleOrderHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-            saleOrderHeaders.put(
-                    com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, saleOrderPartnerIds);
-            SaleOrder saleOrder = new SaleOrder();
-            saleOrder.setOrderState("cancel");
-            producerTemplate.sendBodyAndHeaders("direct:odoo-update-sale-order-route", saleOrder, saleOrderHeaders);
-        }
     }
 
     public void updateSaleOrderIfExistsWithSaleOrderLine(
