@@ -1,15 +1,18 @@
 package com.ozonehis.eip.odooopenmrs.processors;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
+import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
+
 import com.ozonehis.eip.odooopenmrs.Constants;
-import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderHandler;
-import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
-import com.ozonehis.eip.odooopenmrs.model.Partner;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+import java.util.Date;
 import org.apache.camel.Exchange;
-import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.Encounter;
-import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.Reference;
 import org.junit.jupiter.api.AfterAll;
@@ -17,16 +20,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
-import java.util.Collections;
-import java.util.Date;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.openMocks;
-import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
 class EncounterProcessorTest extends BaseProcessorTest {
     @Mock

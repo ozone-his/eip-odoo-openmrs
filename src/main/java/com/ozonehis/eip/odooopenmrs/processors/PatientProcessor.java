@@ -13,20 +13,18 @@ import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Setter
 @Getter
@@ -60,6 +58,8 @@ public class PatientProcessor implements Processor {
 
                 if (eventType.equals("c") || eventType.equals("u")) {
                     headers.put(HEADER_FHIR_EVENT_TYPE, "u");
+                } else {
+                    headers.put(HEADER_FHIR_EVENT_TYPE, "d");
                 }
                 exchange.getMessage().setHeaders(headers);
                 exchange.getMessage().setBody(partner);

@@ -7,22 +7,20 @@
  */
 package com.ozonehis.eip.odooopenmrs.processors;
 
+import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
+
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderHandler;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.hl7.fhir.r4.model.Encounter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
 @Component
 public class EncounterProcessor implements Processor {
