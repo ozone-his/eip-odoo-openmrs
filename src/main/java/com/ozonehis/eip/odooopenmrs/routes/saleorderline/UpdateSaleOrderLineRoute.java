@@ -18,9 +18,9 @@ public class UpdateSaleOrderLineRoute extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:odoo-update-sale-order-line-route")
+                .log(LoggingLevel.INFO, "Updating Sale Order Line in Odoo...")
                 .routeId("odoo-update-sale-order-line-route")
                 .to("odoo://write/sale.order.line")
-                .log(LoggingLevel.INFO, "Sale order line updated.")
                 .end();
         // spotless:on
     }

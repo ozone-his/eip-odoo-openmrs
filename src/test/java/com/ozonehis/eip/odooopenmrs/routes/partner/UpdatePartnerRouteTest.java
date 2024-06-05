@@ -56,7 +56,7 @@ public class UpdatePartnerRouteTest extends CamelSpringTestSupport {
         Map<String, Object> updateHeaders = new HashMap<>();
         updateHeaders.put(Constants.HEADER_FHIR_EVENT_TYPE, "u");
         updateHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-        updateHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, partner.getPartnerId());
+        updateHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, partner.getPartnerId());
 
         // Expectations
         MockEndpoint mockUpdatePartnerEndpoint = getMockEndpoint("mock:update-partner");
@@ -65,7 +65,7 @@ public class UpdatePartnerRouteTest extends CamelSpringTestSupport {
         mockUpdatePartnerEndpoint.expectedHeaderReceived(
                 com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
         mockUpdatePartnerEndpoint.expectedHeaderReceived(
-                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, 12);
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, 12);
         mockUpdatePartnerEndpoint.setResultWaitTime(100);
 
         // Act

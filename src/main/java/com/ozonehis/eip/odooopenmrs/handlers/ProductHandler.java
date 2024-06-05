@@ -38,12 +38,13 @@ public class ProductHandler {
                 throw new EIPException(
                         String.format("Got null response while fetching for Product with id %s", externalId));
             } else if (records.length == 1) {
-                log.info("Product exists with id {} record {}", externalId, records[0]);
+                log.debug("Product exists with id {} record {}", externalId, records[0]);
                 return OdooUtils.convertToObject((Map<String, Object>) records[0], Product.class);
             } else if (records.length == 0) {
-                log.info("No Product found with id {}", externalId);
+                log.warn("No Product found with id {}", externalId);
                 return null;
             } else {
+                log.warn("Multiple Products exists with id {}", externalId);
                 throw new EIPException(String.format("Multiple Products exists with id %s", externalId));
             }
         } catch (MalformedURLException | XmlRpcException e) {
@@ -55,12 +56,12 @@ public class ProductHandler {
     private String getProductExternalId(Resource resource) {
         if (resource instanceof ServiceRequest serviceRequest) {
             String id = serviceRequest.getCode().getCodingFirstRep().getCode();
-            log.info("ProductHandler: ServiceRequest code {}", id);
+            log.debug("ProductHandler: ServiceRequest code {}", id);
             return id;
         } else if (resource instanceof MedicationRequest medicationRequest) {
             String id =
                     medicationRequest.getMedicationReference().getReference().split("/")[1];
-            log.info("ProductHandler: MedicationRequest reference {}", id);
+            log.debug("ProductHandler: MedicationRequest reference {}", id);
             return id;
         } else {
             throw new IllegalArgumentException(

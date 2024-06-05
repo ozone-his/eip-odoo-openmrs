@@ -39,8 +39,7 @@ public class EncounterProcessor implements Processor {
                 Map<String, Object> headers = new HashMap<>();
                 // Check if Sale Order needs to be moved from `draft` state to `sale` state
                 // saleOrder.setOrderState("sale");
-                headers.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-                headers.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(saleOrder.getOrderId()));
+                headers.put(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, List.of(saleOrder.getOrderId()));
                 headers.put(HEADER_FHIR_EVENT_TYPE, "u");
 
                 exchange.getMessage().setHeaders(headers);
@@ -50,7 +49,6 @@ public class EncounterProcessor implements Processor {
                 exchange.setProperty(Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER, true);
             }
         } else {
-            // skipping the processing of the encounter
             exchange.setProperty(Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER, true);
         }
     }

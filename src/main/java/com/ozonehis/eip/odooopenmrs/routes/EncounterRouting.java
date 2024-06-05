@@ -31,7 +31,7 @@ public class EncounterRouting extends RouteBuilder {
                 .when(simple("${exchangeProperty." + Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER + "} == true"))
                 .log(LoggingLevel.INFO, "Skipping encounter processing")
                 .otherwise()
-                .log(LoggingLevel.INFO, "Processing encounter")
+                .log(LoggingLevel.INFO, "Processing Encounter")
                 .to("direct:odoo-update-sale-order-route")
                 .end()
                 .end();

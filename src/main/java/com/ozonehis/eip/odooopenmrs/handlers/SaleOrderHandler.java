@@ -26,7 +26,6 @@ import org.apache.camel.CamelExecutionException;
 import org.apache.camel.ProducerTemplate;
 import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.Encounter;
-import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,12 +59,13 @@ public class SaleOrderHandler {
                         "Got null response while fetching for Sale order with client_order_ref %s", visitId));
             } else if (records.length == 1) {
                 SaleOrder saleOrder = OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
-                log.info("Sale order exists with client_order_ref {} sale order {}", visitId, saleOrder);
+                log.debug("Sale order exists with client_order_ref {} sale order {}", visitId, saleOrder);
                 return saleOrder;
             } else if (records.length == 0) {
-                log.info("No Sale order found with client_order_ref {}", visitId);
+                log.warn("No Sale order found with client_order_ref {}", visitId);
                 return null;
-            } else { // TODO: Handle case where multiple sale order with same id exists
+            } else {
+                log.warn("Multiple Sale order exists with client_order_ref {}", visitId);
                 throw new EIPException(String.format("Multiple Sale order found with client_order_ref %s", visitId));
             }
         } catch (XmlRpcException | MalformedURLException e) {
@@ -81,9 +81,8 @@ public class SaleOrderHandler {
     public void sendSaleOrder(ProducerTemplate producerTemplate, String endpointUri, SaleOrder saleOrder) {
         Map<String, Object> saleOrderHeaders = new HashMap<>();
         if (endpointUri.contains("update")) {
-            saleOrderHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
             saleOrderHeaders.put(
-                    com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE,
+                    com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE,
                     List.of(saleOrder.getOrderId()));
         }
         producerTemplate.sendBodyAndHeaders(endpointUri, saleOrder, saleOrderHeaders);
@@ -102,7 +101,7 @@ public class SaleOrderHandler {
         }
 
         producerTemplate.sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
-        log.info(
+        log.debug(
                 "{}: Created sale order line {} and linked to sale order {}",
                 resource.getClass().getName(),
                 saleOrderLine,
@@ -121,7 +120,7 @@ public class SaleOrderHandler {
         newSaleOrder.setOrderState("draft");
 
         sendSaleOrder(producerTemplate, "direct:odoo-create-sale-order-route", newSaleOrder);
-        log.info(
+        log.debug(
                 "{}: Created sale order with partner_id {}", resource.getClass().getName(), partnerId);
 
         SaleOrder fetchedSaleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
@@ -137,7 +136,7 @@ public class SaleOrderHandler {
             }
 
             producerTemplate.sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
-            log.info(
+            log.debug(
                     "{}: Created sale order {} and sale order line {} and linked to sale order",
                     resource.getClass().getName(),
                     fetchedSaleOrder.getOrderId(),
@@ -146,7 +145,6 @@ public class SaleOrderHandler {
     }
 
     public void deleteSaleOrderLine(
-            int partnerId,
             Resource resource,
             String encounterVisitUuid,
             ProducerTemplate producerTemplate) {
@@ -170,7 +168,7 @@ public class SaleOrderHandler {
         SaleOrder saleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
         if (saleOrder != null
                 && (saleOrder.getOrderLine() == null || saleOrder.getOrderLine().isEmpty())) {
-            log.info("SaleOrderHandler: Count of sale order line {}", saleOrder.getOrderLine());
+            log.debug("SaleOrderHandler: Count of sale order line {}", saleOrder.getOrderLine());
             saleOrder.setOrderState("cancel");
             saleOrder.setOrderPartnerId((Integer) partnerId);
             sendSaleOrder(producerTemplate, "direct:odoo-update-sale-order-route", saleOrder);

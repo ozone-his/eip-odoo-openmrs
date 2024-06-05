@@ -56,7 +56,7 @@ public class DeletePartnerRouteTest extends CamelSpringTestSupport {
         Map<String, Object> deleteHeaders = new HashMap<>();
         deleteHeaders.put(Constants.HEADER_FHIR_EVENT_TYPE, "d");
         deleteHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-        deleteHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, partner.getPartnerId());
+        deleteHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, partner.getPartnerId());
 
         // Expectations
         MockEndpoint mockDeletePartnerEndpoint = getMockEndpoint("mock:delete-partner");
@@ -65,7 +65,7 @@ public class DeletePartnerRouteTest extends CamelSpringTestSupport {
         mockDeletePartnerEndpoint.expectedHeaderReceived(
                 com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
         mockDeletePartnerEndpoint.expectedHeaderReceived(
-                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, 12);
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, 12);
         mockDeletePartnerEndpoint.setResultWaitTime(100);
 
         // Act

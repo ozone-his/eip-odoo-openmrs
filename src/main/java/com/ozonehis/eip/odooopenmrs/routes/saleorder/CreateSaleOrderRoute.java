@@ -18,9 +18,9 @@ public class CreateSaleOrderRoute extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:odoo-create-sale-order-route")
+                .log(LoggingLevel.INFO, "Creating Sale Order in Odoo...")
                 .routeId("odoo-create-sale-order-route")
                 .to("odoo://create/sale.order")
-                .log(LoggingLevel.INFO, "Sale order created.")
                 .end();
         // spotless:on
     }

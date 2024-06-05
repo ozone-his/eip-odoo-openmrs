@@ -58,7 +58,7 @@ public class DeleteSaleOrderLineRouteTest extends CamelSpringTestSupport {
         deleteHeaders.put(Constants.HEADER_FHIR_EVENT_TYPE, "d");
         deleteHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
         deleteHeaders.put(
-                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, saleOrderLine.getSaleOrderLineId());
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, saleOrderLine.getSaleOrderLineId());
 
         // Expectations
         MockEndpoint mockDeleteSaleOrderLineEndpoint = getMockEndpoint("mock:delete-sale-order-line");
@@ -67,7 +67,7 @@ public class DeleteSaleOrderLineRouteTest extends CamelSpringTestSupport {
         mockDeleteSaleOrderLineEndpoint.expectedHeaderReceived(
                 com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
         mockDeleteSaleOrderLineEndpoint.expectedHeaderReceived(
-                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE, 12);
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, 12);
         mockDeleteSaleOrderLineEndpoint.setResultWaitTime(100);
 
         // Act

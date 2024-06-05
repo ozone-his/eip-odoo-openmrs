@@ -62,7 +62,7 @@ public class MedicationRequestProcessor implements Processor {
                         "Invalid Bundle. Bundle must contain Patient, Encounter, MedicationRequest and Medication",
                         exchange);
             } else {
-                log.info("Processing MedicationRequest for Patient with UUID {}", patient.getIdPart());
+                log.debug("Processing MedicationRequest for Patient with UUID {}", patient.getIdPart());
                 String eventType = exchange.getMessage().getHeader(Constants.HEADER_FHIR_EVENT_TYPE, String.class);
                 if (eventType == null) {
                     throw new IllegalArgumentException("Event type not found in the exchange headers.");
@@ -81,13 +81,11 @@ public class MedicationRequestProcessor implements Processor {
                         }
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
-                        saleOrderHandler.deleteSaleOrderLine(
-                                partnerId, medicationRequest, encounterVisitUuid, producerTemplate);
+                        saleOrderHandler.deleteSaleOrderLine(medicationRequest, encounterVisitUuid, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {
                     // Executed when DISCONTINUE option is selected in OpenMRS
-                    saleOrderHandler.deleteSaleOrderLine(
-                            partnerId, medicationRequest, encounterVisitUuid, producerTemplate);
+                    saleOrderHandler.deleteSaleOrderLine(medicationRequest, encounterVisitUuid, producerTemplate);
                     saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
                             partnerId, encounterVisitUuid, producerTemplate);
                 } else {

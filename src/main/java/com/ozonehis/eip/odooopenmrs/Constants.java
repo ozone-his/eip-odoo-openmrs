@@ -27,32 +27,13 @@ public class Constants {
 
     public static final String UNLINK_METHOD = "unlink";
 
-    public static final String HEADER_ODOO_ATTRIBUTE_NAME = "odoo.attribute.name";
-
-    public static final String HEADER_ODOO_ATTRIBUTE_VALUE = "odoo.attribute.value";
+    public static final String HEADER_ODOO_ID_ATTRIBUTE_VALUE = "odoo.attribute.value";
 
     public static final String EXCHANGE_PROPERTY_SKIP_ENCOUNTER = "skip.encounter";
 
     public static final String FHIR_RESOURCE_TYPE = "fhir.resource.type";
 
-    public static final String HEADER_EVENT_PROCESSED = "odoo.openmrs.event.processed";
-
     public static final String HEADER_ENABLE_PATIENT_SYNC = "enable.patient.sync";
-
-    //    public static final List<String> orderDefaultAttributes = asList(
-    //            "name",
-    //            "amount_total",
-    //            "state",
-    //            "pricelist_id",
-    //            "payment_term_id",
-    //            "invoice_status",
-    //            "origin",
-    //            "create_date",
-    //            "currency_id",
-    //            "order_line",
-    //            "invoice_count",
-    //            "invoice_ids",
-    //            "product_id");
 
     public static final List<String> orderDefaultAttributes =
             asList("id", "client_order_ref", "partner_id", "state", "order_line");

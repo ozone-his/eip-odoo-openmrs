@@ -59,7 +59,7 @@ public class ServiceRequestProcessor implements Processor {
                 throw new CamelExecutionException(
                         "Invalid Bundle. Bundle must contain Patient, Encounter and ServiceRequest", exchange);
             } else {
-                log.info("Processing ServiceRequest for Patient with UUID {}", patient.getIdPart());
+                log.debug("Processing ServiceRequest for Patient with UUID {}", patient.getIdPart());
                 String eventType = exchange.getMessage().getHeader(Constants.HEADER_FHIR_EVENT_TYPE, String.class);
                 if (eventType == null) {
                     throw new IllegalArgumentException("Event type not found in the exchange headers.");
@@ -79,13 +79,11 @@ public class ServiceRequestProcessor implements Processor {
                         }
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
-                        saleOrderHandler.deleteSaleOrderLine(
-                                partnerId, serviceRequest, encounterVisitUuid, producerTemplate);
+                        saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {
                     // Executed when DISCONTINUE option is selected in OpenMRS
-                    saleOrderHandler.deleteSaleOrderLine(
-                            partnerId, serviceRequest, encounterVisitUuid, producerTemplate);
+                    saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
                     saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
                             partnerId, encounterVisitUuid, producerTemplate);
                 } else {

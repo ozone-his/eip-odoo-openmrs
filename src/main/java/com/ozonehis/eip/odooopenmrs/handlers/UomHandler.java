@@ -34,12 +34,13 @@ public class UomHandler {
                 throw new EIPException(
                         String.format("Got null response while fetching for Uom with id %s", externalId));
             } else if (records.length == 1) {
-                log.info("Uom exists with id {} record {}", externalId, records[0]);
+                log.debug("Uom exists with id {} record {}", externalId, records[0]);
                 return OdooUtils.convertToObject((Map<String, Object>) records[0], Uom.class);
             } else if (records.length == 0) {
-                log.info("No Uom found with id {}", externalId);
+                log.warn("No Uom found with id {}", externalId);
                 throw new EIPException(String.format("No Uom found with id %s", externalId));
             } else {
+                log.warn("Multiple Uom exists with id {}", externalId);
                 throw new EIPException(String.format("Multiple Uom exists with id %s", externalId));
             }
         } catch (MalformedURLException | XmlRpcException e) {

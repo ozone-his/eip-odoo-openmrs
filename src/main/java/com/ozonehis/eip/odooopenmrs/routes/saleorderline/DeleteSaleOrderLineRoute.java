@@ -18,9 +18,9 @@ public class DeleteSaleOrderLineRoute extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:odoo-delete-sale-order-line-route")
+                .log(LoggingLevel.INFO, "Deleting Sale Order Line in Odoo...")
                 .routeId("odoo-delete-sale-order-line-route")
                 .to("odoo://unlink/sale.order.line")
-                .log(LoggingLevel.INFO, "Sale order line deleted.")
                 .end();
         // spotless:on
     }

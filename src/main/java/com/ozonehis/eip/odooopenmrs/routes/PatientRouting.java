@@ -42,7 +42,7 @@ public class PatientRouting extends RouteBuilder {
                 .routeId("patient-to-partner-router")
                 .filter(exchange -> exchange.getMessage().getBody() instanceof Patient)
                 .filter(isPatientSyncEnabled())
-                .log(LoggingLevel.INFO, "Patient sync is enabled")
+                .log(LoggingLevel.INFO, "Processing Patient")
                 .process(patientProcessor)
                 .choice()
                 .when(header(HEADER_FHIR_EVENT_TYPE).isEqualTo("c"))

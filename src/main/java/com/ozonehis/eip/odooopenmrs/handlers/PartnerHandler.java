@@ -42,13 +42,13 @@ public class PartnerHandler {
                 throw new EIPException(String.format(
                         "Got null response while searching for Partner with reference id %s", partnerRefID));
             } else if (records.length == 1) {
-                log.info("Partner exists with reference id {} record {}", partnerRefID, records[0]);
+                log.debug("Partner exists with reference id {} record {}", partnerRefID, records[0]);
                 return OdooUtils.convertToObject((Map<String, Object>) records[0], Partner.class);
             } else if (records.length == 0) {
-                log.info("No Partner found with reference id {}", partnerRefID);
+                log.warn("No Partner found with reference id {}", partnerRefID);
                 return null;
             } else {
-                log.info("Multiple Partners exists with reference id {}", partnerRefID);
+                log.warn("Multiple Partners exists with reference id {}", partnerRefID);
                 throw new EIPException(String.format("Multiple Partners exists with reference id%s", partnerRefID));
             }
         } catch (XmlRpcException | MalformedURLException e) {
@@ -81,8 +81,7 @@ public class PartnerHandler {
     public void sendPartner(ProducerTemplate producerTemplate, String endpointUri, Partner partner) {
         Map<String, Object> headers = new HashMap<>();
         if (endpointUri.contains("update")) {
-            headers.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-            headers.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(partner.getPartnerId()));
+            headers.put(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, List.of(partner.getPartnerId()));
         }
         producerTemplate.sendBodyAndHeaders(endpointUri, partner, headers);
     }

@@ -53,8 +53,7 @@ public class PatientProcessor implements Processor {
             if (fetchedPartner != null) {
                 partner.setPartnerId(fetchedPartner.getPartnerId());
                 Map<String, Object> headers = new HashMap<>();
-                headers.put(Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
-                headers.put(Constants.HEADER_ODOO_ATTRIBUTE_VALUE, List.of(partner.getPartnerId()));
+                headers.put(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, List.of(partner.getPartnerId()));
 
                 if (eventType.equals("c") || eventType.equals("u")) {
                     headers.put(HEADER_FHIR_EVENT_TYPE, "u");

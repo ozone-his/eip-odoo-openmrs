@@ -46,5 +46,5 @@ public class Partner implements OdooDocument {
     private Boolean partnerActive;
 
     @JsonProperty("comment")
-    private String partnerComment; // Stores emrIdField
+    private String partnerComment; // Stores Patient Identifier
 }

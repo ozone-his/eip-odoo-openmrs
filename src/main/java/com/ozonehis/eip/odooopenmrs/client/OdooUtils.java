@@ -16,10 +16,10 @@ public class OdooUtils {
 
     public static <T> T convertToObject(Map<String, Object> data, Class<T> objectClass) {
         ObjectMapper mapper = new ObjectMapper();
-        log.info("OdooUtils: Converting map {} to object {}", data, objectClass.getName());
+        log.debug("OdooUtils: Converting map {} to object {}", data, objectClass.getName());
         try {
             T obj = mapper.convertValue(data, objectClass);
-            log.info("OdooUtils: Converted map {} to object {}", data, obj);
+            log.debug("OdooUtils: Converted map {} to object {}", data, obj);
             return obj;
         } catch (Exception e) {
             throw new RuntimeException(String.format("Error converting map %s to object: %s", data, e.getMessage()));
@@ -29,7 +29,7 @@ public class OdooUtils {
     public static Map<String, Object> convertObjectToMap(Object object) throws Exception {
         Map<String, Object> map = new HashMap<>();
         Field[] fields = object.getClass().getDeclaredFields();
-        log.info("OdooUtils: Converting object {} to map", object.getClass().getName());
+        log.debug("OdooUtils: Converting object {} to map", object.getClass().getName());
 
         for (Field field : fields) {
             field.setAccessible(true);
@@ -40,15 +40,7 @@ public class OdooUtils {
                 map.put(key, value);
             }
         }
-        log.info("OdooUtils: Converted object {} to map {}", object.getClass().getName(), map);
+        log.debug("OdooUtils: Converted object {} to map {}", object.getClass().getName(), map);
         return map;
-    }
-
-    public static List<Integer> convertToListOfInteger(Object[] data) {
-        List<Integer> list = new ArrayList<>();
-        for (Object o : data) {
-            list.add((Integer) o);
-        }
-        return list;
     }
 }

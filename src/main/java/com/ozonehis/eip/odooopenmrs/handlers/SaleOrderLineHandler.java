@@ -17,10 +17,12 @@ import com.ozonehis.eip.odooopenmrs.model.Product;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import com.ozonehis.eip.odooopenmrs.model.Uom;
+
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
@@ -52,17 +54,17 @@ public class SaleOrderLineHandler {
 
     public SaleOrderLine buildSaleOrderLineIfProductExists(Resource resource, SaleOrder saleOrder) {
         Product product = productHandler.getProduct(resource);
-        log.info("SaleOrderLineHandler: Fetched Product {}", product);
+        log.debug("SaleOrderLineHandler: Fetched Product {}", product);
         if (product == null) { // TODO: Check should we allow product not found
+            log.debug("SaleOrderLineHandler: No product found");
             return null;
         }
 
         // Check if Sale order line order exists in Sale order
         SaleOrderLine fetchedSaleOrderLine =
                 getSaleOrderLineIfExists(saleOrder.getOrderId(), product.getProductResId());
-        log.info("SaleOrderLineHandler: Fetched fetchedSaleOrderLine {}", fetchedSaleOrderLine);
         if (fetchedSaleOrderLine != null) {
-            log.info(
+            log.debug(
                     "SaleOrderLineHandler: Sale order line already exists for sale order {} Skipping create new sale order line",
                     saleOrder);
             return null;
@@ -74,7 +76,7 @@ public class SaleOrderLineHandler {
         if (resource instanceof MedicationRequest) {
             String uomExternalId = (String) saleOrderLine.getSaleOrderLineProductUom();
             Uom uom = uomHandler.getUom(uomExternalId);
-            log.info("SaleOrderLineHandler: Fetched Uom {}", uom);
+            log.debug("SaleOrderLineHandler: Fetched Uom {}", uom);
             // Store Uom res_id in productUom to display unit in Odoo
             saleOrderLine.setSaleOrderLineProductUom(uom.getUomResId());
         } else if (resource instanceof ServiceRequest) {
@@ -98,16 +100,17 @@ public class SaleOrderLineHandler {
             } else if (records.length == 1) {
                 SaleOrderLine saleOrderLine =
                         OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrderLine.class);
-                log.info(
+                log.debug(
                         "Sale order line exists with sale order id {} product id {} sale order line {}",
                         saleOrderId,
                         productId,
                         saleOrderLine);
                 return saleOrderLine;
             } else if (records.length == 0) {
-                log.info("No Sale order line found with sale order id {} product id {}", saleOrderId, productId);
+                log.warn("No Sale order line found with sale order id {} product id {}", saleOrderId, productId);
                 return null;
-            } else { // TODO: Handle case where multiple sale order lines with same sale order id and product id
+            } else {
+                log.warn("Multiple Sale order line found with sale order id {} product id {}", saleOrderId, productId);
                 throw new EIPException(String.format(
                         "Multiple Sale order line found with sale order id %s product id %s", saleOrderId, productId));
             }
@@ -125,9 +128,8 @@ public class SaleOrderLineHandler {
     public void sendSaleOrderLine(ProducerTemplate producerTemplate, String endpointUri, SaleOrderLine saleOrderLine) {
         Map<String, Object> saleOrderLineHeaders = new HashMap<>();
         if (endpointUri.contains("update") || endpointUri.contains("delete")) {
-            saleOrderLineHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
             saleOrderLineHeaders.put(
-                    com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_VALUE,
+                    com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE,
                     List.of(saleOrderLine.getSaleOrderLineId()));
         }
         producerTemplate.sendBodyAndHeaders(endpointUri, saleOrderLine, saleOrderLineHeaders);

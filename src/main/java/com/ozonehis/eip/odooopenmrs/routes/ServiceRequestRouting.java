@@ -52,9 +52,7 @@ public class ServiceRequestRouting extends RouteBuilder {
         from("direct:service-request-to-sale-order-processor")
                 .routeId("service-request-to-sale-order-processor")
                 .process(serviceRequestProcessor)
-                .log(
-                        LoggingLevel.INFO,
-                        "ServiceRequest with ID ${exchangeProperty." + SERVICE_REQUEST_ID + "} processed.")
+                .log(LoggingLevel.INFO, "Processing ServiceRequest")
                 .end();
         // spotless:on
     }

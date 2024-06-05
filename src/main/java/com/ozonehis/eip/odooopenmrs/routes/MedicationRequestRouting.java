@@ -50,10 +50,8 @@ public class MedicationRequestRouting extends RouteBuilder {
 
         from("direct:medication-request-to-sale-order-processor")
                 .routeId("medication-request-to-sale-order-processor")
+                .log(LoggingLevel.INFO, "Processing MedicationRequest")
                 .process(medicationRequestProcessor)
-                .log(
-                        LoggingLevel.INFO,
-                        "MedicationRequest with ID ${exchangeProperty." + MEDICATION_REQUEST_ID + "} processed.")
                 .end();
         // spotless:on
     }
