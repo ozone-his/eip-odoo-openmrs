@@ -10,9 +10,7 @@ package com.ozonehis.eip.odooopenmrs.processors;
 import com.ozonehis.eip.odooopenmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderHandler;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
-
 import java.util.List;
-
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;

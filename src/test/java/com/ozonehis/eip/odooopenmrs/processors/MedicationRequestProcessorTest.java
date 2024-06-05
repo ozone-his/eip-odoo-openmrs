@@ -161,8 +161,7 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
 
         // Assert
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "u");
-        verify(saleOrderHandler, times(1))
-                .deleteSaleOrderLine(eq(PARTNER_ID), eq(medicationRequest), eq(ENCOUNTER_VISIT_ID), any());
+        verify(saleOrderHandler, times(1)).deleteSaleOrderLine(eq(medicationRequest), eq(ENCOUNTER_VISIT_ID), any());
         verify(saleOrderHandler, times(0))
                 .updateSaleOrderIfExistsWithSaleOrderLine(eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), any());
         verify(saleOrderHandler, times(0))

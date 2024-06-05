@@ -144,10 +144,7 @@ public class SaleOrderHandler {
         }
     }
 
-    public void deleteSaleOrderLine(
-            Resource resource,
-            String encounterVisitUuid,
-            ProducerTemplate producerTemplate) {
+    public void deleteSaleOrderLine(Resource resource, String encounterVisitUuid, ProducerTemplate producerTemplate) {
         SaleOrder saleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
         if (saleOrder != null) {
             Product product = productHandler.getProduct(resource);

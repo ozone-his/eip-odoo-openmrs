@@ -17,12 +17,10 @@ import com.ozonehis.eip.odooopenmrs.model.Product;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import com.ozonehis.eip.odooopenmrs.model.Uom;
-
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;

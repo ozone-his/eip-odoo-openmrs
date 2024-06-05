@@ -56,16 +56,14 @@ public class UpdateSaleOrderLineRouteTest extends CamelSpringTestSupport {
 
         Map<String, Object> updateHeaders = new HashMap<>();
         updateHeaders.put(Constants.HEADER_FHIR_EVENT_TYPE, "u");
-        updateHeaders.put(com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
         updateHeaders.put(
-                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, saleOrderLine.getSaleOrderLineId());
+                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE,
+                saleOrderLine.getSaleOrderLineId());
 
         // Expectations
         MockEndpoint mockUpdateSaleOrderLineEndpoint = getMockEndpoint("mock:update-sale-order-line");
         mockUpdateSaleOrderLineEndpoint.expectedMessageCount(1);
         mockUpdateSaleOrderLineEndpoint.expectedHeaderReceived(Constants.HEADER_FHIR_EVENT_TYPE, "u");
-        mockUpdateSaleOrderLineEndpoint.expectedHeaderReceived(
-                com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ATTRIBUTE_NAME, "id");
         mockUpdateSaleOrderLineEndpoint.expectedHeaderReceived(
                 com.ozonehis.eip.odooopenmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, 12);
         mockUpdateSaleOrderLineEndpoint.setResultWaitTime(100);
