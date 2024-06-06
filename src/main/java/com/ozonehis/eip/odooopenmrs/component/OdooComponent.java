@@ -2,6 +2,7 @@ package com.ozonehis.eip.odooopenmrs.component;
 
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import java.util.Map;
+import lombok.Setter;
 import org.apache.camel.Endpoint;
 import org.apache.camel.spi.annotations.Component;
 import org.apache.camel.support.DefaultComponent;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Setter
 @Component("odoo")
 public class OdooComponent extends DefaultComponent {
 

@@ -12,10 +12,12 @@ import com.ozonehis.eip.odooopenmrs.handlers.CountryStateHandler;
 import com.ozonehis.eip.odooopenmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odooopenmrs.model.Partner;
 import java.util.*;
+import lombok.Setter;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Setter
 @Component
 public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
 

@@ -45,6 +45,13 @@ public class OdooClient {
 
     public OdooClient() {}
 
+    public OdooClient(String url, String database, String username, String password) {
+        this.url = url;
+        this.database = database;
+        this.username = username;
+        this.password = password;
+    }
+
     public void init() throws IOException {
         client = new XmlRpcClient() {
             {
