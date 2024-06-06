@@ -2,23 +2,33 @@ package com.ozonehis.eip.odooopenmrs.handlers;
 
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
+import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
+import com.ozonehis.eip.odooopenmrs.model.Product;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
+import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.camel.ProducerTemplate;
 import org.apache.xmlrpc.XmlRpcException;
+import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.MedicationRequest;
+import org.hl7.fhir.r4.model.Resource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.openmrs.eip.EIPException;
 
 class SaleOrderHandlerTest {
@@ -118,7 +128,6 @@ class SaleOrderHandlerTest {
 
     @Test
     public void shouldThrowErrorWhenNullResponseFromClient() throws MalformedURLException, XmlRpcException {
-
         // Mock behavior
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
@@ -130,6 +139,112 @@ class SaleOrderHandlerTest {
         assertThrows(EIPException.class, () -> saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(VISIT_ID_1));
     }
 
+    @Test
+    public void shouldUpdateSaleOrderWithSaleOrderLine() {
+        // Setup
+        SaleOrderLine saleOrderLine = new SaleOrderLine();
+        SaleOrder saleOrder = new SaleOrder();
+        Resource resource = new MedicationRequest();
+
+        // Mock behaviour
+        when(saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder))
+                .thenReturn(saleOrderLine);
+        ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
+
+        // Act
+        saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(resource, saleOrder, VISIT_ID_1, producerTemplate);
+
+        // Verify
+        verify(producerTemplate, times(1)).sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
+    }
+
+    @Test
+    public void shouldCreateSaleOrderWithSaleOrderLine() throws MalformedURLException, XmlRpcException {
+        // Setup
+        int partnerId = 12;
+        SaleOrderLine saleOrderLine = new SaleOrderLine();
+        Encounter encounter = new Encounter();
+        SaleOrder saleOrder = getSaleOrder();
+        Resource resource = new MedicationRequest();
+        Map<String, Object> saleOrderMap = getSaleOrderMap(1, VISIT_ID_1, "draft", 12);
+
+        // Mock behaviour
+        when(saleOrderMapper.toOdoo(encounter)).thenReturn(saleOrder);
+        when(odooClient.searchAndRead(
+                        Constants.SALE_ORDER_MODEL,
+                        List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
+                        Constants.orderDefaultAttributes))
+                .thenReturn(new Object[] {saleOrderMap});
+        when(saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder))
+                .thenReturn(saleOrderLine);
+        ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
+
+        // Act
+        saleOrderHandler.createSaleOrderWithSaleOrderLine(resource, encounter, partnerId, VISIT_ID_1, producerTemplate);
+
+        // Verify
+        verify(producerTemplate, times(1))
+                .sendBodyAndHeaders("direct:odoo-create-sale-order-route", saleOrder, new HashMap<>());
+        verify(producerTemplate, times(1)).sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
+    }
+
+    @Test
+    public void shouldDeleteSaleOrderLine() throws MalformedURLException, XmlRpcException {
+        // Setup
+        SaleOrderLine saleOrderLine = new SaleOrderLine();
+        Product product = new Product();
+        product.setProductResId(123);
+        SaleOrder saleOrder = getSaleOrder();
+        Resource resource = new MedicationRequest();
+        Map<String, Object> saleOrderMap = getSaleOrderMap(1, VISIT_ID_1, "draft", 12);
+
+        // Mock behaviour
+        when(odooClient.searchAndRead(
+                        Constants.SALE_ORDER_MODEL,
+                        List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
+                        Constants.orderDefaultAttributes))
+                .thenReturn(new Object[] {saleOrderMap});
+        when(productHandler.getProduct(resource)).thenReturn(product);
+        when(saleOrderLineHandler.getSaleOrderLineIfExists(saleOrder.getOrderId(), product.getProductResId()))
+                .thenReturn(saleOrderLine);
+        ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
+
+        // Act
+        saleOrderHandler.deleteSaleOrderLine(resource, VISIT_ID_1, producerTemplate);
+
+        // Verify
+        verify(saleOrderLineHandler, times(1))
+                .sendSaleOrderLine(producerTemplate, "direct:odoo-delete-sale-order-line-route", saleOrderLine);
+    }
+
+    @Test
+    public void shouldCancelSaleOrderWhenNoSaleOrderLine() throws MalformedURLException, XmlRpcException {
+        // Setup
+        int partnerId = 12;
+        Product product = new Product();
+        product.setProductResId(123);
+        SaleOrder saleOrder = getSaleOrder();
+        saleOrder.setOrderState("cancel");
+        Map<String, Object> saleOrderMap = getSaleOrderMap(1, VISIT_ID_1, "draft", 12);
+        Map<String, Object> saleOrderHeaders = new HashMap<>();
+        saleOrderHeaders.put(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, List.of(saleOrder.getOrderId()));
+
+        // Mock behaviour
+        when(odooClient.searchAndRead(
+                        Constants.SALE_ORDER_MODEL,
+                        List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
+                        Constants.orderDefaultAttributes))
+                .thenReturn(new Object[] {saleOrderMap});
+        ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
+
+        // Act
+        saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(partnerId, VISIT_ID_1, producerTemplate);
+
+        // Verify
+        verify(producerTemplate, times(1))
+                .sendBodyAndHeaders("direct:odoo-update-sale-order-route", saleOrder, saleOrderHeaders);
+    }
+
     public Map<String, Object> getSaleOrderMap(int id, String clientOrderRef, String state, int partnerId) {
         Map<String, Object> saleOrderMap = new HashMap<>();
         saleOrderMap.put("id", id);
@@ -137,5 +252,9 @@ class SaleOrderHandlerTest {
         saleOrderMap.put("state", state);
         saleOrderMap.put("partner_id", partnerId);
         return saleOrderMap;
+    }
+
+    private SaleOrder getSaleOrder() {
+        return OdooUtils.convertToObject(getSaleOrderMap(1, VISIT_ID_1, "draft", 12), SaleOrder.class);
     }
 }
