@@ -130,10 +130,17 @@
       <scope>test</scope>
     </dependency>
 
-    <!--    Test Dependencies-->
+    <!--Test Dependencies-->
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-test-infra-core</artifactId>
+      <version>${camel.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-test-infra-common</artifactId>
       <version>${camel.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
