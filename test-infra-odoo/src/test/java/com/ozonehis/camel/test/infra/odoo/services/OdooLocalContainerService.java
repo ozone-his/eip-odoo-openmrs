@@ -5,8 +5,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.ozonehis.eip.odooopenmrs.integration.infra;
+package com.ozonehis.camel.test.infra.odoo.services;
 
+import com.ozonehis.camel.test.infra.odoo.common.OdooProperties;
 import java.io.File;
 import java.net.URL;
 import java.util.Objects;

@@ -8,6 +8,8 @@
 package com.ozonehis.eip.odoo.openmrs;
 
 import ca.uhn.fhir.context.FhirContext;
+import com.ozonehis.camel.test.infra.odoo.services.OdooService;
+import com.ozonehis.camel.test.infra.odoo.services.OdooServiceFactory;
 import com.ozonehis.eip.odooopenmrs.client.OdooClient;
 import com.ozonehis.eip.odooopenmrs.component.OdooComponent;
 import com.ozonehis.eip.odooopenmrs.handlers.CountryHandler;
@@ -17,8 +19,6 @@ import com.ozonehis.eip.odooopenmrs.handlers.ProductHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.SaleOrderLineHandler;
 import com.ozonehis.eip.odooopenmrs.handlers.UomHandler;
-import com.ozonehis.eip.odooopenmrs.integration.infra.OdooService;
-import com.ozonehis.eip.odooopenmrs.integration.infra.OdooServiceFactory;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderLineMapper;
 import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
