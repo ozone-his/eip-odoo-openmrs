@@ -102,7 +102,6 @@ public class ServiceRequestToSaleOrderIntegrationTest extends BaseRouteIntegrati
         assertEquals("draft", createdSaleOrder.getOrderState());
 
         // verify sale order has sale order line
-        Thread.sleep(100000);
         assertFalse(createdSaleOrder.getOrderLine().isEmpty());
         assertEquals(1, createdSaleOrder.getOrderLine().size());
 
