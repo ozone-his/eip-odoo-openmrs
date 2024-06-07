@@ -59,7 +59,7 @@ public class OdooLocalContainerService implements OdooService {
     }
 
     protected ComposeContainer initContainer() {
-        try (var container = new ComposeContainer(getFile("docker/run/docker-compose-odoo.yml"))
+        try (var container = new ComposeContainer(getFile("docker/docker-compose-odoo.yml"))
                 .withLocalCompose(true)
                 .withStartupTimeout(java.time.Duration.ofMinutes(5))
                 .withExposedService(SERVICE_NAME, OdooProperties.DEFAULT_SERVICE_PORT, Wait.forListeningPort())) {

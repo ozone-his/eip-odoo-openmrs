@@ -14,9 +14,9 @@ import org.apache.camel.test.infra.common.services.SingletonService;
 @NoArgsConstructor
 public class OdooServiceFactory {
 
-    static class SingletonERPNextService extends SingletonService<OdooService> implements OdooService {
+    static class SingletonOdooService extends SingletonService<OdooService> implements OdooService {
 
-        public SingletonERPNextService(OdooService service, String name) {
+        public SingletonOdooService(OdooService service, String name) {
             super(service, name);
         }
 
@@ -53,7 +53,7 @@ public class OdooServiceFactory {
 
         static {
             SimpleTestServiceBuilder<OdooService> instance = builder();
-            instance.addLocalMapping(() -> new SingletonERPNextService(new OdooLocalContainerService(), "odoo"));
+            instance.addLocalMapping(() -> new SingletonOdooService(new OdooLocalContainerService(), "odoo"));
             INSTANCE = instance.build();
         }
     }
