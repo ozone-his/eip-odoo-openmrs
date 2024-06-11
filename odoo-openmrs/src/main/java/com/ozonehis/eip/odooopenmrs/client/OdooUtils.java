@@ -12,12 +12,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class OdooUtils {
-
-    private static final Logger log = LoggerFactory.getLogger(OdooUtils.class);
 
     public static <T> T convertToObject(Map<String, Object> data, Class<T> objectClass) {
         ObjectMapper mapper = new ObjectMapper();

@@ -16,15 +16,12 @@ import com.ozonehis.eip.odooopenmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odooopenmrs.model.Product;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelExecutionException;
 import org.apache.camel.ProducerTemplate;
-import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Resource;
 import org.openmrs.eip.EIPException;
@@ -49,32 +46,23 @@ public class SaleOrderHandler {
     private ProductHandler productHandler;
 
     public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId) {
-        try {
-            Object[] records = odooClient.searchAndRead(
-                    Constants.SALE_ORDER_MODEL,
-                    List.of(asList("client_order_ref", "=", visitId), asList("state", "=", "draft")),
-                    Constants.orderDefaultAttributes);
-            if (records == null) {
-                throw new EIPException(String.format(
-                        "Got null response while fetching for Sale order with client_order_ref %s", visitId));
-            } else if (records.length == 1) {
-                SaleOrder saleOrder = OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
-                log.debug("Sale order exists with client_order_ref {} sale order {}", visitId, saleOrder);
-                return saleOrder;
-            } else if (records.length == 0) {
-                log.warn("No Sale order found with client_order_ref {}", visitId);
-                return null;
-            } else {
-                log.warn("Multiple Sale order exists with client_order_ref {}", visitId);
-                throw new EIPException(String.format("Multiple Sale order found with client_order_ref %s", visitId));
-            }
-        } catch (XmlRpcException | MalformedURLException e) {
-            log.error(
-                    "Error occurred while fetching sale order with client_order_ref {} error {}",
-                    visitId,
-                    e.getMessage(),
-                    e);
-            throw new CamelExecutionException("Error occurred while fetching sale order", null, e);
+        Object[] records = odooClient.searchAndRead(
+                Constants.SALE_ORDER_MODEL,
+                List.of(asList("client_order_ref", "=", visitId), asList("state", "=", "draft")),
+                Constants.orderDefaultAttributes);
+        if (records == null) {
+            throw new EIPException(
+                    String.format("Got null response while fetching for Sale order with client_order_ref %s", visitId));
+        } else if (records.length == 1) {
+            SaleOrder saleOrder = OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
+            log.debug("Sale order exists with client_order_ref {} sale order {}", visitId, saleOrder);
+            return saleOrder;
+        } else if (records.length == 0) {
+            log.warn("No Sale order found with client_order_ref {}", visitId);
+            return null;
+        } else {
+            log.warn("Multiple Sale order exists with client_order_ref {}", visitId);
+            throw new EIPException(String.format("Multiple Sale order found with client_order_ref %s", visitId));
         }
     }
 

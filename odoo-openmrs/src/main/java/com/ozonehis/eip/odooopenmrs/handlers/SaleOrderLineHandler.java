@@ -17,15 +17,12 @@ import com.ozonehis.eip.odooopenmrs.model.Product;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrder;
 import com.ozonehis.eip.odooopenmrs.model.SaleOrderLine;
 import com.ozonehis.eip.odooopenmrs.model.Uom;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelExecutionException;
 import org.apache.camel.ProducerTemplate;
-import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
@@ -86,40 +83,30 @@ public class SaleOrderLineHandler {
     }
 
     public SaleOrderLine getSaleOrderLineIfExists(int saleOrderId, int productId) {
-        try {
-            Object[] records = odooClient.searchAndRead(
-                    Constants.SALE_ORDER_LINE_MODEL,
-                    asList(asList("order_id", "=", saleOrderId), asList("product_id", "=", productId)),
-                    null);
-            if (records == null) {
-                throw new EIPException(String.format(
-                        "Got null response while fetching for Sale order line with sale order id %s product id %s",
-                        saleOrderId, productId));
-            } else if (records.length == 1) {
-                SaleOrderLine saleOrderLine =
-                        OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrderLine.class);
-                log.debug(
-                        "Sale order line exists with sale order id {} product id {} sale order line {}",
-                        saleOrderId,
-                        productId,
-                        saleOrderLine);
-                return saleOrderLine;
-            } else if (records.length == 0) {
-                log.warn("No Sale order line found with sale order id {} product id {}", saleOrderId, productId);
-                return null;
-            } else {
-                log.warn("Multiple Sale order line found with sale order id {} product id {}", saleOrderId, productId);
-                throw new EIPException(String.format(
-                        "Multiple Sale order line found with sale order id %s product id %s", saleOrderId, productId));
-            }
-        } catch (XmlRpcException | MalformedURLException e) {
-            log.error(
-                    "Error occurred while fetching sale order line with sale order id {} product id {} error {}",
+        Object[] records = odooClient.searchAndRead(
+                Constants.SALE_ORDER_LINE_MODEL,
+                asList(asList("order_id", "=", saleOrderId), asList("product_id", "=", productId)),
+                null);
+        if (records == null) {
+            throw new EIPException(String.format(
+                    "Got null response while fetching for Sale order line with sale order id %s product id %s",
+                    saleOrderId, productId));
+        } else if (records.length == 1) {
+            SaleOrderLine saleOrderLine =
+                    OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrderLine.class);
+            log.debug(
+                    "Sale order line exists with sale order id {} product id {} sale order line {}",
                     saleOrderId,
                     productId,
-                    e.getMessage(),
-                    e);
-            throw new CamelExecutionException("Error occurred while fetching sale order line", null, e);
+                    saleOrderLine);
+            return saleOrderLine;
+        } else if (records.length == 0) {
+            log.warn("No Sale order line found with sale order id {} product id {}", saleOrderId, productId);
+            return null;
+        } else {
+            log.warn("Multiple Sale order line found with sale order id {} product id {}", saleOrderId, productId);
+            throw new EIPException(String.format(
+                    "Multiple Sale order line found with sale order id %s product id %s", saleOrderId, productId));
         }
     }
 
