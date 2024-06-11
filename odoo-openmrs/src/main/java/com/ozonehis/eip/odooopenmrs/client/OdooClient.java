@@ -13,7 +13,6 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 
 import com.ozonehis.eip.odooopenmrs.Constants;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -44,6 +43,8 @@ public class OdooClient {
 
     private Integer uid;
 
+    private XmlRpcClientConfigImpl xmlRpcClientConfig;
+
     private XmlRpcClient client;
 
     private static final String SERVER_OBJECT_URL = "%s/xmlrpc/2/object";
@@ -59,89 +60,104 @@ public class OdooClient {
         this.password = password;
     }
 
-    public void init() throws IOException {
-        client = new XmlRpcClient() {
-            {
-                setConfig(new XmlRpcClientConfigImpl() {
-
-                    {
-                        setEnabledForExtensions(true);
-                        setServerURL(new URL(String.format(SERVER_OBJECT_URL, getUrl())));
-                    }
-                });
+    public void init() {
+        if (xmlRpcClientConfig == null) {
+            try {
+                xmlRpcClientConfig = new XmlRpcClientConfigImpl();
+                xmlRpcClientConfig.setEnabledForExtensions(true);
+                xmlRpcClientConfig.setServerURL(new URL(String.format(SERVER_OBJECT_URL, getUrl())));
+            } catch (MalformedURLException e) {
+                log.error("Error occurred while building odoo server url {} error {}", getUrl(), e.getMessage());
+                throw new RuntimeException(e);
             }
-        };
+        }
+        if (client == null) {
+            client = new XmlRpcClient();
+            client.setConfig(xmlRpcClientConfig);
+        }
+        // authenticate
+        if (uid == null) {
+            try {
+                uid = (Integer) client.execute(
+                        xmlRpcClientConfig,
+                        "authenticate",
+                        asList(getDatabase(), getUsername(), getPassword(), emptyMap()));
+            } catch (XmlRpcException e) {
+                log.error("Cannot authenticate to Odoo server error: {}", e.getMessage());
+                throw new RuntimeException("Cannot authenticate to Odoo server");
+            }
+        }
     }
 
-    public void authenticate() throws MalformedURLException {
-        // TODO: Where should we place the init logic
+    public Integer create(String model, List<Map<String, Object>> dataParams) {
+        init();
+
         try {
-            init();
-        } catch (IOException e) {
+            return (Integer) client.execute(
+                    "execute_kw",
+                    asList(getDatabase(), uid, getPassword(), model, Constants.CREATE_METHOD, dataParams));
+        } catch (XmlRpcException e) {
+            log.error("Error occurred while creating in odoo server error {}", e.getMessage());
             throw new RuntimeException(e);
         }
-        XmlRpcClientConfigImpl common_config = new XmlRpcClientConfigImpl();
-        common_config.setServerURL(new URL(String.format(SERVER_COMMON_URL, getUrl())));
+    }
+
+    public Boolean write(String model, List<Object> dataParams) {
+        init();
 
         try {
-            uid = (Integer) client.execute(
-                    common_config, "authenticate", asList(getDatabase(), getUsername(), getPassword(), emptyMap()));
+            return (Boolean)
+                    client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "write", dataParams));
         } catch (XmlRpcException e) {
-            log.error("Cannot authenticate to Odoo server error: {}", e.getMessage());
-            throw new RuntimeException("Cannot authenticate to Odoo server");
+            log.error("Error occurred while writing to odoo server error {}", e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
-    public Integer create(String model, List<Map<String, Object>> dataParams)
-            throws XmlRpcException, MalformedURLException {
-        authenticateIfNecessary();
+    public Boolean delete(String model, List<Object> dataParams) {
+        init();
 
-        return (Integer) client.execute(
-                "execute_kw", asList(getDatabase(), uid, getPassword(), model, Constants.CREATE_METHOD, dataParams));
-    }
-
-    public Boolean write(String model, List<Object> dataParams) throws XmlRpcException, MalformedURLException {
-        authenticateIfNecessary();
-
-        return (Boolean)
-                client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "write", dataParams));
-    }
-
-    public Boolean delete(String model, List<Object> dataParams) throws XmlRpcException, MalformedURLException {
-        authenticateIfNecessary();
-        return (Boolean)
-                client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "unlink", dataParams));
-    }
-
-    public Object[] searchAndRead(String model, List<Object> criteria, List<String> fields)
-            throws XmlRpcException, MalformedURLException {
-        authenticateIfNecessary();
-
-        List<Object> params = new ArrayList<>();
-        params.add(getDatabase());
-        params.add(uid);
-        params.add(getPassword());
-        params.add(model);
-        params.add("search_read");
-        params.add(singletonList(criteria));
-        if (fields != null) {
-            params.add(singletonMap("fields", fields));
+        try {
+            return (Boolean) client.execute(
+                    "execute_kw", asList(getDatabase(), uid, getPassword(), model, "unlink", dataParams));
+        } catch (XmlRpcException e) {
+            log.error("Error occurred while deleting from odoo server error {}", e.getMessage());
+            throw new RuntimeException(e);
         }
-
-        return (Object[]) client.execute("execute_kw", params);
     }
 
-    public Object[] search(String model, List<Object> criteria) throws XmlRpcException, MalformedURLException {
-        authenticateIfNecessary();
+    public Object[] searchAndRead(String model, List<Object> criteria, List<String> fields) {
+        init();
 
-        return (Object[]) client.execute(
-                "execute_kw",
-                asList(getDatabase(), uid, getPassword(), model, "search", singletonList(singletonList(criteria))));
+        try {
+            List<Object> params = new ArrayList<>();
+            params.add(getDatabase());
+            params.add(uid);
+            params.add(getPassword());
+            params.add(model);
+            params.add("search_read");
+            params.add(singletonList(criteria));
+            if (fields != null) {
+                params.add(singletonMap("fields", fields));
+            }
+
+            return (Object[]) client.execute("execute_kw", params);
+        } catch (XmlRpcException e) {
+            log.error("Error occurred while searchAndRead from odoo server error {}", e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
-    private void authenticateIfNecessary() throws MalformedURLException {
-        if (uid == null) {
-            authenticate();
+    public Object[] search(String model, List<Object> criteria) {
+        init();
+
+        try {
+            return (Object[]) client.execute(
+                    "execute_kw",
+                    asList(getDatabase(), uid, getPassword(), model, "search", singletonList(singletonList(criteria))));
+        } catch (XmlRpcException e) {
+            log.error("Error occurred while searching from odoo server error {}", e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 }
