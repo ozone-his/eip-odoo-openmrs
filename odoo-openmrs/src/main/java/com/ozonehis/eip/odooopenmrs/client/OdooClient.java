@@ -78,11 +78,13 @@ public class OdooClient {
         // authenticate
         if (uid == null) {
             try {
+                XmlRpcClientConfigImpl xmlRpcClientCommonConfig = new XmlRpcClientConfigImpl();
+                xmlRpcClientCommonConfig.setServerURL(new URL(String.format(SERVER_COMMON_URL, getUrl())));
                 uid = (Integer) client.execute(
-                        xmlRpcClientConfig,
+                        xmlRpcClientCommonConfig,
                         "authenticate",
                         asList(getDatabase(), getUsername(), getPassword(), emptyMap()));
-            } catch (XmlRpcException e) {
+            } catch (XmlRpcException | MalformedURLException e) {
                 log.error("Cannot authenticate to Odoo server error: {}", e.getMessage());
                 throw new RuntimeException("Cannot authenticate to Odoo server");
             }
