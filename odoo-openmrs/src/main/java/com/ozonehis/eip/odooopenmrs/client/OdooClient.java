@@ -108,8 +108,8 @@ public class OdooClient {
         init();
 
         try {
-            return (Boolean)
-                    client.execute("execute_kw", asList(getDatabase(), uid, getPassword(), model, "write", dataParams));
+            return (Boolean) client.execute(
+                    "execute_kw", asList(getDatabase(), uid, getPassword(), model, Constants.WRITE_METHOD, dataParams));
         } catch (XmlRpcException e) {
             log.error("Error occurred while writing to odoo server error {}", e.getMessage());
             throw new RuntimeException(e);
@@ -121,7 +121,8 @@ public class OdooClient {
 
         try {
             return (Boolean) client.execute(
-                    "execute_kw", asList(getDatabase(), uid, getPassword(), model, "unlink", dataParams));
+                    "execute_kw",
+                    asList(getDatabase(), uid, getPassword(), model, Constants.UNLINK_METHOD, dataParams));
         } catch (XmlRpcException e) {
             log.error("Error occurred while deleting from odoo server error {}", e.getMessage());
             throw new RuntimeException(e);
@@ -137,7 +138,7 @@ public class OdooClient {
             params.add(uid);
             params.add(getPassword());
             params.add(model);
-            params.add("search_read");
+            params.add(Constants.SEARCH_READ_METHOD);
             params.add(singletonList(criteria));
             if (fields != null) {
                 params.add(singletonMap("fields", fields));
@@ -156,7 +157,13 @@ public class OdooClient {
         try {
             return (Object[]) client.execute(
                     "execute_kw",
-                    asList(getDatabase(), uid, getPassword(), model, "search", singletonList(singletonList(criteria))));
+                    asList(
+                            getDatabase(),
+                            uid,
+                            getPassword(),
+                            model,
+                            Constants.SEARCH_METHOD,
+                            singletonList(singletonList(criteria))));
         } catch (XmlRpcException e) {
             log.error("Error occurred while searching from odoo server error {}", e.getMessage());
             throw new RuntimeException(e);
