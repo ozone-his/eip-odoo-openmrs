@@ -94,15 +94,6 @@
         <version>1.18.30</version>
       </dependency>
     </dependencies>
-    <!--    <dependencies>-->
-    <!--      <dependency>-->
-    <!--        <groupId>org.apache.camel.springboot</groupId>-->
-    <!--        <artifactId>camel-spring-boot-dependencies</artifactId>-->
-    <!--        <version>${camel.version}</version>-->
-    <!--        <type>pom</type>-->
-    <!--        <scope>import</scope>-->
-    <!--      </dependency>-->
-    <!--    </dependencies>-->
   </dependencyManagement>
 
   <dependencies>
@@ -120,16 +111,6 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
     </dependency>
-    <!--    <dependency>-->
-    <!--      <groupId>org.apache.xmlrpc</groupId>-->
-    <!--      <artifactId>xmlrpc-client</artifactId>-->
-    <!--      <version>${xmlRpcClientVersion}</version>-->
-    <!--    </dependency>-->
-
-    <!--    <dependency>-->
-    <!--      <groupId>org.apache.camel</groupId>-->
-    <!--      <artifactId>camel-support</artifactId>-->
-    <!--    </dependency>-->
 
     <!-- Test dependencies -->
     <dependency>

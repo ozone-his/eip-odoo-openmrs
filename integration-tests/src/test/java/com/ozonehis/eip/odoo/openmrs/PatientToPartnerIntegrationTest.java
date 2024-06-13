@@ -13,12 +13,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
-import com.ozonehis.eip.odooopenmrs.Constants;
-import com.ozonehis.eip.odooopenmrs.client.OdooUtils;
-import com.ozonehis.eip.odooopenmrs.model.Partner;
-import com.ozonehis.eip.odooopenmrs.routes.partner.CreatePartnerRoute;
-import com.ozonehis.eip.odooopenmrs.routes.partner.DeletePartnerRoute;
-import com.ozonehis.eip.odooopenmrs.routes.partner.UpdatePartnerRoute;
+import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
+import com.ozonehis.eip.odoo.openmrs.model.Partner;
+import com.ozonehis.eip.odoo.openmrs.routes.partner.CreatePartnerRoute;
+import com.ozonehis.eip.odoo.openmrs.routes.partner.DeletePartnerRoute;
+import com.ozonehis.eip.odoo.openmrs.routes.partner.UpdatePartnerRoute;
 import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
