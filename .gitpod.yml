@@ -1,0 +1,3 @@
+# The .gitpod.yml file is used to configure your Gitpod workspace.
+image:
+  file: .gitpod.Dockerfile
