@@ -11,9 +11,14 @@ import com.ozonehis.eip.odoo.openmrs.handlers.CountryHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.CountryStateHandler;
 import com.ozonehis.eip.odoo.openmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import lombok.Setter;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.Element;
+import org.hl7.fhir.r4.model.Extension;
+import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

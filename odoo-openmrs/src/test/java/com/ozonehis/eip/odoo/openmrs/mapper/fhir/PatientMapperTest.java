@@ -7,7 +7,7 @@
  */
 package com.ozonehis.eip.odoo.openmrs.mapper.fhir;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import org.hl7.fhir.r4.model.Patient;

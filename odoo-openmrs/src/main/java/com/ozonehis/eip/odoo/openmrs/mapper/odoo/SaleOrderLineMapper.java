@@ -10,7 +10,11 @@ package com.ozonehis.eip.odoo.openmrs.mapper.odoo;
 import com.ozonehis.eip.odoo.openmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import lombok.extern.slf4j.Slf4j;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.Dosage;
+import org.hl7.fhir.r4.model.MedicationRequest;
+import org.hl7.fhir.r4.model.Quantity;
+import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.ServiceRequest;
 import org.springframework.stereotype.Component;
 
 @Slf4j
