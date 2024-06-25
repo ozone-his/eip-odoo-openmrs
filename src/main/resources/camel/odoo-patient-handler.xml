@@ -23,7 +23,7 @@
 
         <choice>
             <when>
-                <simple>${exchangeProperty.patient-odoo-id} == null &amp;&amp; ${exchangeProperty.patient.get('patientVoided')} == true</simple>
+                <simple>${exchangeProperty.patient-odoo-id} == null &amp;&amp; ${exchangeProperty.patient.get('voided')} == true</simple>
                 <log message="No action to take for voided patient since they have no customer record in odoo" />
             </when>
             <otherwise>
@@ -36,7 +36,7 @@
                         <simple>${exchangeProperty.updateExistingCustomer} == true || ${exchangeProperty.createCustomerIfNotExist} == true || ${properties:create.customer.if.not.exist:false} == true</simple>
                         <setProperty name="isPatientVoidedOrDeleted">
                             <!-- TODO support deleted patient -->
-                            <spel>#{getProperty('patient').get('patientVoided') == true}</spel>
+                            <spel>#{getProperty('patient').get('voided') == true}</spel>
                         </setProperty>
 
                         <when>

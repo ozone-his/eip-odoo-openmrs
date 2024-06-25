@@ -10,7 +10,7 @@
                 <simple>${properties:odoo.dob.field:null} != null &amp;&amp; ${properties:odoo.dob.field:null} != ''</simple>
 
                 <setProperty name="odooDobField">
-                    <simple>{{odoo.dob.field}}</simple>
+                    <simple>${properties:odoo.dob.field}</simple>
                 </setProperty>
 
                 <setProperty name="birthdate">
