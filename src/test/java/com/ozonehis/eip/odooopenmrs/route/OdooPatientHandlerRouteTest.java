@@ -367,7 +367,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
         final Integer patientId = 18;
         Event event = createEvent("patient", "1", OdooTestConstants.PATIENT_UUID, "u");
         final Exchange exchange = new DefaultExchange(camelContext);
-        var patientResource = singletonMap("patientVoided", true);
+        var patientResource = singletonMap("voided", true);
         exchange.setProperty(EX_PROP_PATIENT, patientResource);
         exchange.setProperty(PROP_EVENT, event);
         mockProcessAddressEndpoint.expectedMessageCount(0);
@@ -402,7 +402,7 @@ public class OdooPatientHandlerRouteTest extends BaseOdooRouteTest {
         final Integer patientId = 18;
         Event event = createEvent("patient", "1", OdooTestConstants.PATIENT_UUID, "u");
         final Exchange exchange = new DefaultExchange(camelContext);
-        var patientResource = singletonMap("patientVoided", true);
+        var patientResource = singletonMap("voided", true);
         exchange.setProperty(EX_PROP_PATIENT, patientResource);
         exchange.setProperty(PROP_EVENT, event);
         mockProcessAddressEndpoint.expectedMessageCount(0);
