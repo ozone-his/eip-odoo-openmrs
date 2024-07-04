@@ -13,11 +13,13 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 
 import com.ozonehis.eip.odoo.openmrs.Constants;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xmlrpc.XmlRpcException;
@@ -53,7 +55,8 @@ public class OdooClient {
 
     private static final String SERVER_COMMON_URL = "%s/xmlrpc/2/common";
 
-    public OdooClient() {}
+    public OdooClient() {
+    }
 
     public OdooClient(String url, String database, String username, String password) {
         this.url = url;
@@ -69,8 +72,7 @@ public class OdooClient {
                 xmlRpcClientConfig.setEnabledForExtensions(true);
                 xmlRpcClientConfig.setServerURL(new URL(String.format(SERVER_OBJECT_URL, getUrl())));
             } catch (MalformedURLException e) {
-                log.error("Error occurred while building odoo server url {} error {}", getUrl(), e.getMessage());
-                throw new RuntimeException(e);
+                throw new RuntimeException(String.format("Error occurred while building odoo server url %s error %s", getUrl(), e.getMessage()), e);
             }
         }
         if (client == null) {
@@ -87,8 +89,7 @@ public class OdooClient {
                         "authenticate",
                         asList(getDatabase(), getUsername(), getPassword(), emptyMap()));
             } catch (XmlRpcException | MalformedURLException e) {
-                log.error("Cannot authenticate to Odoo server error: {}", e.getMessage());
-                throw new RuntimeException("Cannot authenticate to Odoo server");
+                throw new RuntimeException("Cannot authenticate to Odoo server", e);
             }
         }
     }
@@ -101,8 +102,7 @@ public class OdooClient {
                     "execute_kw",
                     asList(getDatabase(), uid, getPassword(), model, Constants.CREATE_METHOD, dataParams));
         } catch (XmlRpcException e) {
-            log.error("Error occurred while creating in odoo server error {}", e.getMessage());
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error occurred while creating in odoo server error", e);
         }
     }
 
@@ -113,8 +113,7 @@ public class OdooClient {
             return (Boolean) client.execute(
                     "execute_kw", asList(getDatabase(), uid, getPassword(), model, Constants.WRITE_METHOD, dataParams));
         } catch (XmlRpcException e) {
-            log.error("Error occurred while writing to odoo server error {}", e.getMessage());
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error occurred while writing to odoo server error", e);
         }
     }
 
@@ -126,8 +125,7 @@ public class OdooClient {
                     "execute_kw",
                     asList(getDatabase(), uid, getPassword(), model, Constants.UNLINK_METHOD, dataParams));
         } catch (XmlRpcException e) {
-            log.error("Error occurred while deleting from odoo server error {}", e.getMessage());
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error occurred while deleting from odoo server error", e);
         }
     }
 
@@ -148,8 +146,7 @@ public class OdooClient {
 
             return (Object[]) client.execute("execute_kw", params);
         } catch (XmlRpcException e) {
-            log.error("Error occurred while searchAndRead from odoo server error {}", e.getMessage());
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error occurred while searchAndRead from odoo server error", e);
         }
     }
 
@@ -167,8 +164,7 @@ public class OdooClient {
                             Constants.SEARCH_METHOD,
                             singletonList(singletonList(criteria))));
         } catch (XmlRpcException e) {
-            log.error("Error occurred while searching from odoo server error {}", e.getMessage());
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error occurred while searching from odoo server error", e);
         }
     }
 }
