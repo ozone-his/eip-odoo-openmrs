@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024, Ozone HIS <info@ozone-his.com>
+ * Copyright © 2021, Ozone HIS <info@ozone-his.com>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Getter
+@NoArgsConstructor
 @Component
 public class OdooClient {
 
@@ -52,8 +54,6 @@ public class OdooClient {
     private static final String SERVER_OBJECT_URL = "%s/xmlrpc/2/object";
 
     private static final String SERVER_COMMON_URL = "%s/xmlrpc/2/common";
-
-    public OdooClient() {}
 
     public OdooClient(String url, String database, String username, String password) {
         this.url = url;

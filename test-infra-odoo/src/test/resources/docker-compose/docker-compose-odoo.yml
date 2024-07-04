@@ -46,8 +46,6 @@ services:
       - "../distro/data/postgresql/create_db.sh:/docker-entrypoint-initdb.d/create_db.sh"
       - "../distro/data/postgresql/odoo:/docker-entrypoint-initdb.d/db/odoo"
 
-version: "3.7"
-
 volumes:
   postgresql-data: ~
   odoo-checksums: ~

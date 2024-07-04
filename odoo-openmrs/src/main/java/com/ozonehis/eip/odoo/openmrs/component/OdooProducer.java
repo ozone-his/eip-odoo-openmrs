@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024, Ozone HIS <info@ozone-his.com>
+ * Copyright © 2021, Ozone HIS <info@ozone-his.com>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,18 +14,16 @@ import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import java.util.Collections;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultProducer;
 import org.openmrs.eip.EIPException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class OdooProducer extends DefaultProducer {
 
     private final OdooClient odooClient;
-
-    private static final Logger log = LoggerFactory.getLogger(OdooProducer.class);
 
     public OdooProducer(Endpoint endpoint, OdooClient odooClient) {
         super(endpoint);

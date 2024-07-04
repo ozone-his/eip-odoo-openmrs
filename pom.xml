@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright © 2024, Ozone HIS <info@ozone-his.com>
+    Copyright © 2021, Ozone HIS <info@ozone-his.com>
 
     This Source Code Form is subject to the terms of the Mozilla Public
     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,7 +19,7 @@
   <name>EIP Odoo OpenMRS</name>
   <description>Apache camel routes that integrates Odoo and OpenMRS system</description>
 
-  <inceptionYear>2024</inceptionYear>
+  <inceptionYear>2021</inceptionYear>
 
   <organization>
     <name>Ozone HIS</name>

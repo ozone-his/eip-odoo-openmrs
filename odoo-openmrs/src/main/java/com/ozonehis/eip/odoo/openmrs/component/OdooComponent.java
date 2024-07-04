@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024, Ozone HIS <info@ozone-his.com>
+ * Copyright © 2021, Ozone HIS <info@ozone-his.com>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,14 +10,13 @@ package com.ozonehis.eip.odoo.openmrs.component;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import java.util.Map;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Endpoint;
 import org.apache.camel.spi.annotations.Component;
 import org.apache.camel.support.DefaultComponent;
-import org.openmrs.eip.mysql.watcher.MySqlWatcherComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 @Setter
 @Component("odoo")
 public class OdooComponent extends DefaultComponent {
@@ -25,11 +24,9 @@ public class OdooComponent extends DefaultComponent {
     @Autowired
     private OdooClient odooClient;
 
-    private static final Logger logger = LoggerFactory.getLogger(MySqlWatcherComponent.class);
-
     @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) {
-        logger.info("Creating odoo endpoint with uri: {} remaining: {} parameters: {} ", uri, remaining, parameters);
+        log.info("Creating odoo endpoint with uri: {} remaining: {} parameters: {} ", uri, remaining, parameters);
         String[] parts = remaining.split("/", 2);
         if (parts.length != 2) {
             throw new IllegalArgumentException("Invalid URI format. The expected format is 'odoo:method/model'");
