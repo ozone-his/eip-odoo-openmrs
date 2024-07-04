@@ -83,7 +83,7 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
         Exchange exchange = createExchange(bundle, "u");
 
         // Mock behavior
-        when(partnerHandler.ensurePartnerExistsAndUpdate(any(), eq(patient))).thenReturn(PARTNER_ID);
+        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(PARTNER_ID);
         when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_VISIT_ID))
                 .thenReturn(saleOrder);
 
@@ -120,7 +120,7 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
         Exchange exchange = createExchange(bundle, "c");
 
         // Mock behavior
-        when(partnerHandler.ensurePartnerExistsAndUpdate(any(), eq(patient))).thenReturn(PARTNER_ID);
+        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(PARTNER_ID);
         when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_VISIT_ID))
                 .thenReturn(null);
 

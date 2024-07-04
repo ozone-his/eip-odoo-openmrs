@@ -67,7 +67,7 @@ public class ServiceRequestProcessor implements Processor {
                     throw new IllegalArgumentException("Event type not found in the exchange headers.");
                 }
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
-                int partnerId = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
+                int partnerId = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                             && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {

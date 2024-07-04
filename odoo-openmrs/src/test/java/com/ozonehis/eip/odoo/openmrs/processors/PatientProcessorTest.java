@@ -71,7 +71,7 @@ class PatientProcessorTest extends BaseProcessorTest {
 
         // Mock behavior
         when(partnerMapper.toOdoo(patient)).thenReturn(partner);
-        when(partnerHandler.partnerExists(partner.getPartnerRef())).thenReturn(null);
+        when(partnerHandler.getPartnerByID(partner.getPartnerRef())).thenReturn(null);
 
         // Act
         patientProcessor.process(exchange);
@@ -101,7 +101,7 @@ class PatientProcessorTest extends BaseProcessorTest {
 
         // Mock behavior
         when(partnerMapper.toOdoo(patient)).thenReturn(partner);
-        when(partnerHandler.partnerExists(partner.getPartnerRef())).thenReturn(fetchedPartner);
+        when(partnerHandler.getPartnerByID(partner.getPartnerRef())).thenReturn(fetchedPartner);
 
         // Act
         patientProcessor.process(exchange);
@@ -131,7 +131,7 @@ class PatientProcessorTest extends BaseProcessorTest {
 
         // Mock behavior
         when(partnerMapper.toOdoo(patient)).thenReturn(partner);
-        when(partnerHandler.partnerExists(partner.getPartnerRef())).thenReturn(fetchedPartner);
+        when(partnerHandler.getPartnerByID(partner.getPartnerRef())).thenReturn(fetchedPartner);
 
         // Act
         patientProcessor.process(exchange);

@@ -49,7 +49,7 @@ public class PatientProcessor implements Processor {
             }
 
             String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
-            Partner fetchedPartner = partnerHandler.partnerExists(partner.getPartnerRef());
+            Partner fetchedPartner = partnerHandler.getPartnerByID(partner.getPartnerRef());
             if (fetchedPartner != null) {
                 partner.setPartnerId(fetchedPartner.getPartnerId());
                 Map<String, Object> headers = new HashMap<>();

@@ -67,7 +67,7 @@ class PartnerHandlerTest {
     }
 
     @Test
-    public void shouldReturnPartnerWhenOnlyOnePartnerExists() throws MalformedURLException, XmlRpcException {
+    public void shouldReturnPartnerWhenOnlyOneGetPartnerByID() throws MalformedURLException, XmlRpcException {
         // Setup
         Map<String, Object> partner = getPartnerMap();
 
@@ -81,7 +81,7 @@ class PartnerHandlerTest {
                 .thenReturn(partners);
 
         // Act
-        Partner fetchedPartner = partnerHandler.partnerExists(PARTNER_REF_ID);
+        Partner fetchedPartner = partnerHandler.getPartnerByID(PARTNER_REF_ID);
 
         // Verify
         assertNotNull(fetchedPartner);
@@ -107,11 +107,11 @@ class PartnerHandlerTest {
                 .thenReturn(partners);
 
         // Verify
-        assertThrows(EIPException.class, () -> partnerHandler.partnerExists(PARTNER_REF_ID));
+        assertThrows(EIPException.class, () -> partnerHandler.getPartnerByID(PARTNER_REF_ID));
     }
 
     @Test
-    public void shouldReturnPartnerIdAndUpdatePartnerWhenPartnerExists() throws MalformedURLException, XmlRpcException {
+    public void shouldReturnPartnerIdAndUpdatePartnerWhenGetPartnerByID() throws MalformedURLException, XmlRpcException {
         // Setup
         Patient patient = new Patient();
         patient.setId(PARTNER_REF_ID);
@@ -133,7 +133,7 @@ class PartnerHandlerTest {
         when(partnerMapper.toOdoo(patient)).thenReturn(getPartner());
 
         // Act
-        int result = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
+        int result = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
 
         // Verify
         assertEquals(12, result);
@@ -161,7 +161,7 @@ class PartnerHandlerTest {
         when(partnerMapper.toOdoo(patient)).thenReturn(getPartner());
 
         // Act
-        int result = partnerHandler.ensurePartnerExistsAndUpdate(producerTemplate, patient);
+        int result = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
 
         // Verify
         assertEquals(12, result);

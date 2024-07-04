@@ -36,7 +36,7 @@ public class PartnerHandler {
     @Autowired
     private PartnerMapper partnerMapper;
 
-    public Partner partnerExists(String partnerRefID) {
+    public Partner getPartnerByID(String partnerRefID) {
         Object[] records = odooClient.searchAndRead(
                 Constants.PARTNER_MODEL, List.of(asList("ref", "=", partnerRefID)), Constants.partnerDefaultAttributes);
         if (records == null) {
@@ -54,8 +54,8 @@ public class PartnerHandler {
         }
     }
 
-    public int ensurePartnerExistsAndUpdate(ProducerTemplate producerTemplate, Patient patient) {
-        Partner fetchedPartner = partnerExists(patient.getIdPart());
+    public int createOrUpdatePartner(ProducerTemplate producerTemplate, Patient patient) {
+        Partner fetchedPartner = getPartnerByID(patient.getIdPart());
         if (fetchedPartner != null && fetchedPartner.getPartnerId() > 0) {
             int partnerId = fetchedPartner.getPartnerId();
             log.info("Partner with reference id {} already exists, updating...", patient.getIdPart());
@@ -67,7 +67,7 @@ public class PartnerHandler {
             log.info("Partner with reference id {} does not exist, creating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
             sendPartner(producerTemplate, "direct:odoo-create-partner-route", partner);
-            return partnerExists(partner.getPartnerRef()).getPartnerId();
+            return getPartnerByID(partner.getPartnerRef()).getPartnerId();
         }
     }
 
