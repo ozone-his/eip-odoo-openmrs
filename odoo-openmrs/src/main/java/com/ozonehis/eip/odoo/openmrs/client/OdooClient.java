@@ -13,13 +13,11 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 
 import com.ozonehis.eip.odoo.openmrs.Constants;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xmlrpc.XmlRpcException;
@@ -55,8 +53,7 @@ public class OdooClient {
 
     private static final String SERVER_COMMON_URL = "%s/xmlrpc/2/common";
 
-    public OdooClient() {
-    }
+    public OdooClient() {}
 
     public OdooClient(String url, String database, String username, String password) {
         this.url = url;
@@ -72,7 +69,10 @@ public class OdooClient {
                 xmlRpcClientConfig.setEnabledForExtensions(true);
                 xmlRpcClientConfig.setServerURL(new URL(String.format(SERVER_OBJECT_URL, getUrl())));
             } catch (MalformedURLException e) {
-                throw new RuntimeException(String.format("Error occurred while building odoo server url %s error %s", getUrl(), e.getMessage()), e);
+                throw new RuntimeException(
+                        String.format(
+                                "Error occurred while building odoo server url %s error %s", getUrl(), e.getMessage()),
+                        e);
             }
         }
         if (client == null) {

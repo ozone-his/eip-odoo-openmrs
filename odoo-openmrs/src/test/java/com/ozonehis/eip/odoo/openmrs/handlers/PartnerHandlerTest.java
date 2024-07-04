@@ -111,7 +111,8 @@ class PartnerHandlerTest {
     }
 
     @Test
-    public void shouldReturnPartnerIdAndUpdatePartnerWhenGetPartnerByID() throws MalformedURLException, XmlRpcException {
+    public void shouldReturnPartnerIdAndUpdatePartnerWhenGetPartnerByID()
+            throws MalformedURLException, XmlRpcException {
         // Setup
         Patient patient = new Patient();
         patient.setId(PARTNER_REF_ID);

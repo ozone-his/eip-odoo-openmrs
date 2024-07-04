@@ -8,7 +8,7 @@
 package com.ozonehis.eip.odoo.openmrs.model;
 
 /**
- * This interface is used to mark all the Odoo documents.
+ * This interface is used to mark all the Odoo resources.
  *
  */
-public interface OdooDocument {}
+public interface OdooResource {}

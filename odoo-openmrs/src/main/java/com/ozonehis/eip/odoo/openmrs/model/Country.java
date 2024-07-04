@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Country implements OdooDocument {
+public class Country implements OdooResource {
 
     @JsonProperty("id")
     private Integer countryId;

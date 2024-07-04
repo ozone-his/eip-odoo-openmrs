@@ -7,21 +7,21 @@
  */
 package com.ozonehis.eip.odoo.openmrs.mapper;
 
-import com.ozonehis.eip.odoo.openmrs.model.OdooDocument;
+import com.ozonehis.eip.odoo.openmrs.model.OdooResource;
 
 /**
- * An Interface for mapping from FHIR Resources to Odoo Documents
+ * An Interface for mapping from FHIR Resources to Odoo Resources
  *
  * @param <F> FHIR Resource
- * @param <E> Odoo Document
+ * @param <E> Odoo Resource
  */
-public interface ToOdooMapping<F, E extends OdooDocument> {
+public interface ToOdooMapping<F, E extends OdooResource> {
 
     /**
-     * Maps a FHIR Resource to an Odoo Document
+     * Maps a FHIR Resource to an Odoo Resource
      *
      * @param fhirResource FHIR Resource
-     * @return Odoo Document
+     * @return Odoo Resource
      */
     E toOdoo(F fhirResource);
 }

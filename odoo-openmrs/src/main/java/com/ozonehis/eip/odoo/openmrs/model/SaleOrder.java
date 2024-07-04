@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SaleOrder implements OdooDocument {
+public class SaleOrder implements OdooResource {
 
     @JsonProperty("id")
     private Integer orderId;

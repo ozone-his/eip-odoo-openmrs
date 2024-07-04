@@ -16,9 +16,9 @@ import org.springframework.stereotype.Component;
 public class PatientMapper implements ToFhirMapping<Patient, Partner> {
 
     @Override
-    public Patient toFhir(Partner odooDocument) {
+    public Patient toFhir(Partner odooResource) {
         Patient patient = new Patient();
-        patient.setId(odooDocument.getPartnerRef()); // This is the patient's ID in the FHIR server
+        patient.setId(odooResource.getPartnerRef()); // This is the patient's ID in the FHIR server
         return patient;
     }
 }
