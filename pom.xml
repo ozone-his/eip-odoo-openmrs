@@ -34,6 +34,8 @@
 
   <modules>
     <module>odoo-openmrs</module>
+    <module>integration-tests</module>
+    <module>test-infra-odoo</module>
   </modules>
 
   <distributionManagement>
