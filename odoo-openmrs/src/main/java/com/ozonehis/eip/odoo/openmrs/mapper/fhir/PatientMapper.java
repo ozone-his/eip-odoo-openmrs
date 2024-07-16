@@ -13,7 +13,7 @@ import org.hl7.fhir.r4.model.Patient;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PatientMapper implements ToFhirMapping<Patient, Partner> {
+public class PatientMapper implements ToFhirMapping<Partner, Patient> {
 
     @Override
     public Patient toFhir(Partner odooResource) {

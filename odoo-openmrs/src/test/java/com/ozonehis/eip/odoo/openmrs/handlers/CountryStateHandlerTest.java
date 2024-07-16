@@ -17,8 +17,6 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
-import java.net.MalformedURLException;
-import org.apache.xmlrpc.XmlRpcException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,8 +44,7 @@ class CountryStateHandlerTest {
     }
 
     @Test
-    public void shouldReturnCountryStateIdWhenOnlyOneCountryStateExistsWithId()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldReturnCountryStateIdWhenOnlyOneCountryStateExistsWithId() {
         // Setup
         String countryStateName = "Berlin";
         Integer[] countryIds = {10};
@@ -65,8 +62,7 @@ class CountryStateHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenMultipleCountryStateExistsWithSameId()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldThrowErrorWhenMultipleCountryStateExistsWithSameId() {
         // Setup
         String countryStateName = "Berlin";
         Integer[] countryIds = {10, 11};
@@ -80,7 +76,7 @@ class CountryStateHandlerTest {
     }
 
     @Test
-    public void shouldReturnNullWhenNoCountryFoundWithId() throws MalformedURLException, XmlRpcException {
+    public void shouldReturnNullWhenNoCountryFoundWithId() {
         // Setup
         String countryStateName = "Berlin";
         Integer[] countryIds = {};

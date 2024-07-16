@@ -18,13 +18,11 @@ import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.routes.partner.CreatePartnerRoute;
 import com.ozonehis.eip.odoo.openmrs.routes.partner.DeletePartnerRoute;
 import com.ozonehis.eip.odoo.openmrs.routes.partner.UpdatePartnerRoute;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.CamelContext;
 import org.apache.camel.test.infra.core.annotations.RouteFixture;
-import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -74,7 +72,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
 
     @Test
     @DisplayName("should create partner in Odoo given FHIR patient.")
-    public void shouldCreatePartnerInOdooGivenFhirPatient() throws MalformedURLException, XmlRpcException {
+    public void shouldCreatePartnerInOdooGivenFhirPatient() {
         // Act
         var headers = new HashMap<String, Object>();
         headers.put(HEADER_FHIR_EVENT_TYPE, "c");
@@ -101,7 +99,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
 
     @Test
     @DisplayName("should update partner in Odoo given updated FHIR patient.")
-    public void shouldUpdatePartnerInOdooGivenFhirPatient() throws MalformedURLException, XmlRpcException {
+    public void shouldUpdatePartnerInOdooGivenFhirPatient() {
         // Act
         var headers = new HashMap<String, Object>();
         headers.put(HEADER_FHIR_EVENT_TYPE, "c");
@@ -151,7 +149,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
 
     @Test
     @DisplayName("should delete Partner in Odoo given deleted FHIR patient.")
-    public void shouldDeletePartnerInOdooGivenDeletedFhirPatient() throws MalformedURLException, XmlRpcException {
+    public void shouldDeletePartnerInOdooGivenDeletedFhirPatient() {
         // Act
         var headers = new HashMap<String, Object>();
         headers.put(HEADER_FHIR_EVENT_TYPE, "c");

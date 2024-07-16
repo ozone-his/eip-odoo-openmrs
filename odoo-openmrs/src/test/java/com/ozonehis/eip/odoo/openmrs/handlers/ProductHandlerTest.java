@@ -17,11 +17,9 @@ import static org.mockito.MockitoAnnotations.openMocks;
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Dosage;
@@ -73,8 +71,7 @@ class ProductHandlerTest {
     }
 
     @Test
-    public void shouldReturnProductWhenOnlyOneProductExistsWithMedicationRequestId()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldReturnProductWhenOnlyOneProductExistsWithMedicationRequestId() {
         // Setup
         MedicationRequest medicationRequest = getMedicationRequest();
 
@@ -100,8 +97,7 @@ class ProductHandlerTest {
     }
 
     @Test
-    public void shouldReturnProductWhenOnlyOneIdFoundMatchingServiceRequestId()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldReturnProductWhenOnlyOneIdFoundMatchingServiceRequestId() {
         // Setup
         ServiceRequest serviceRequest = getServiceRequest();
 
@@ -129,7 +125,7 @@ class ProductHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenResourceIsUnsupported() throws MalformedURLException, XmlRpcException {
+    public void shouldThrowErrorWhenResourceIsUnsupported() {
         // Setup
         Resource resource = new Patient();
 

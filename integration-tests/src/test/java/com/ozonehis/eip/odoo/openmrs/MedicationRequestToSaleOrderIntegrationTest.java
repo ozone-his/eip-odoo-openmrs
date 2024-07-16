@@ -27,13 +27,11 @@ import com.ozonehis.eip.odoo.openmrs.routes.saleorder.UpdateSaleOrderRoute;
 import com.ozonehis.eip.odoo.openmrs.routes.saleorderline.CreateSaleOrderLineRoute;
 import com.ozonehis.eip.odoo.openmrs.routes.saleorderline.DeleteSaleOrderLineRoute;
 import com.ozonehis.eip.odoo.openmrs.routes.saleorderline.UpdateSaleOrderLineRoute;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.CamelContext;
 import org.apache.camel.test.infra.core.annotations.RouteFixture;
-import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.Bundle;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -79,8 +77,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
 
     @Test
     @DisplayName("Should create sale order in Odoo given medication request bundle.")
-    public void shouldCreateSaleOrderInOdooGivenMedicationRequestBundle()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldCreateSaleOrderInOdooGivenMedicationRequestBundle() {
         // Act
         var headers = new HashMap<String, Object>();
         headers.put(HEADER_FHIR_EVENT_TYPE, "c");
@@ -144,8 +141,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
 
     @Test
     @DisplayName("Should cancel sale order in Odoo given medication request bundle when medication discontinued")
-    public void shouldCancelSaleOrderInOdooGivenMedicationRequestBundle()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldCancelSaleOrderInOdooGivenMedicationRequestBundle() {
         // Act
         var headers = new HashMap<String, Object>();
         headers.put(HEADER_FHIR_EVENT_TYPE, "d");

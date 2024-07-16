@@ -17,10 +17,8 @@ import static org.mockito.MockitoAnnotations.openMocks;
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.model.Uom;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.xmlrpc.XmlRpcException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +46,7 @@ class UomHandlerTest {
     }
 
     @Test
-    public void shouldReturnUomWhenOnlyOneUomExistsWithId() throws MalformedURLException, XmlRpcException {
+    public void shouldReturnUomWhenOnlyOneUomExistsWithId() {
         // Setup
         String externalId = "198AAAAAAAAAAA";
 
@@ -73,7 +71,7 @@ class UomHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenMultipleUomExistsWithSameIds() throws MalformedURLException, XmlRpcException {
+    public void shouldThrowErrorWhenMultipleUomExistsWithSameIds() {
         // Setup
         String externalId = "208AAAAAAAAAAA";
 
@@ -93,7 +91,7 @@ class UomHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenNoUomFoundWithId() throws MalformedURLException, XmlRpcException {
+    public void shouldThrowErrorWhenNoUomFoundWithId() {
         // Setup
         String externalId = "198AAAAAAAAAAA";
 

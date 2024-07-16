@@ -24,12 +24,10 @@ import com.ozonehis.eip.odoo.openmrs.mapper.odoo.SaleOrderMapper;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.ProducerTemplate;
-import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
@@ -73,8 +71,7 @@ class SaleOrderHandlerTest {
     }
 
     @Test
-    public void shouldReturnSaleOrderWhenOnlyOneSaleOrderExistsWithVisitId()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldReturnSaleOrderWhenOnlyOneSaleOrderExistsWithVisitId() {
         // Setup
         Map<String, Object> saleOrderMap = getSaleOrderMap(1, VISIT_ID_1, "draft", 12);
         Object[] saleOrders = {saleOrderMap};
@@ -98,8 +95,7 @@ class SaleOrderHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenMultipleSaleOrderExistsWithSameVisitId()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldThrowErrorWhenMultipleSaleOrderExistsWithSameVisitId() {
         // Setup
         Map<String, Object> saleOrderMap1 = getSaleOrderMap(1, VISIT_ID_1, "draft", 12);
         Map<String, Object> saleOrderMap2 = getSaleOrderMap(2, VISIT_ID_1, "draft", 15);
@@ -118,7 +114,7 @@ class SaleOrderHandlerTest {
     }
 
     @Test
-    public void shouldReturnNullWhenNoSaleOrderExistsWithVisitId() throws MalformedURLException, XmlRpcException {
+    public void shouldReturnNullWhenNoSaleOrderExistsWithVisitId() {
         // Setup
         Object[] saleOrders = {};
 
@@ -137,7 +133,7 @@ class SaleOrderHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenNullResponseFromClient() throws MalformedURLException, XmlRpcException {
+    public void shouldThrowErrorWhenNullResponseFromClient() {
         // Mock behavior
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
@@ -169,7 +165,7 @@ class SaleOrderHandlerTest {
     }
 
     @Test
-    public void shouldCreateSaleOrderWithSaleOrderLine() throws MalformedURLException, XmlRpcException {
+    public void shouldCreateSaleOrderWithSaleOrderLine() {
         // Setup
         int partnerId = 12;
         SaleOrderLine saleOrderLine = new SaleOrderLine();
@@ -199,7 +195,7 @@ class SaleOrderHandlerTest {
     }
 
     @Test
-    public void shouldDeleteSaleOrderLine() throws MalformedURLException, XmlRpcException {
+    public void shouldDeleteSaleOrderLine() {
         // Setup
         SaleOrderLine saleOrderLine = new SaleOrderLine();
         Product product = new Product();
@@ -228,7 +224,7 @@ class SaleOrderHandlerTest {
     }
 
     @Test
-    public void shouldCancelSaleOrderWhenNoSaleOrderLine() throws MalformedURLException, XmlRpcException {
+    public void shouldCancelSaleOrderWhenNoSaleOrderLine() {
         // Setup
         int partnerId = 12;
         Product product = new Product();

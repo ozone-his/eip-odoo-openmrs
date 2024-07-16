@@ -23,10 +23,8 @@ import com.ozonehis.eip.odoo.openmrs.model.Product;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import com.ozonehis.eip.odoo.openmrs.model.Uom;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
@@ -73,8 +71,7 @@ class SaleOrderLineHandlerTest {
     }
 
     @Test
-    public void shouldReturnSaleOrderLineWhenOnlyOneSaleOrderLineExistsWithOrderIdAndProductId()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldReturnSaleOrderLineWhenOnlyOneSaleOrderLineExistsWithOrderIdAndProductId() {
         // Setup
         Map<String, Object> saleOrderLineMap =
                 getSaleOrderLineMap(1, "Aspirin 81 mg | 10 Tablet", ORDER_ID, PRODUCT_ID, 5.0f, PRODUCT_UOM_ID);
@@ -98,8 +95,7 @@ class SaleOrderLineHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenMultipleSaleOrderLineExistsWithSameOrderIdAndProductId()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldThrowErrorWhenMultipleSaleOrderLineExistsWithSameOrderIdAndProductId() {
         // Setup
         Map<String, Object> saleOrderLineMap1 =
                 getSaleOrderLineMap(1, "Aspirin 81 mg | 10 Tablet", ORDER_ID, PRODUCT_ID, 5.0f, PRODUCT_UOM_ID);
@@ -120,8 +116,7 @@ class SaleOrderLineHandlerTest {
     }
 
     @Test
-    public void shouldReturnNullWhenNoSaleOrderLineExistsWithOrderIdAndProductId()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldReturnNullWhenNoSaleOrderLineExistsWithOrderIdAndProductId() {
         // Setup
         Object[] saleOrderLines = {};
 
@@ -140,8 +135,7 @@ class SaleOrderLineHandlerTest {
     }
 
     @Test
-    public void shouldReturnNullWhenProductAndSaleOrderLineExistsAndResourceIsServiceRequest()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldReturnNullWhenProductAndSaleOrderLineExistsAndResourceIsServiceRequest() {
         // Setup
         Resource resource = new ServiceRequest();
         SaleOrder saleOrder = new SaleOrder();
@@ -170,8 +164,7 @@ class SaleOrderLineHandlerTest {
     }
 
     @Test
-    public void shouldReturnSaleOrderLineWhenProductExistsAndResourceIsServiceRequest()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldReturnSaleOrderLineWhenProductExistsAndResourceIsServiceRequest() {
         // Setup
         Resource resource = new ServiceRequest();
         SaleOrder saleOrder = new SaleOrder();
@@ -199,8 +192,7 @@ class SaleOrderLineHandlerTest {
     }
 
     @Test
-    public void shouldReturnSaleOrderLineWhenProductExistsAndResourceIsMedicationRequest()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldReturnSaleOrderLineWhenProductExistsAndResourceIsMedicationRequest() {
         // Setup
         Resource resource = new MedicationRequest();
         Uom uom = new Uom();

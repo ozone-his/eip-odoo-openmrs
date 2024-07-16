@@ -15,7 +15,7 @@ import org.hl7.fhir.r4.model.Resource;
  * @param <F> FHIR Resource
  * @param <E> Odoo Resource
  */
-public interface ToFhirMapping<F extends Resource, E> {
+public interface ToFhirMapping<E, F extends Resource> {
 
     /**
      * Maps an Odoo Resource to a FHIR Resource

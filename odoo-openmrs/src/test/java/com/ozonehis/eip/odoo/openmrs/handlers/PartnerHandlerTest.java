@@ -22,12 +22,10 @@ import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.ProducerTemplate;
-import org.apache.xmlrpc.XmlRpcException;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +65,7 @@ class PartnerHandlerTest {
     }
 
     @Test
-    public void shouldReturnPartnerWhenOnlyOneGetPartnerByID() throws MalformedURLException, XmlRpcException {
+    public void shouldReturnPartnerWhenOnlyOneGetPartnerByID() {
         // Setup
         Map<String, Object> partner = getPartnerMap();
 
@@ -92,7 +90,7 @@ class PartnerHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenMultiplePartnersWithSameIdExists() throws MalformedURLException, XmlRpcException {
+    public void shouldThrowErrorWhenMultiplePartnersWithSameIdExists() {
         // Setup
         Map<String, Object> partner1 = getPartnerMap();
         Map<String, Object> partner2 = getPartnerMap();
@@ -111,8 +109,7 @@ class PartnerHandlerTest {
     }
 
     @Test
-    public void shouldReturnPartnerIdAndUpdatePartnerWhenGetPartnerByID()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldReturnPartnerIdAndUpdatePartnerWhenGetPartnerByID() {
         // Setup
         Patient patient = new Patient();
         patient.setId(PARTNER_REF_ID);
@@ -143,8 +140,7 @@ class PartnerHandlerTest {
     }
 
     @Test
-    public void shouldReturnPartnerIdAndCreatePartnerWhenPartnerDoesNotExists()
-            throws MalformedURLException, XmlRpcException {
+    public void shouldReturnPartnerIdAndCreatePartnerWhenPartnerDoesNotExists() {
         // Setup
         Patient patient = new Patient();
         patient.setId(PARTNER_REF_ID);
