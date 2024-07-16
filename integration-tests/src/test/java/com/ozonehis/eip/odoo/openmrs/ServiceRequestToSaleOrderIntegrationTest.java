@@ -27,6 +27,7 @@ import com.ozonehis.eip.odoo.openmrs.routes.saleorder.UpdateSaleOrderRoute;
 import com.ozonehis.eip.odoo.openmrs.routes.saleorderline.CreateSaleOrderLineRoute;
 import com.ozonehis.eip.odoo.openmrs.routes.saleorderline.DeleteSaleOrderLineRoute;
 import com.ozonehis.eip.odoo.openmrs.routes.saleorderline.UpdateSaleOrderLineRoute;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,12 @@ public class ServiceRequestToSaleOrderIntegrationTest extends BaseRouteIntegrati
     @BeforeEach
     public void initializeData() {
         serviceRequestBundle = loadResource("fhir.bundle/service-request-bundle.json", new Bundle());
+        // Deleting any existing sale order
+        Object[] result =
+                getOdooClient().search(Constants.SALE_ORDER_MODEL, asList("client_order_ref", "!=", "any uuid"));
+        for (Object id : result) {
+            getOdooClient().delete(Constants.SALE_ORDER_MODEL, Collections.singletonList((Integer) id));
+        }
     }
 
     @RouteFixture
@@ -142,12 +149,26 @@ public class ServiceRequestToSaleOrderIntegrationTest extends BaseRouteIntegrati
     @DisplayName("Should cancel sale order in Odoo given service request bundle when service discontinued")
     public void shouldCancelSaleOrderInOdooGivenMedicationRequestBundle() {
         // Act
+        // Create sale order
         var headers = new HashMap<String, Object>();
+        headers.put(HEADER_FHIR_EVENT_TYPE, "c");
+        sendBodyAndHeaders("direct:service-request-to-sale-order-processor", serviceRequestBundle, headers);
+
+        // Verify sale order created
+        Object[] result = getOdooClient()
+                .searchAndRead(
+                        Constants.SALE_ORDER_MODEL,
+                        List.of(asList("client_order_ref", "=", ENCOUNTER_PART_OF_UUID), asList("state", "=", "draft")),
+                        Constants.orderDefaultAttributes);
+
+        assertNotNull(result);
+        assertNotNull(result[0]);
+
         headers.put(HEADER_FHIR_EVENT_TYPE, "d");
         sendBodyAndHeaders("direct:service-request-to-sale-order-processor", serviceRequestBundle, headers);
 
         // Verify sale order cancelled
-        Object[] result = getOdooClient()
+        result = getOdooClient()
                 .searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(
