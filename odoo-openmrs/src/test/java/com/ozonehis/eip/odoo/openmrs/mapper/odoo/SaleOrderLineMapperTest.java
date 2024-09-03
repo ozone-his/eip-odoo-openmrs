@@ -137,6 +137,55 @@ class SaleOrderLineMapperTest {
     }
 
     @Test
+    public void shouldMapMedicationRequestWithFreeTextToSaleOrderLine() {
+        // setup
+        MedicationRequest medicationRequest = new MedicationRequest();
+        medicationRequest.setId(MEDICATION_REQUEST_ID);
+
+        // dispense request
+        medicationRequest.setDispenseRequest(new MedicationRequest.MedicationRequestDispenseRequestComponent()
+                .setQuantity(new Quantity().setValue(10)));
+        medicationRequest.setMedication(new Reference("Medication/" + MEDICATION_ID).setDisplay("medication"));
+        medicationRequest.setRequester(new Reference().setDisplay("requester"));
+        MedicationRequest.MedicationRequestDispenseRequestComponent dispenseRequest =
+                new MedicationRequest.MedicationRequestDispenseRequestComponent();
+
+        // quantity
+        Quantity quantity = new Quantity();
+        quantity.setValue(10);
+        quantity.setUnit(TABLET_UNIT);
+        quantity.setCode("15AAAAAAAAAAA");
+        dispenseRequest.setQuantity(quantity);
+        medicationRequest.setDispenseRequest(dispenseRequest);
+
+        // dosage instruction
+        Dosage.DosageDoseAndRateComponent doseAndRate = new Dosage.DosageDoseAndRateComponent();
+        Dosage dosage = new Dosage();
+        dosage.setDoseAndRate(List.of(doseAndRate));
+        dosage.setText("Take 2 pills every 20 minutes");
+
+        Timing timing = new Timing();
+        Timing.TimingRepeatComponent repeat = new Timing.TimingRepeatComponent();
+        repeat.setFrequency(3);
+        repeat.setDuration(10);
+        repeat.setDurationUnit(Timing.UnitsOfTime.D);
+        timing.setRepeat(repeat);
+        dosage.setTiming(timing);
+        medicationRequest.setDosageInstruction(List.of(dosage));
+
+        // Act
+        SaleOrderLine saleOrderLine = saleOrderLineMapper.toOdoo(medicationRequest);
+
+        // verify
+        assertNotNull(saleOrderLine);
+        assertEquals(10.0f, saleOrderLine.getSaleOrderLineProductUomQty());
+        assertEquals("15AAAAAAAAAAA", saleOrderLine.getSaleOrderLineProductUom());
+        assertEquals(
+                "medication | 10 day - Take 2 pills every 20 minutes | Orderer: requester",
+                saleOrderLine.getSaleOrderLineName());
+    }
+
+    @Test
     @DisplayName("Should throw exception for unsupported resource type")
     public void shouldThrowExceptionForUnsupportedResourceType() {
         Resource unsupportedResource = new Patient();
