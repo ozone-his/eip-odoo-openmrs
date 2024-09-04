@@ -59,34 +59,54 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
         StringBuilder dosageInstructions = new StringBuilder();
 
         if (dosage.hasDoseAndRate()) {
-            if (saleOrderLine.getSaleOrderLineProductUomQty() != null) {
-                dosageInstructions.append(saleOrderLine.getSaleOrderLineProductUomQty());
-                dosageInstructions.append(" ");
-                dosageInstructions.append(
-                        dosage.getDoseAndRateFirstRep().getDoseQuantity().getUnit());
-                dosageInstructions.append(" | ");
+            String doseQuantityUnit =
+                    dosage.getDoseAndRateFirstRep().getDoseQuantity().getUnit();
+            String saleOrderQty = saleOrderLine.getSaleOrderLineProductUomQty().toString();
+
+            if (saleOrderQty != null) {
+                dosageInstructions
+                        .append(saleOrderQty)
+                        .append(" ")
+                        .append(doseQuantityUnit)
+                        .append(" | ");
             }
-            dosageInstructions.append(
-                    dosage.getDoseAndRateFirstRep().getDoseQuantity().getValue());
-            dosageInstructions.append(" ");
-            dosageInstructions.append(
-                    dosage.getDoseAndRateFirstRep().getDoseQuantity().getUnit());
+
+            dosageInstructions
+                    .append(dosage.getDoseAndRateFirstRep().getDoseQuantity().getValue())
+                    .append(" ")
+                    .append(doseQuantityUnit);
         }
 
-        if (dosage.hasRoute()) {
-            dosageInstructions.append(" - ");
-            dosageInstructions.append(dosage.getRoute().getText());
-        }
+        appendWithConditionalHyphen(
+                dosageInstructions, dosage.hasRoute() ? dosage.getRoute().getText() : null);
+        appendWithConditionalHyphen(
+                dosageInstructions,
+                dosage.hasTiming() && dosage.getTiming().getCode() != null
+                        ? dosage.getTiming().getCode().getText()
+                        : null);
+        appendWithConditionalHyphen(
+                dosageInstructions,
+                dosage.hasTiming()
+                                && dosage.getTiming().getRepeat().getDuration() != null
+                                && dosage.getTiming().getRepeat().getDurationUnit() != null
+                        ? dosage.getTiming().getRepeat().getDuration().toString() + " "
+                                + dosage.getTiming()
+                                        .getRepeat()
+                                        .getDurationUnit()
+                                        .getDisplay()
+                        : null);
 
-        if (dosage.hasTiming()) {
-            dosageInstructions.append(" - ");
-            dosageInstructions.append(dosage.getTiming().getCode().getText());
-            dosageInstructions.append(" - ");
-            dosageInstructions.append(dosage.getTiming().getRepeat().getDuration());
-            dosageInstructions.append(" ");
-            dosageInstructions.append(
-                    dosage.getTiming().getRepeat().getDurationUnit().getDisplay());
-        }
+        appendWithConditionalHyphen(dosageInstructions, dosage.getText());
+
         return dosageInstructions.toString();
+    }
+
+    private void appendWithConditionalHyphen(StringBuilder builder, String text) {
+        if (text != null && !builder.isEmpty() && !builder.toString().endsWith("| ")) {
+            builder.append(" - ");
+        }
+        if (text != null) {
+            builder.append(text);
+        }
     }
 }
