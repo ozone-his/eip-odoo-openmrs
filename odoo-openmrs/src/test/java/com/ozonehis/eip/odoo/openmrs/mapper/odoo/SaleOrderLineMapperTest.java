@@ -132,7 +132,7 @@ class SaleOrderLineMapperTest {
         assertEquals(10.0f, saleOrderLine.getSaleOrderLineProductUomQty());
         assertEquals("15AAAAAAAAAAA", saleOrderLine.getSaleOrderLineProductUom());
         assertEquals(
-                "medication | 10.0 Tablet | 7 Tablet - thrice daily - 10 day | Orderer: requester",
+                "medication | 10 Tablet | 7 Tablet - thrice daily - 10 day | Orderer: requester",
                 saleOrderLine.getSaleOrderLineName());
     }
 
@@ -152,7 +152,7 @@ class SaleOrderLineMapperTest {
 
         // quantity
         Quantity quantity = new Quantity();
-        quantity.setValue(10);
+        quantity.setValue(7);
         quantity.setUnit(TABLET_UNIT);
         quantity.setCode("15AAAAAAAAAAA");
         dispenseRequest.setQuantity(quantity);
@@ -178,10 +178,10 @@ class SaleOrderLineMapperTest {
 
         // verify
         assertNotNull(saleOrderLine);
-        assertEquals(10.0f, saleOrderLine.getSaleOrderLineProductUomQty());
+        assertEquals(7.0f, saleOrderLine.getSaleOrderLineProductUomQty());
         assertEquals("15AAAAAAAAAAA", saleOrderLine.getSaleOrderLineProductUom());
         assertEquals(
-                "medication | 10 day - Take 2 pills every 20 minutes | Orderer: requester",
+                "medication | 7 Tablet | 10 day - Take 2 pills every 20 minutes | Orderer: requester",
                 saleOrderLine.getSaleOrderLineName());
     }
 
