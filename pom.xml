@@ -56,7 +56,7 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <lombok.version>1.18.30</lombok.version>
-    <eip.client.version>2.1.0</eip.client.version>
+    <eip.client.version>2.2.0-SNAPSHOT</eip.client.version>
     <openmrs.watcher.version>4.0.0-SNAPSHOT</openmrs.watcher.version>
     <camel.version>4.1.0</camel.version>
     <spring-boot.version>3.1.4</spring-boot.version>
