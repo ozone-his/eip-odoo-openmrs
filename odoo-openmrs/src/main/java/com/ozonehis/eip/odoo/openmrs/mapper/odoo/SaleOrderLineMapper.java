@@ -43,9 +43,8 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
             String requesterDisplay = medicationRequest.getRequester().getDisplay();
             String medicationDisplay =
                     medicationRequest.getMedicationReference().getDisplay();
-            saleOrderLine.setSaleOrderLineName(
-                    medicationDisplay + " | " + constructDosageInstructionsText(medicationRequest, saleOrderLine)
-                            + " | Orderer: " + requesterDisplay);
+            saleOrderLine.setSaleOrderLineName(medicationDisplay + " | "
+                    + constructDosageInstructionsText(medicationRequest) + " | Orderer: " + requesterDisplay);
 
         } else {
             throw new IllegalArgumentException("Sale Order Mapper Unsupported resource type: "
@@ -54,27 +53,28 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
         return saleOrderLine;
     }
 
-    protected String constructDosageInstructionsText(MedicationRequest medicationRequest, SaleOrderLine saleOrderLine) {
+    protected String constructDosageInstructionsText(MedicationRequest medicationRequest) {
         Dosage dosage = medicationRequest.getDosageInstructionFirstRep();
         StringBuilder dosageInstructions = new StringBuilder();
 
+        String dispenseQty = String.valueOf(
+                medicationRequest.getDispenseRequest().getQuantity().getValue());
+        String dispenseQtyUnit = String.valueOf(
+                medicationRequest.getDispenseRequest().getQuantity().getUnit());
+
+        if (dispenseQty != null && dispenseQtyUnit != null) {
+            dosageInstructions
+                    .append(dispenseQty)
+                    .append(" ")
+                    .append(dispenseQtyUnit)
+                    .append(" | ");
+        }
+
         if (dosage.hasDoseAndRate()) {
-            String doseQuantityUnit =
-                    dosage.getDoseAndRateFirstRep().getDoseQuantity().getUnit();
-            String saleOrderQty = saleOrderLine.getSaleOrderLineProductUomQty().toString();
-
-            if (saleOrderQty != null) {
-                dosageInstructions
-                        .append(saleOrderQty)
-                        .append(" ")
-                        .append(doseQuantityUnit)
-                        .append(" | ");
-            }
-
             dosageInstructions
                     .append(dosage.getDoseAndRateFirstRep().getDoseQuantity().getValue())
                     .append(" ")
-                    .append(doseQuantityUnit);
+                    .append(dosage.getDoseAndRateFirstRep().getDoseQuantity().getUnit());
         }
 
         appendWithConditionalHyphen(
