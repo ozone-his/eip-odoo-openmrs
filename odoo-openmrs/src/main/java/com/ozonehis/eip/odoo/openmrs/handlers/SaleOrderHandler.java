@@ -22,7 +22,9 @@ import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Resource;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,9 @@ public class SaleOrderHandler {
 
     @Autowired
     private ProductHandler productHandler;
+
+    @Autowired
+    private ObservationHandler observationHandler;
 
     public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId) {
         Object[] records = odooClient.searchAndRead(
@@ -106,6 +111,7 @@ public class SaleOrderHandler {
         SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
         newSaleOrder.setOrderPartnerId(partnerId);
         newSaleOrder.setOrderState("draft");
+        newSaleOrder.setPartnerWeight(getPartnerWeight(encounter.getSubject().getId()));
 
         sendSaleOrder(producerTemplate, "direct:odoo-create-sale-order-route", newSaleOrder);
         log.debug(
@@ -158,5 +164,19 @@ public class SaleOrderHandler {
             saleOrder.setOrderPartnerId((Integer) partnerId);
             sendSaleOrder(producerTemplate, "direct:odoo-update-sale-order-route", saleOrder);
         }
+    }
+
+    private String getPartnerWeight(String patientID) {
+        Observation observation = observationHandler.getObservationBySubjectID(patientID);
+        List<Coding> codings = observation.getCode().getCoding();
+
+        String patientWeight = "0.0Kg";
+        for (Coding coding : codings) {
+            if (coding.getCode().equals("5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")) {
+                patientWeight = observation.getValueQuantity().getValue()
+                        + observation.getValueQuantity().getUnit();
+            }
+        }
+        return patientWeight;
     }
 }
