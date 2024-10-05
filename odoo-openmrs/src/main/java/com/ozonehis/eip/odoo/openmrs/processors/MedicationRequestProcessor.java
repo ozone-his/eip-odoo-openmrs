@@ -82,7 +82,12 @@ public class MedicationRequestProcessor implements Processor {
                                     medicationRequest, saleOrder, encounterVisitUuid, producerTemplate);
                         } else {
                             saleOrderHandler.createSaleOrderWithSaleOrderLine(
-                                    medicationRequest, encounter, partnerId, encounterVisitUuid, producerTemplate);
+                                    medicationRequest,
+                                    encounter,
+                                    partnerId,
+                                    encounterVisitUuid,
+                                    patient.getIdPart(),
+                                    producerTemplate);
                         }
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS

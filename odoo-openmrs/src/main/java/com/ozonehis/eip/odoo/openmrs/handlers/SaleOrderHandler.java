@@ -106,12 +106,13 @@ public class SaleOrderHandler {
             Encounter encounter,
             int partnerId,
             String encounterVisitUuid,
+            String patientID,
             ProducerTemplate producerTemplate) {
         // If the sale order does not exist, create it, then create sale order line and link it to sale order
         SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
         newSaleOrder.setOrderPartnerId(partnerId);
         newSaleOrder.setOrderState("draft");
-        newSaleOrder.setPartnerWeight(getPartnerWeight(encounter.getSubject().getId()));
+        newSaleOrder.setPartnerWeight(getPartnerWeight(patientID));
 
         sendSaleOrder(producerTemplate, "direct:odoo-create-sale-order-route", newSaleOrder);
         log.debug(
@@ -168,6 +169,9 @@ public class SaleOrderHandler {
 
     private String getPartnerWeight(String patientID) {
         Observation observation = observationHandler.getObservationBySubjectID(patientID);
+        if (observation == null) {
+            return "";
+        }
         List<Coding> codings = observation.getCode().getCoding();
 
         String patientWeight = "0.0Kg";

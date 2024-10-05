@@ -186,7 +186,8 @@ class SaleOrderHandlerTest {
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
         // Act
-        saleOrderHandler.createSaleOrderWithSaleOrderLine(resource, encounter, partnerId, VISIT_ID_1, producerTemplate);
+        saleOrderHandler.createSaleOrderWithSaleOrderLine(
+                resource, encounter, partnerId, VISIT_ID_1, "patient-id-123", producerTemplate);
 
         // Verify
         verify(producerTemplate, times(1))

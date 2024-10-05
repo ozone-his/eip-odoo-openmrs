@@ -97,7 +97,12 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
                         eq(serviceRequest), eq(saleOrder), eq(ENCOUNTER_VISIT_ID), any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(serviceRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(serviceRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        "patient-id-123",
+                        any());
     }
 
     @Test
@@ -133,6 +138,11 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
                 .updateSaleOrderIfExistsWithSaleOrderLine(eq(serviceRequest), any(), eq(ENCOUNTER_VISIT_ID), any());
         verify(saleOrderHandler, times(1))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(serviceRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(serviceRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        "patient-id-123",
+                        any());
     }
 }

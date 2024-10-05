@@ -28,7 +28,7 @@ public class ObservationHandler {
                 .search()
                 .forResource(Observation.class)
                 .where(Observation.SUBJECT.hasId(subjectID))
-                //                .and(Observation.CODE.exactly().code("5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"))
+                .and(Observation.CODE.exactly().code("5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"))
                 .returnBundle(Bundle.class)
                 .execute();
 

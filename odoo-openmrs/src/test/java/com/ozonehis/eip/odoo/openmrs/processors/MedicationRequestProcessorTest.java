@@ -100,7 +100,12 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
                         eq(medicationRequest), eq(saleOrder), eq(ENCOUNTER_VISIT_ID), any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(medicationRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(medicationRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        "patient-id-123",
+                        any());
     }
 
     @Test
@@ -137,7 +142,12 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
                 .updateSaleOrderIfExistsWithSaleOrderLine(eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), any());
         verify(saleOrderHandler, times(1))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(medicationRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(medicationRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        "patient-id-123",
+                        any());
     }
 
     @Test
@@ -173,6 +183,11 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
                 .updateSaleOrderIfExistsWithSaleOrderLine(eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(medicationRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(medicationRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        "patient-id-123",
+                        any());
     }
 }
