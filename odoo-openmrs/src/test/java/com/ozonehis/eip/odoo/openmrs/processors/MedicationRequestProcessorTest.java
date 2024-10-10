@@ -97,10 +97,20 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "u");
         verify(saleOrderHandler, times(1))
                 .updateSaleOrderIfExistsWithSaleOrderLine(
-                        eq(medicationRequest), eq(saleOrder), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(medicationRequest),
+                        eq(saleOrder),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(12),
+                        eq("patient-id-123"),
+                        any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(medicationRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(medicationRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        "patient-id-123",
+                        any());
     }
 
     @Test
@@ -134,10 +144,16 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
         // Assert
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "c");
         verify(saleOrderHandler, times(0))
-                .updateSaleOrderIfExistsWithSaleOrderLine(eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), any());
+                .updateSaleOrderIfExistsWithSaleOrderLine(
+                        eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), eq(12), eq("patient-id-123"), any());
         verify(saleOrderHandler, times(1))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(medicationRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(medicationRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        "patient-id-123",
+                        any());
     }
 
     @Test
@@ -170,9 +186,15 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "u");
         verify(saleOrderHandler, times(1)).deleteSaleOrderLine(eq(medicationRequest), eq(ENCOUNTER_VISIT_ID), any());
         verify(saleOrderHandler, times(0))
-                .updateSaleOrderIfExistsWithSaleOrderLine(eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), any());
+                .updateSaleOrderIfExistsWithSaleOrderLine(
+                        eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), eq(12), eq("patient-id-123"), any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(medicationRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(medicationRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        "patient-id-123",
+                        any());
     }
 }

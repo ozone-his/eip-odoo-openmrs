@@ -158,7 +158,8 @@ class SaleOrderHandlerTest {
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
         // Act
-        saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(resource, saleOrder, VISIT_ID_1, producerTemplate);
+        saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
+                resource, saleOrder, VISIT_ID_1, 12, "patient-id-123", producerTemplate);
 
         // Verify
         verify(producerTemplate, times(1)).sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
@@ -186,7 +187,8 @@ class SaleOrderHandlerTest {
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
         // Act
-        saleOrderHandler.createSaleOrderWithSaleOrderLine(resource, encounter, partnerId, VISIT_ID_1, producerTemplate);
+        saleOrderHandler.createSaleOrderWithSaleOrderLine(
+                resource, encounter, partnerId, VISIT_ID_1, "patient-id-123", producerTemplate);
 
         // Verify
         verify(producerTemplate, times(1))
