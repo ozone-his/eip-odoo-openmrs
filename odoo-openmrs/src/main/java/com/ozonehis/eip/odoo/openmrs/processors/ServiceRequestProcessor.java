@@ -74,7 +74,12 @@ public class ServiceRequestProcessor implements Processor {
                         SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
                         if (saleOrder != null) {
                             saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
-                                    serviceRequest, saleOrder, encounterVisitUuid, producerTemplate);
+                                    serviceRequest,
+                                    saleOrder,
+                                    encounterVisitUuid,
+                                    partnerId,
+                                    patient.getIdPart(),
+                                    producerTemplate);
                         } else {
                             saleOrderHandler.createSaleOrderWithSaleOrderLine(
                                     serviceRequest,

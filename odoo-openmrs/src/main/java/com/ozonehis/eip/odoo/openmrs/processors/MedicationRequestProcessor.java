@@ -79,7 +79,12 @@ public class MedicationRequestProcessor implements Processor {
                         SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
                         if (saleOrder != null) {
                             saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
-                                    medicationRequest, saleOrder, encounterVisitUuid, producerTemplate);
+                                    medicationRequest,
+                                    saleOrder,
+                                    encounterVisitUuid,
+                                    partnerId,
+                                    patient.getIdPart(),
+                                    producerTemplate);
                         } else {
                             saleOrderHandler.createSaleOrderWithSaleOrderLine(
                                     medicationRequest,

@@ -82,7 +82,12 @@ public class SaleOrderHandler {
     }
 
     public void updateSaleOrderIfExistsWithSaleOrderLine(
-            Resource resource, SaleOrder saleOrder, String encounterVisitUuid, ProducerTemplate producerTemplate) {
+            Resource resource,
+            SaleOrder saleOrder,
+            String encounterVisitUuid,
+            int partnerId,
+            String patientID,
+            ProducerTemplate producerTemplate) {
         // If sale order exists create sale order line and link it to sale order
         SaleOrderLine saleOrderLine = saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder);
         if (saleOrderLine == null) {
@@ -93,6 +98,10 @@ public class SaleOrderHandler {
             return;
         }
 
+        // Update sale order with Patient Weight if not already present
+        if (saleOrder.getPartnerWeight() == null || saleOrder.getPartnerWeight().isEmpty()) {
+            updateSaleOrderWithPatientWeight(partnerId, patientID, saleOrder, producerTemplate);
+        }
         producerTemplate.sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
         log.debug(
                 "{}: Created sale order line {} and linked to sale order {}",
@@ -112,7 +121,10 @@ public class SaleOrderHandler {
         SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
         newSaleOrder.setOrderPartnerId(partnerId);
         newSaleOrder.setOrderState("draft");
-        newSaleOrder.setPartnerWeight(getPartnerWeight(patientID));
+        String patientWeight = getPartnerWeight(patientID);
+        if (patientWeight != null) {
+            newSaleOrder.setPartnerWeight(getPartnerWeight(patientID));
+        }
 
         sendSaleOrder(producerTemplate, "direct:odoo-create-sale-order-route", newSaleOrder);
         log.debug(
@@ -167,10 +179,21 @@ public class SaleOrderHandler {
         }
     }
 
+    public void updateSaleOrderWithPatientWeight(
+            int partnerId, String patientID, SaleOrder saleOrder, ProducerTemplate producerTemplate) {
+        String patientWeight = getPartnerWeight(patientID);
+        if (saleOrder != null && patientWeight != null) {
+            log.debug("SaleOrderHandler: Update sale order with Patient weight {}", saleOrder.getOrderId());
+            saleOrder.setOrderPartnerId(partnerId);
+            saleOrder.setPartnerWeight(patientWeight);
+            sendSaleOrder(producerTemplate, "direct:odoo-update-sale-order-route", saleOrder);
+        }
+    }
+
     private String getPartnerWeight(String patientID) {
         Observation observation = observationHandler.getObservationBySubjectID(patientID);
         if (observation == null) {
-            return "";
+            return null;
         }
         List<Coding> codings = observation.getCode().getCoding();
 

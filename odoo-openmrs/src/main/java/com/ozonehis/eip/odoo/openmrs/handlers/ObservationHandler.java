@@ -29,6 +29,8 @@ public class ObservationHandler {
                 .forResource(Observation.class)
                 .where(Observation.SUBJECT.hasId(subjectID))
                 .and(Observation.CODE.exactly().code("5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"))
+                .sort()
+                .descending(Observation.DATE)
                 .returnBundle(Bundle.class)
                 .execute();
 
