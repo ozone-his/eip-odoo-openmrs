@@ -40,6 +40,8 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
 
     private static final int PARTNER_ID = 12;
 
+    private static final String PATIENT_ID = "patient-id-987";
+
     @Mock
     private SaleOrderHandler saleOrderHandler;
 
@@ -65,6 +67,7 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
     void shouldUpdateSaleOrderWithSaleOrderLineWhenPartnerAndSaleOrderExists() {
         // Arrange
         Patient patient = new Patient();
+        patient.setId(PATIENT_ID);
         Encounter encounter = new Encounter();
         encounter.setPartOf(new Reference(ENCOUNTER_REFERENCE_ID));
         ServiceRequest serviceRequest = new ServiceRequest();
@@ -94,16 +97,27 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "u");
         verify(saleOrderHandler, times(1))
                 .updateSaleOrderIfExistsWithSaleOrderLine(
-                        eq(serviceRequest), eq(saleOrder), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(serviceRequest),
+                        eq(saleOrder),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PARTNER_ID),
+                        eq(PATIENT_ID),
+                        any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(serviceRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(serviceRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PATIENT_ID),
+                        any());
     }
 
     @Test
     void shouldCreateSaleOrderAndSaleOrderLineWhenPartnerExists() {
         // Arrange
         Patient patient = new Patient();
+        patient.setId(PATIENT_ID);
         Encounter encounter = new Encounter();
         encounter.setPartOf(new Reference(ENCOUNTER_REFERENCE_ID));
         ServiceRequest serviceRequest = new ServiceRequest();
@@ -130,9 +144,15 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
         // Assert
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "c");
         verify(saleOrderHandler, times(0))
-                .updateSaleOrderIfExistsWithSaleOrderLine(eq(serviceRequest), any(), eq(ENCOUNTER_VISIT_ID), any());
+                .updateSaleOrderIfExistsWithSaleOrderLine(
+                        eq(serviceRequest), any(), eq(ENCOUNTER_VISIT_ID), eq(PARTNER_ID), eq(PATIENT_ID), any());
         verify(saleOrderHandler, times(1))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(serviceRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(serviceRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PATIENT_ID),
+                        any());
     }
 }

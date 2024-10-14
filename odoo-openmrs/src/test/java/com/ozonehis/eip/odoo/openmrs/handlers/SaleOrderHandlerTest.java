@@ -12,6 +12,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,12 +55,19 @@ class SaleOrderHandlerTest {
     @Mock
     private ProductHandler productHandler;
 
+    @Mock
+    private ObservationHandler observationHandler;
+
     @InjectMocks
     private SaleOrderHandler saleOrderHandler;
 
     private static AutoCloseable mocksCloser;
 
     private static final String VISIT_ID_1 = "e5ca6578-fb37-4900-a054-c68db82a551c";
+
+    private static final String PATIENT_ID = "patient-id-987";
+
+    private static final int PARTNER_ID = 12;
 
     @AfterAll
     public static void close() throws Exception {
@@ -155,10 +164,13 @@ class SaleOrderHandlerTest {
         // Mock behaviour
         when(saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder))
                 .thenReturn(saleOrderLine);
+        when(observationHandler.getObservationBySubjectIDAndConceptID(eq(PATIENT_ID), any()))
+                .thenReturn(null);
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
         // Act
-        saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(resource, saleOrder, VISIT_ID_1, producerTemplate);
+        saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
+                resource, saleOrder, VISIT_ID_1, PARTNER_ID, PATIENT_ID, producerTemplate);
 
         // Verify
         verify(producerTemplate, times(1)).sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
@@ -183,10 +195,13 @@ class SaleOrderHandlerTest {
                 .thenReturn(new Object[] {saleOrderMap});
         when(saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder))
                 .thenReturn(saleOrderLine);
+        when(observationHandler.getObservationBySubjectIDAndConceptID(eq(PATIENT_ID), any()))
+                .thenReturn(null);
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
         // Act
-        saleOrderHandler.createSaleOrderWithSaleOrderLine(resource, encounter, partnerId, VISIT_ID_1, producerTemplate);
+        saleOrderHandler.createSaleOrderWithSaleOrderLine(
+                resource, encounter, partnerId, VISIT_ID_1, PATIENT_ID, producerTemplate);
 
         // Verify
         verify(producerTemplate, times(1))

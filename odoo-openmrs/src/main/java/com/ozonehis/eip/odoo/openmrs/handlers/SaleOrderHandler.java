@@ -23,15 +23,20 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Resource;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Setter
 @Component
 public class SaleOrderHandler {
+
+    @Value("${eip.weight.concept}")
+    private String weightConcept;
 
     @Autowired
     private OdooClient odooClient;
@@ -44,6 +49,9 @@ public class SaleOrderHandler {
 
     @Autowired
     private ProductHandler productHandler;
+
+    @Autowired
+    private ObservationHandler observationHandler;
 
     public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId) {
         Object[] records = odooClient.searchAndRead(
@@ -77,7 +85,12 @@ public class SaleOrderHandler {
     }
 
     public void updateSaleOrderIfExistsWithSaleOrderLine(
-            Resource resource, SaleOrder saleOrder, String encounterVisitUuid, ProducerTemplate producerTemplate) {
+            Resource resource,
+            SaleOrder saleOrder,
+            String encounterVisitUuid,
+            int partnerId,
+            String patientID,
+            ProducerTemplate producerTemplate) {
         // If sale order exists create sale order line and link it to sale order
         SaleOrderLine saleOrderLine = saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder);
         if (saleOrderLine == null) {
@@ -88,6 +101,10 @@ public class SaleOrderHandler {
             return;
         }
 
+        // Update sale order with Patient Weight if not already present
+        if (saleOrder.getPartnerWeight() == null || saleOrder.getPartnerWeight().isEmpty()) {
+            updateSaleOrderWithPatientWeight(partnerId, patientID, saleOrder, producerTemplate);
+        }
         producerTemplate.sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
         log.debug(
                 "{}: Created sale order line {} and linked to sale order {}",
@@ -101,11 +118,16 @@ public class SaleOrderHandler {
             Encounter encounter,
             int partnerId,
             String encounterVisitUuid,
+            String patientID,
             ProducerTemplate producerTemplate) {
         // If the sale order does not exist, create it, then create sale order line and link it to sale order
         SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
         newSaleOrder.setOrderPartnerId(partnerId);
         newSaleOrder.setOrderState("draft");
+        String patientWeight = getPartnerWeight(patientID);
+        if (patientWeight != null) {
+            newSaleOrder.setPartnerWeight(getPartnerWeight(patientID));
+        }
 
         sendSaleOrder(producerTemplate, "direct:odoo-create-sale-order-route", newSaleOrder);
         log.debug(
@@ -158,5 +180,26 @@ public class SaleOrderHandler {
             saleOrder.setOrderPartnerId((Integer) partnerId);
             sendSaleOrder(producerTemplate, "direct:odoo-update-sale-order-route", saleOrder);
         }
+    }
+
+    public void updateSaleOrderWithPatientWeight(
+            int partnerId, String patientID, SaleOrder saleOrder, ProducerTemplate producerTemplate) {
+        String patientWeight = getPartnerWeight(patientID);
+        if (saleOrder != null && patientWeight != null) {
+            log.debug("SaleOrderHandler: Update sale order with Patient weight {}", saleOrder.getOrderId());
+            saleOrder.setOrderPartnerId(partnerId);
+            saleOrder.setPartnerWeight(patientWeight);
+            sendSaleOrder(producerTemplate, "direct:odoo-update-sale-order-route", saleOrder);
+        }
+    }
+
+    private String getPartnerWeight(String patientID) {
+        Observation observation = observationHandler.getObservationBySubjectIDAndConceptID(patientID, weightConcept);
+        if (observation == null) {
+            return null;
+        }
+
+        return observation.getValueQuantity().getValue() + " "
+                + observation.getValueQuantity().getUnit();
     }
 }
