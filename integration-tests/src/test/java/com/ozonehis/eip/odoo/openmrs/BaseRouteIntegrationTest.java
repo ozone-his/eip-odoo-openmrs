@@ -8,12 +8,15 @@
 package com.ozonehis.eip.odoo.openmrs;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
 import com.ozonehis.camel.test.infra.odoo.services.OdooService;
 import com.ozonehis.camel.test.infra.odoo.services.OdooServiceFactory;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.component.OdooComponent;
 import com.ozonehis.eip.odoo.openmrs.handlers.CountryHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.CountryStateHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.ObservationHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.ProductHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.SaleOrderHandler;
@@ -114,11 +117,26 @@ public abstract class BaseRouteIntegrationTest {
         partnerHandler.setOdooClient(getOdooClient());
         partnerHandler.setPartnerMapper(partnerMapper);
 
+        // Setup IGenericClient
+        FhirContext fhirContext = FhirContext.forR4();
+        String serverBase = "http://localhost/openmrs/ws/fhir2/R4";
+        IGenericClient client = fhirContext.newRestfulGenericClient(serverBase);
+
+        String username = "admin";
+        String password = "Admin123";
+        BasicAuthInterceptor authInterceptor = new BasicAuthInterceptor(username, password);
+        client.registerInterceptor(authInterceptor);
+
+        ObservationHandler observationHandler = new ObservationHandler();
+        observationHandler.setOpenmrsFhirClient(client);
+
         SaleOrderHandler saleOrderHandler = new SaleOrderHandler();
         saleOrderHandler.setOdooClient(getOdooClient());
         saleOrderHandler.setSaleOrderLineHandler(saleOrderLineHandler);
         saleOrderHandler.setSaleOrderMapper(saleOrderMapper);
         saleOrderHandler.setProductHandler(productHandler);
+        saleOrderHandler.setObservationHandler(observationHandler);
+        saleOrderHandler.setWeightConcept("5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
         PatientProcessor patientProcessor = new PatientProcessor();
         patientProcessor.setPartnerHandler(partnerHandler);

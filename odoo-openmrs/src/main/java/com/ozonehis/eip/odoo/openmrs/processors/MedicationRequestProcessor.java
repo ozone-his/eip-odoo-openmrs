@@ -79,10 +79,20 @@ public class MedicationRequestProcessor implements Processor {
                         SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
                         if (saleOrder != null) {
                             saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
-                                    medicationRequest, saleOrder, encounterVisitUuid, producerTemplate);
+                                    medicationRequest,
+                                    saleOrder,
+                                    encounterVisitUuid,
+                                    partnerId,
+                                    patient.getIdPart(),
+                                    producerTemplate);
                         } else {
                             saleOrderHandler.createSaleOrderWithSaleOrderLine(
-                                    medicationRequest, encounter, partnerId, encounterVisitUuid, producerTemplate);
+                                    medicationRequest,
+                                    encounter,
+                                    partnerId,
+                                    encounterVisitUuid,
+                                    patient.getIdPart(),
+                                    producerTemplate);
                         }
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS

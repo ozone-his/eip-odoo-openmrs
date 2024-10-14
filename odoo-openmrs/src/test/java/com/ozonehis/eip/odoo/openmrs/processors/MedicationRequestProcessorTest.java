@@ -40,6 +40,8 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
 
     private static final String ENCOUNTER_VISIT_ID = "1234";
 
+    private static final String PATIENT_ID = "patient-id-987";
+
     private static final int PARTNER_ID = 12;
 
     @Mock
@@ -67,6 +69,7 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
     void shouldUpdateSaleOrderWithSaleOrderLineWhenPartnerAndSaleOrderExists() {
         // Arrange
         Patient patient = new Patient();
+        patient.setId(PATIENT_ID);
         Encounter encounter = new Encounter();
         encounter.setPartOf(new Reference(ENCOUNTER_REFERENCE_ID));
         MedicationRequest medicationRequest = new MedicationRequest();
@@ -97,16 +100,27 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "u");
         verify(saleOrderHandler, times(1))
                 .updateSaleOrderIfExistsWithSaleOrderLine(
-                        eq(medicationRequest), eq(saleOrder), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(medicationRequest),
+                        eq(saleOrder),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PARTNER_ID),
+                        eq(PATIENT_ID),
+                        any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(medicationRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(medicationRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PATIENT_ID),
+                        any());
     }
 
     @Test
     void shouldCreateSaleOrderAndSaleOrderLineWhenPartnerExists() {
         // Arrange
         Patient patient = new Patient();
+        patient.setId(PATIENT_ID);
         Encounter encounter = new Encounter();
         encounter.setPartOf(new Reference(ENCOUNTER_REFERENCE_ID));
         MedicationRequest medicationRequest = new MedicationRequest();
@@ -134,10 +148,16 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
         // Assert
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "c");
         verify(saleOrderHandler, times(0))
-                .updateSaleOrderIfExistsWithSaleOrderLine(eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), any());
+                .updateSaleOrderIfExistsWithSaleOrderLine(
+                        eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), eq(PARTNER_ID), eq(PATIENT_ID), any());
         verify(saleOrderHandler, times(1))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(medicationRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(medicationRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PATIENT_ID),
+                        any());
     }
 
     @Test
@@ -170,9 +190,15 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "u");
         verify(saleOrderHandler, times(1)).deleteSaleOrderLine(eq(medicationRequest), eq(ENCOUNTER_VISIT_ID), any());
         verify(saleOrderHandler, times(0))
-                .updateSaleOrderIfExistsWithSaleOrderLine(eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), any());
+                .updateSaleOrderIfExistsWithSaleOrderLine(
+                        eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), eq(PARTNER_ID), eq(PATIENT_ID), any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(medicationRequest), eq(encounter), eq(PARTNER_ID), eq(ENCOUNTER_VISIT_ID), any());
+                        eq(medicationRequest),
+                        eq(encounter),
+                        eq(PARTNER_ID),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PATIENT_ID),
+                        any());
     }
 }
