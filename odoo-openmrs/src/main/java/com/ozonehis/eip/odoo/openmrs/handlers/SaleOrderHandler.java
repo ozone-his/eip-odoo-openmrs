@@ -193,7 +193,7 @@ public class SaleOrderHandler {
         }
     }
 
-    private String getPartnerWeight(String patientID) {
+    public String getPartnerWeight(String patientID) {
         Observation observation = observationHandler.getObservationBySubjectIDAndConceptID(patientID, weightConcept);
         if (observation == null) {
             return null;

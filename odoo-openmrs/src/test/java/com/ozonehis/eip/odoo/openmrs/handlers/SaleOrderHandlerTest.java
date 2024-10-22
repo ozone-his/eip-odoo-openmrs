@@ -32,8 +32,11 @@ import java.util.Map;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
+import org.hl7.fhir.r4.model.Observation;
+import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.Resource;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -64,6 +67,8 @@ class SaleOrderHandlerTest {
     private static AutoCloseable mocksCloser;
 
     private static final String VISIT_ID_1 = "e5ca6578-fb37-4900-a054-c68db82a551c";
+
+    private static final String OBSERVATION_ID = "h4ca6578-db37-2910-c055-c90db82a919c";
 
     private static final String PATIENT_ID = "patient-id-987";
 
@@ -277,5 +282,36 @@ class SaleOrderHandlerTest {
 
     private SaleOrder getSaleOrder() {
         return OdooUtils.convertToObject(getSaleOrderMap(1, VISIT_ID_1, "draft", 12), SaleOrder.class);
+    }
+
+    @Test
+    void shouldReturnPatientWeightGivenPatientID() {
+        // Setup
+        Observation observation = new Observation();
+        observation.setId(OBSERVATION_ID);
+        observation.setValue(new Quantity().setValue(67).setUnit("Kg"));
+
+        // Mock
+        when(observationHandler.getObservationBySubjectIDAndConceptID(eq(PATIENT_ID), any()))
+                .thenReturn(observation);
+
+        // Act
+        String result = saleOrderHandler.getPartnerWeight(PATIENT_ID);
+
+        // Assert
+        assertEquals("67 Kg", result);
+    }
+
+    @Test
+    void shouldReturnNullWhenObservationIsNull() {
+        // Mock
+        when(observationHandler.getObservationBySubjectIDAndConceptID(eq(PATIENT_ID), any()))
+                .thenReturn(null);
+
+        // Act
+        String result = saleOrderHandler.getPartnerWeight(PATIENT_ID);
+
+        // Assert
+        Assertions.assertNull(result);
     }
 }
