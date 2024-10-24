@@ -84,7 +84,8 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
 
     @Test
     @DisplayName("Should create sale order in Odoo given medication request bundle.")
-    public void shouldCreateSaleOrderInOdooGivenMedicationRequestBundle() {
+    public void shouldCreateSaleOrderInOdooGivenMedicationRequestBundle() throws InterruptedException {
+        Thread.sleep(60000);
         // Act
         var headers = new HashMap<String, Object>();
         headers.put(HEADER_FHIR_EVENT_TYPE, "c");
