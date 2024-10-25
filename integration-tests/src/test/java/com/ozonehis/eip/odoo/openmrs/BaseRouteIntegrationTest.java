@@ -7,9 +7,16 @@
  */
 package com.ozonehis.eip.odoo.openmrs;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.configureFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.ozonehis.camel.test.infra.odoo.services.OdooService;
 import com.ozonehis.camel.test.infra.odoo.services.OdooServiceFactory;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
@@ -63,6 +70,18 @@ public abstract class BaseRouteIntegrationTest {
     private static final String ODOO_USERNAME = "admin";
 
     private static final String ODOO_PASSWORD = "admin";
+
+    protected WireMockServer wireMockServer = new WireMockServer(80);
+
+    protected void mockOpenmrsFhirServer() {
+        // Mock fetch Patient Weight Observation from OpenMRS
+        wireMockServer.start();
+        configureFor("localhost", 80);
+        stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/metadata"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(readJSON("metadata.json"))));
+    }
 
     @RegisterExtension
     protected static CamelContextExtension contextExtension = new DefaultCamelContextExtension();
