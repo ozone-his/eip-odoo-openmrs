@@ -60,6 +60,9 @@ public class ServiceRequestToSaleOrderIntegrationTest extends BaseRouteIntegrati
         for (Object id : result) {
             getOdooClient().delete(Constants.SALE_ORDER_MODEL, Collections.singletonList((Integer) id));
         }
+
+        // Mock OpenMRS FHIR metadata endpoint
+        mockOpenmrsFhirServer();
     }
 
     @AfterEach
@@ -95,7 +98,6 @@ public class ServiceRequestToSaleOrderIntegrationTest extends BaseRouteIntegrati
     @DisplayName("Should create sale order with Patient Weight in Odoo given service request bundle.")
     public void shouldCreateSaleOrderInOdooGivenServiceRequestBundle() {
         // Setup
-        mockOpenmrsFhirServer();
         stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/Observation\\?.*"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -167,7 +169,6 @@ public class ServiceRequestToSaleOrderIntegrationTest extends BaseRouteIntegrati
     @DisplayName("Should create sale order without Patient Weight in Odoo given service request bundle.")
     public void shouldCreateSaleOrderWithoutPatientWeightInOdooGivenServiceRequestBundle() {
         // Setup
-        mockOpenmrsFhirServer();
         stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/Observation\\?.*"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -239,7 +240,6 @@ public class ServiceRequestToSaleOrderIntegrationTest extends BaseRouteIntegrati
     @DisplayName("Should cancel sale order in Odoo given service request bundle when service discontinued")
     public void shouldCancelSaleOrderInOdooGivenMedicationRequestBundle() {
         // Act
-        mockOpenmrsFhirServer();
         stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/Observation\\?.*"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")

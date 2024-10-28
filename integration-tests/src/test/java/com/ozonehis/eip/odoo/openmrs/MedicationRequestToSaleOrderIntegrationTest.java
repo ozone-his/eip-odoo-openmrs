@@ -60,6 +60,8 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         for (Object id : result) {
             getOdooClient().delete(Constants.SALE_ORDER_MODEL, Collections.singletonList((Integer) id));
         }
+        // Mock OpenMRS FHIR metadata endpoint
+        mockOpenmrsFhirServer();
     }
 
     @AfterEach
@@ -96,7 +98,6 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
     @DisplayName("Should create sale order with Patient Weight in Odoo given medication request bundle.")
     public void shouldCreateSaleOrderInOdooGivenMedicationRequestBundle() {
         // Setup
-        mockOpenmrsFhirServer();
         stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/Observation\\?.*"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -167,14 +168,12 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
     @DisplayName("Should create sale order without Patient Weight in Odoo given medication request bundle.")
     public void shouldCreateSaleOrderWithoutPatientWeightInOdooGivenMedicationRequestBundle() {
         // Setup
-        mockOpenmrsFhirServer();
         stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/Observation\\?.*"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(readJSON("fhir.bundle/observation-empty-bundle.json"))));
 
         // Act
-        mockOpenmrsFhirServer();
         var headers = new HashMap<String, Object>();
         headers.put(HEADER_FHIR_EVENT_TYPE, "c");
         sendBodyAndHeaders("direct:medication-request-to-sale-order-processor", medicationRequestBundle, headers);
@@ -240,7 +239,6 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
     @DisplayName("Should cancel sale order in Odoo given medication request bundle when medication discontinued")
     public void shouldCancelSaleOrderInOdooGivenMedicationRequestBundle() {
         // Act
-        mockOpenmrsFhirServer();
         stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/Observation\\?.*"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
