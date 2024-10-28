@@ -74,7 +74,7 @@ public abstract class BaseRouteIntegrationTest {
     protected WireMockServer wireMockServer = new WireMockServer(80);
 
     protected void mockOpenmrsFhirServer() {
-        // Mock fetch Patient Weight Observation from OpenMRS
+        // Mock OpenMRS FHIR API metadata endpoint
         wireMockServer.start();
         configureFor("localhost", 80);
         stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/metadata"))
