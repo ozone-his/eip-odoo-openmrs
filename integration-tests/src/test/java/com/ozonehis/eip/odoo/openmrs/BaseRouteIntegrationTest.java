@@ -71,12 +71,12 @@ public abstract class BaseRouteIntegrationTest {
 
     private static final String ODOO_PASSWORD = "admin";
 
-    protected WireMockServer wireMockServer = new WireMockServer(80);
+    protected WireMockServer wireMockServer = new WireMockServer(8080);
 
     protected void mockOpenmrsFhirServer() {
         // Mock OpenMRS FHIR API metadata endpoint
         wireMockServer.start();
-        configureFor("localhost", 80);
+        configureFor("localhost", 8080);
         stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/metadata"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -138,7 +138,7 @@ public abstract class BaseRouteIntegrationTest {
 
         // Setup IGenericClient
         FhirContext fhirContext = FhirContext.forR4();
-        String serverBase = "http://localhost/openmrs/ws/fhir2/R4";
+        String serverBase = "http://localhost:8080/openmrs/ws/fhir2/R4";
         IGenericClient client = fhirContext.newRestfulGenericClient(serverBase);
 
         String username = "admin";
