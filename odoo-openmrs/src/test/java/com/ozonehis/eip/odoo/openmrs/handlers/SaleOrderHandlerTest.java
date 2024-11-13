@@ -23,6 +23,7 @@ import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.mapper.odoo.SaleOrderMapper;
+import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
@@ -204,9 +205,12 @@ class SaleOrderHandlerTest {
                 .thenReturn(null);
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
+        Partner partner = new Partner();
+        partner.setPartnerId(PARTNER_ID);
+
         // Act
         saleOrderHandler.createSaleOrderWithSaleOrderLine(
-                resource, encounter, partnerId, VISIT_ID_1, PATIENT_ID, producerTemplate);
+                resource, encounter, partner, VISIT_ID_1, PATIENT_ID, producerTemplate);
 
         // Verify
         verify(producerTemplate, times(1))

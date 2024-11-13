@@ -10,6 +10,9 @@ package com.ozonehis.eip.odoo.openmrs.client;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -45,5 +48,18 @@ public class OdooUtils {
         }
         log.debug("OdooUtils: Converted object {} to map {}", object.getClass().getName(), map);
         return map;
+    }
+
+    public static String convertEEE_MMM_ddDateToOdooFormat(String date) {
+        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy");
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try {
+            LocalDate localDate = LocalDate.parse(date, inputFormatter);
+            return localDate.format(outputFormatter);
+        } catch (DateTimeParseException e) {
+            log.error("Cannot convert input date to Odoo date. Error: {}", e.getMessage());
+            return null; // TODO: Throw error
+        }
     }
 }

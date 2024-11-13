@@ -54,4 +54,7 @@ public class Partner implements OdooResource {
 
     @JsonProperty("comment")
     private String partnerComment; // Stores Patient Identifier
+
+    @JsonProperty("x_customer_dob")
+    private String partnerBirthDate;
 }

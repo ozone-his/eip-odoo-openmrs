@@ -16,6 +16,7 @@ import com.ozonehis.eip.odoo.openmrs.handlers.CountryHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.CountryStateHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import java.util.Collections;
+import java.util.Date;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.HumanName;
@@ -126,6 +127,7 @@ class PartnerMapperTest {
         Patient patient = new Patient();
         patient.setId("123");
         patient.setActive(true);
+        patient.setBirthDate(new Date(883434538000l));
         patient.setName(Collections.singletonList(
                 new HumanName().setFamily("Doe").addGiven("John").setText("John Doe")));
         patient.setIdentifier(Collections.singletonList(

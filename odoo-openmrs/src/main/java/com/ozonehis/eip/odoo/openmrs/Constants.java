@@ -46,8 +46,8 @@ public class Constants {
 
     public static final String HEADER_ENABLE_PATIENT_SYNC = "enable.patient.sync";
 
-    public static final List<String> orderDefaultAttributes =
-            asList("id", "client_order_ref", "partner_id", "state", "order_line", "x_customer_weight");
+    public static final List<String> orderDefaultAttributes = asList(
+            "id", "client_order_ref", "partner_id", "state", "order_line", "x_customer_weight", "x_customer_dob");
 
     public static final List<String> partnerDefaultAttributes =
             asList("id", "name", "ref", "street", "street2", "city", "zip", "active", "comment");

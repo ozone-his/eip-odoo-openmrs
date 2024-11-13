@@ -13,6 +13,7 @@ import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.mapper.odoo.SaleOrderMapper;
+import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
@@ -116,14 +117,16 @@ public class SaleOrderHandler {
     public void createSaleOrderWithSaleOrderLine(
             Resource resource,
             Encounter encounter,
-            int partnerId,
+            Partner partner,
             String encounterVisitUuid,
             String patientID,
             ProducerTemplate producerTemplate) {
         // If the sale order does not exist, create it, then create sale order line and link it to sale order
         SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
-        newSaleOrder.setOrderPartnerId(partnerId);
+        newSaleOrder.setOrderPartnerId(partner.getPartnerId());
         newSaleOrder.setOrderState("draft");
+        // Add Patient DOB to Odoo Quotation
+        newSaleOrder.setPartnerBirthDate(partner.getPartnerBirthDate());
         String patientWeight = getPartnerWeight(patientID);
         if (patientWeight != null) {
             newSaleOrder.setPartnerWeight(getPartnerWeight(patientID));
@@ -131,7 +134,7 @@ public class SaleOrderHandler {
 
         sendSaleOrder(producerTemplate, "direct:odoo-create-sale-order-route", newSaleOrder);
         log.debug(
-                "{}: Created sale order with partner_id {}", resource.getClass().getName(), partnerId);
+                "{}: Created sale order with partner_id {}", resource.getClass().getName(), partner.getPartnerId());
 
         SaleOrder fetchedSaleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
         if (fetchedSaleOrder != null) {
@@ -141,7 +144,7 @@ public class SaleOrderHandler {
                 log.info(
                         "{}: Skipping create sale order line and sale order for partner_id {}",
                         resource.getClass().getName(),
-                        partnerId);
+                        partner.getPartnerId());
                 return;
             }
 
