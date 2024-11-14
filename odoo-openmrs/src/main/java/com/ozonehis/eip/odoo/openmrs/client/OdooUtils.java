@@ -16,6 +16,7 @@ import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 
 @Slf4j
 public class OdooUtils {
@@ -59,7 +60,7 @@ public class OdooUtils {
             return localDate.format(outputFormatter);
         } catch (DateTimeParseException e) {
             log.error("Cannot convert input date to Odoo date. Error: {}", e.getMessage());
-            return null; // TODO: Throw error
+            return ""; // Returning empty string if not able to parse input date
         }
     }
 }
