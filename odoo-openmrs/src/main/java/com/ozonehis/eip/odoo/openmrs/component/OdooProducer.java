@@ -23,11 +23,14 @@ import org.openmrs.eip.EIPException;
 @Slf4j
 public class OdooProducer extends DefaultProducer {
 
+    private final OdooUtils odooUtils;
+
     private final OdooClient odooClient;
 
-    public OdooProducer(Endpoint endpoint, OdooClient odooClient) {
+    public OdooProducer(Endpoint endpoint, OdooClient odooClient, OdooUtils odooUtils) {
         super(endpoint);
         this.odooClient = odooClient;
+        this.odooUtils = odooUtils;
     }
 
     @Override
@@ -57,7 +60,7 @@ public class OdooProducer extends DefaultProducer {
 
     private void create(String model, Object body) throws Exception {
         log.debug("OdooProducer: Creating data {} in Odoo", body);
-        Integer record = odooClient.create(model, List.of(OdooUtils.convertObjectToMap(body)));
+        Integer record = odooClient.create(model, List.of(odooUtils.convertObjectToMap(body)));
         if (record == null) {
             throw new EIPException(String.format("Got null response while creating %s with body %s", model, body));
         }
@@ -66,15 +69,15 @@ public class OdooProducer extends DefaultProducer {
 
     private void write(String model, Object body, List<Integer> ids) throws Exception {
         log.debug("OdooProducer: Writing {} model for id {}", model, ids);
-        Boolean response = odooClient.write(model, asList(ids, OdooUtils.convertObjectToMap(body)));
+        Boolean response = odooClient.write(model, asList(ids, odooUtils.convertObjectToMap(body)));
         if (response == null) {
             throw new EIPException(String.format(
-                    "Got null response while updating %s with %s", model, OdooUtils.convertObjectToMap(body)));
+                    "Got null response while updating %s with %s", model, odooUtils.convertObjectToMap(body)));
         } else if (response) {
-            log.debug("{} updated with body {}", model, OdooUtils.convertObjectToMap(body));
+            log.debug("{} updated with body {}", model, odooUtils.convertObjectToMap(body));
         } else {
             throw new EIPException(
-                    String.format("Unable to update %s with %s", model, OdooUtils.convertObjectToMap(body)));
+                    String.format("Unable to update %s with %s", model, odooUtils.convertObjectToMap(body)));
         }
     }
 
@@ -83,12 +86,12 @@ public class OdooProducer extends DefaultProducer {
         Boolean response = odooClient.delete(model, Collections.singletonList(ids));
         if (response == null) {
             throw new EIPException(String.format(
-                    "Got null response while deleting %s with %s", model, OdooUtils.convertObjectToMap(body)));
+                    "Got null response while deleting %s with %s", model, odooUtils.convertObjectToMap(body)));
         } else if (response) {
-            log.debug("{} deleted with body {}", model, OdooUtils.convertObjectToMap(body));
+            log.debug("{} deleted with body {}", model, odooUtils.convertObjectToMap(body));
         } else {
             throw new EIPException(
-                    String.format("Unable to delete %s with %s", model, OdooUtils.convertObjectToMap(body)));
+                    String.format("Unable to delete %s with %s", model, odooUtils.convertObjectToMap(body)));
         }
     }
 }

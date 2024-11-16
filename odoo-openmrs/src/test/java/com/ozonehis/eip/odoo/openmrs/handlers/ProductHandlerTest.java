@@ -16,6 +16,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
+import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +56,8 @@ class ProductHandlerTest {
     @Mock
     private OdooClient odooClient;
 
+    private OdooUtils odooUtils;
+
     @InjectMocks
     private ProductHandler productHandler;
 
@@ -68,6 +71,9 @@ class ProductHandlerTest {
     @BeforeEach
     public void setup() {
         mocksCloser = openMocks(this);
+        odooUtils = new OdooUtils();
+        odooUtils.setOdooCustomerWeightField("x_customer_weight");
+        productHandler.setOdooUtils(odooUtils);
     }
 
     @Test

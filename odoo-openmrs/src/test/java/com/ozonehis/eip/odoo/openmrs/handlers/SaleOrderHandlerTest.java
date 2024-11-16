@@ -61,6 +61,8 @@ class SaleOrderHandlerTest {
     @Mock
     private ObservationHandler observationHandler;
 
+    private OdooUtils odooUtils;
+
     @InjectMocks
     private SaleOrderHandler saleOrderHandler;
 
@@ -82,6 +84,9 @@ class SaleOrderHandlerTest {
     @BeforeEach
     public void setup() {
         mocksCloser = openMocks(this);
+        odooUtils = new OdooUtils();
+        odooUtils.setOdooCustomerWeightField("x_customer_weight");
+        saleOrderHandler.setOdooUtils(odooUtils);
     }
 
     @Test
@@ -94,7 +99,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(saleOrders);
 
         // Act
@@ -120,7 +125,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(saleOrders);
 
         // Verify
@@ -136,7 +141,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(saleOrders);
 
         // Act
@@ -152,7 +157,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(null);
 
         // Verify
@@ -196,7 +201,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(new Object[] {saleOrderMap});
         when(saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder))
                 .thenReturn(saleOrderLine);
@@ -228,7 +233,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(new Object[] {saleOrderMap});
         when(productHandler.getProduct(resource)).thenReturn(product);
         when(saleOrderLineHandler.getSaleOrderLineIfExists(saleOrder.getOrderId(), product.getProductResId()))
@@ -259,7 +264,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(new Object[] {saleOrderMap});
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
@@ -281,7 +286,7 @@ class SaleOrderHandlerTest {
     }
 
     private SaleOrder getSaleOrder() {
-        return OdooUtils.convertToObject(getSaleOrderMap(1, VISIT_ID_1, "draft", 12), SaleOrder.class);
+        return odooUtils.convertToObject(getSaleOrderMap(1, VISIT_ID_1, "draft", 12), SaleOrder.class);
     }
 
     @Test

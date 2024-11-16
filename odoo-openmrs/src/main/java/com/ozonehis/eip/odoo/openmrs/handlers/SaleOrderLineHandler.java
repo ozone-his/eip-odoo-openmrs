@@ -47,6 +47,9 @@ public class SaleOrderLineHandler {
     @Autowired
     private SaleOrderLineMapper<Resource> saleOrderLineMapper;
 
+    @Autowired
+    private OdooUtils odooUtils;
+
     public SaleOrderLine buildSaleOrderLineIfProductExists(Resource resource, SaleOrder saleOrder) {
         Product product = productHandler.getProduct(resource);
         log.debug("SaleOrderLineHandler: Fetched Product {}", product);
@@ -93,7 +96,7 @@ public class SaleOrderLineHandler {
                     saleOrderId, productId));
         } else if (records.length == 1) {
             SaleOrderLine saleOrderLine =
-                    OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrderLine.class);
+                    odooUtils.convertToObject((Map<String, Object>) records[0], SaleOrderLine.class);
             log.debug(
                     "Sale order line exists with sale order id {} product id {} sale order line {}",
                     saleOrderId,

@@ -12,27 +12,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
+@Setter
 @Component
 public class OdooUtils {
 
-    @Getter
-    private static String odooCustomerWeightField;
-
     @Value("${odoo.customer.weight.field}")
-    public void setOdooCustomerWeightField(String value) {
-        odooCustomerWeightField = value;
-    }
+    private String odooCustomerWeightField;
 
-    public static <T> T convertToObject(Map<String, Object> data, Class<T> objectClass) {
+    public <T> T convertToObject(Map<String, Object> data, Class<T> objectClass) {
         ObjectMapper mapper = new ObjectMapper();
         log.debug("OdooUtils: Converting map {} to object {}", data, objectClass.getName());
         try {
+            if (data.containsKey(odooCustomerWeightField)) {
+                data.put("partner_weight", data.get(odooCustomerWeightField));
+                data.remove(odooCustomerWeightField);
+            }
             T obj = mapper.convertValue(data, objectClass);
             log.debug("OdooUtils: Converted map {} to object {}", data, obj);
             return obj;
@@ -41,7 +41,7 @@ public class OdooUtils {
         }
     }
 
-    public static Map<String, Object> convertObjectToMap(Object object) throws Exception {
+    public Map<String, Object> convertObjectToMap(Object object) throws Exception {
         Map<String, Object> map = new HashMap<>();
         Field[] fields = object.getClass().getDeclaredFields();
         log.debug("OdooUtils: Converting object {} to map", object.getClass().getName());

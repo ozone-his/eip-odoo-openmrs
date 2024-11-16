@@ -31,6 +31,9 @@ public class ProductHandler {
     @Autowired
     private OdooClient odooClient;
 
+    @Autowired
+    private OdooUtils odooUtils;
+
     public Product getProduct(Resource resource) {
         String externalId = getProductExternalId(resource);
 
@@ -43,7 +46,7 @@ public class ProductHandler {
                     String.format("Got null response while fetching for Product with id %s", externalId));
         } else if (records.length == 1) {
             log.debug("Product exists with id {} record {}", externalId, records[0]);
-            return OdooUtils.convertToObject((Map<String, Object>) records[0], Product.class);
+            return odooUtils.convertToObject((Map<String, Object>) records[0], Product.class);
         } else if (records.length == 0) {
             log.warn("No Product found with id {}", externalId);
             return null;

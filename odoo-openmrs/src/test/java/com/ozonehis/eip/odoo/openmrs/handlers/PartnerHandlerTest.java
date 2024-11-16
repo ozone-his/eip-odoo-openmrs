@@ -52,6 +52,8 @@ class PartnerHandlerTest {
     @InjectMocks
     private PartnerHandler partnerHandler;
 
+    private OdooUtils odooUtils;
+
     private static AutoCloseable mocksCloser;
 
     @AfterAll
@@ -62,6 +64,9 @@ class PartnerHandlerTest {
     @BeforeEach
     public void setup() {
         mocksCloser = openMocks(this);
+        odooUtils = new OdooUtils();
+        odooUtils.setOdooCustomerWeightField("x_customer_weight");
+        partnerHandler.setOdooUtils(odooUtils);
     }
 
     @Test
@@ -178,6 +183,6 @@ class PartnerHandlerTest {
     }
 
     private Partner getPartner() {
-        return OdooUtils.convertToObject(getPartnerMap(), Partner.class);
+        return odooUtils.convertToObject(getPartnerMap(), Partner.class);
     }
 }
