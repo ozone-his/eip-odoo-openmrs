@@ -12,10 +12,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
 public class OdooUtils {
+
+    @Getter
+    private static String odooCustomerWeightField;
+
+    @Value("${odoo.customer.weight.field}")
+    public void setOdooCustomerWeightField(String value) {
+        odooCustomerWeightField = value;
+    }
 
     public static <T> T convertToObject(Map<String, Object> data, Class<T> objectClass) {
         ObjectMapper mapper = new ObjectMapper();
@@ -38,9 +50,13 @@ public class OdooUtils {
             field.setAccessible(true);
             if (field.isAnnotationPresent(JsonProperty.class)) {
                 JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
-                String key = jsonProperty.value();
-                Object value = field.get(object);
-                map.put(key, value);
+                if (jsonProperty.value().equalsIgnoreCase("partner_weight")) {
+                    map.put(odooCustomerWeightField, field.get(object));
+                } else {
+                    String key = jsonProperty.value();
+                    Object value = field.get(object);
+                    map.put(key, value);
+                }
             }
         }
         log.debug("OdooUtils: Converted object {} to map {}", object.getClass().getName(), map);
