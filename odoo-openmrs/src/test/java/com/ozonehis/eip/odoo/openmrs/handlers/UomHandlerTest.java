@@ -16,6 +16,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
+import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.model.Uom;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,11 +25,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.openmrs.eip.EIPException;
+import org.springframework.core.env.Environment;
 
 class UomHandlerTest {
     @Mock
     private OdooClient odooClient;
+
+    private OdooUtils odooUtils;
 
     @InjectMocks
     private UomHandler uomHandler;
@@ -43,6 +48,11 @@ class UomHandlerTest {
     @BeforeEach
     public void setup() {
         mocksCloser = openMocks(this);
+        Environment mockEnvironment = Mockito.mock(Environment.class);
+        when(mockEnvironment.getProperty("odoo.customer.weight.field")).thenReturn("x_customer_weight");
+        odooUtils = new OdooUtils();
+        odooUtils.setEnvironment(mockEnvironment);
+        uomHandler.setOdooUtils(odooUtils);
     }
 
     @Test

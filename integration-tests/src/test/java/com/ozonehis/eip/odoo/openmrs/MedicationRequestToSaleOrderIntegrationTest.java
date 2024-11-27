@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
-import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
@@ -112,12 +111,12 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
                 .searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", ENCOUNTER_PART_OF_UUID), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes);
+                        orderDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        SaleOrder createdSaleOrder = OdooUtils.convertToObject((Map<String, Object>) result[0], SaleOrder.class);
+        SaleOrder createdSaleOrder = getOdooUtils().convertToObject((Map<String, Object>) result[0], SaleOrder.class);
 
         assertNotNull(createdSaleOrder);
         assertEquals(ENCOUNTER_PART_OF_UUID, createdSaleOrder.getOrderClientOrderRef());
@@ -139,7 +138,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         assertNotNull(result[0]);
 
         SaleOrderLine createdSaleOrderLine =
-                OdooUtils.convertToObject((Map<String, Object>) result[0], SaleOrderLine.class);
+                getOdooUtils().convertToObject((Map<String, Object>) result[0], SaleOrderLine.class);
 
         assertNotNull(createdSaleOrderLine);
         assertEquals(
@@ -156,7 +155,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        Partner createdPartner = OdooUtils.convertToObject((Map<String, Object>) result[0], Partner.class);
+        Partner createdPartner = getOdooUtils().convertToObject((Map<String, Object>) result[0], Partner.class);
 
         assertNotNull(createdPartner);
         assertEquals("Jane Doe", createdPartner.getPartnerName());
@@ -183,12 +182,12 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
                 .searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", ENCOUNTER_PART_OF_UUID), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes);
+                        orderDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        SaleOrder createdSaleOrder = OdooUtils.convertToObject((Map<String, Object>) result[0], SaleOrder.class);
+        SaleOrder createdSaleOrder = getOdooUtils().convertToObject((Map<String, Object>) result[0], SaleOrder.class);
 
         assertNotNull(createdSaleOrder);
         assertEquals(ENCOUNTER_PART_OF_UUID, createdSaleOrder.getOrderClientOrderRef());
@@ -210,7 +209,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         assertNotNull(result[0]);
 
         SaleOrderLine createdSaleOrderLine =
-                OdooUtils.convertToObject((Map<String, Object>) result[0], SaleOrderLine.class);
+                getOdooUtils().convertToObject((Map<String, Object>) result[0], SaleOrderLine.class);
 
         assertNotNull(createdSaleOrderLine);
         assertEquals(
@@ -227,7 +226,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        Partner createdPartner = OdooUtils.convertToObject((Map<String, Object>) result[0], Partner.class);
+        Partner createdPartner = getOdooUtils().convertToObject((Map<String, Object>) result[0], Partner.class);
 
         assertNotNull(createdPartner);
         assertEquals("Jane Doe", createdPartner.getPartnerName());
@@ -254,7 +253,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
                 .searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", ENCOUNTER_PART_OF_UUID), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes);
+                        orderDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
@@ -269,12 +268,12 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
                         List.of(
                                 asList("client_order_ref", "=", ENCOUNTER_PART_OF_UUID),
                                 asList("state", "=", "cancel")),
-                        Constants.orderDefaultAttributes);
+                        orderDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        SaleOrder updatedSaleOrder = OdooUtils.convertToObject((Map<String, Object>) result[0], SaleOrder.class);
+        SaleOrder updatedSaleOrder = getOdooUtils().convertToObject((Map<String, Object>) result[0], SaleOrder.class);
 
         assertNotNull(updatedSaleOrder);
         assertEquals(ENCOUNTER_PART_OF_UUID, updatedSaleOrder.getOrderClientOrderRef());

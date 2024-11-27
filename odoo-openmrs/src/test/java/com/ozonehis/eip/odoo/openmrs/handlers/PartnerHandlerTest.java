@@ -34,6 +34,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.openmrs.eip.EIPException;
+import org.springframework.core.env.Environment;
 
 class PartnerHandlerTest {
 
@@ -52,6 +53,8 @@ class PartnerHandlerTest {
     @InjectMocks
     private PartnerHandler partnerHandler;
 
+    private OdooUtils odooUtils;
+
     private static AutoCloseable mocksCloser;
 
     @AfterAll
@@ -62,6 +65,11 @@ class PartnerHandlerTest {
     @BeforeEach
     public void setup() {
         mocksCloser = openMocks(this);
+        Environment mockEnvironment = Mockito.mock(Environment.class);
+        when(mockEnvironment.getProperty("odoo.customer.weight.field")).thenReturn("x_customer_weight");
+        odooUtils = new OdooUtils();
+        odooUtils.setEnvironment(mockEnvironment);
+        partnerHandler.setOdooUtils(odooUtils);
     }
 
     @Test
@@ -178,6 +186,13 @@ class PartnerHandlerTest {
     }
 
     private Partner getPartner() {
-        return OdooUtils.convertToObject(getPartnerMap(), Partner.class);
+        Partner partner = new Partner();
+        partner.setPartnerId(12);
+        partner.setPartnerName("John Doe");
+        partner.setPartnerRef(PARTNER_REF_ID);
+        partner.setPartnerCity("Berlin");
+        partner.setPartnerActive(true);
+        partner.setPartnerComment(PARTNER_IDENTIFIER_ID);
+        return partner;
     }
 }

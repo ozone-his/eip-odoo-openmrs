@@ -44,6 +44,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.openmrs.eip.EIPException;
+import org.springframework.core.env.Environment;
 
 class SaleOrderHandlerTest {
 
@@ -61,6 +62,8 @@ class SaleOrderHandlerTest {
 
     @Mock
     private ObservationHandler observationHandler;
+
+    private OdooUtils odooUtils;
 
     @InjectMocks
     private SaleOrderHandler saleOrderHandler;
@@ -83,6 +86,11 @@ class SaleOrderHandlerTest {
     @BeforeEach
     public void setup() {
         mocksCloser = openMocks(this);
+        Environment mockEnvironment = Mockito.mock(Environment.class);
+        when(mockEnvironment.getProperty("odoo.customer.weight.field")).thenReturn("x_customer_weight");
+        odooUtils = new OdooUtils();
+        odooUtils.setEnvironment(mockEnvironment);
+        saleOrderHandler.setOdooUtils(odooUtils);
     }
 
     @Test
@@ -95,7 +103,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(saleOrders);
 
         // Act
@@ -121,7 +129,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(saleOrders);
 
         // Verify
@@ -137,7 +145,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(saleOrders);
 
         // Act
@@ -153,7 +161,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(null);
 
         // Verify
@@ -197,7 +205,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(new Object[] {saleOrderMap});
         when(saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder))
                 .thenReturn(saleOrderLine);
@@ -232,7 +240,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(new Object[] {saleOrderMap});
         when(productHandler.getProduct(resource)).thenReturn(product);
         when(saleOrderLineHandler.getSaleOrderLineIfExists(saleOrder.getOrderId(), product.getProductResId()))
@@ -263,7 +271,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(new Object[] {saleOrderMap});
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
@@ -285,7 +293,12 @@ class SaleOrderHandlerTest {
     }
 
     private SaleOrder getSaleOrder() {
-        return OdooUtils.convertToObject(getSaleOrderMap(1, VISIT_ID_1, "draft", 12), SaleOrder.class);
+        SaleOrder saleOrder = new SaleOrder();
+        saleOrder.setOrderId(1);
+        saleOrder.setOrderClientOrderRef(VISIT_ID_1);
+        saleOrder.setOrderState("draft");
+        saleOrder.setOrderPartnerId(12);
+        return saleOrder;
     }
 
     @Test

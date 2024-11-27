@@ -33,7 +33,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.openmrs.eip.EIPException;
+import org.springframework.core.env.Environment;
 
 class SaleOrderLineHandlerTest {
 
@@ -52,6 +54,8 @@ class SaleOrderLineHandlerTest {
     @InjectMocks
     private SaleOrderLineHandler saleOrderLineHandler;
 
+    private OdooUtils odooUtils;
+
     private static AutoCloseable mocksCloser;
 
     private static final int ORDER_ID = 14;
@@ -68,6 +72,11 @@ class SaleOrderLineHandlerTest {
     @BeforeEach
     public void setup() {
         mocksCloser = openMocks(this);
+        Environment mockEnvironment = Mockito.mock(Environment.class);
+        when(mockEnvironment.getProperty("odoo.customer.weight.field")).thenReturn("x_customer_weight");
+        odooUtils = new OdooUtils();
+        odooUtils.setEnvironment(mockEnvironment);
+        saleOrderLineHandler.setOdooUtils(odooUtils);
     }
 
     @Test
@@ -236,7 +245,7 @@ class SaleOrderLineHandlerTest {
     }
 
     public SaleOrderLine getSaleOrderLine() {
-        return OdooUtils.convertToObject(
+        return odooUtils.convertToObject(
                 getSaleOrderLineMap(1, "Aspirin 81 mg | 10 Tablet", ORDER_ID, PRODUCT_ID, 5.0f, PRODUCT_UOM_ID),
                 SaleOrderLine.class);
     }

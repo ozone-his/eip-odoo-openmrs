@@ -16,6 +16,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
+import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +35,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.core.env.Environment;
 
 class ProductHandlerTest {
     public static final String MEDICATION_REQUEST_ID = "1cdda1ce-7f98-4bc7-9d20-8b4e953d972a";
@@ -55,6 +58,8 @@ class ProductHandlerTest {
     @Mock
     private OdooClient odooClient;
 
+    private OdooUtils odooUtils;
+
     @InjectMocks
     private ProductHandler productHandler;
 
@@ -68,6 +73,11 @@ class ProductHandlerTest {
     @BeforeEach
     public void setup() {
         mocksCloser = openMocks(this);
+        Environment mockEnvironment = Mockito.mock(Environment.class);
+        when(mockEnvironment.getProperty("odoo.customer.weight.field")).thenReturn("x_customer_weight");
+        odooUtils = new OdooUtils();
+        odooUtils.setEnvironment(mockEnvironment);
+        productHandler.setOdooUtils(odooUtils);
     }
 
     @Test

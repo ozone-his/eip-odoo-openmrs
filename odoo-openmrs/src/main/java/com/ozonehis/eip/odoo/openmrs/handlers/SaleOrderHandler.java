@@ -20,6 +20,7 @@ import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
@@ -39,6 +40,9 @@ public class SaleOrderHandler {
     @Value("${eip.weight.concept}")
     private String weightConcept;
 
+    @Value("${odoo.customer.weight.field}")
+    private String odooCustomerWeightField;
+
     @Autowired
     private OdooClient odooClient;
 
@@ -54,16 +58,23 @@ public class SaleOrderHandler {
     @Autowired
     private ObservationHandler observationHandler;
 
+    @Autowired
+    private OdooUtils odooUtils;
+
+    @Getter
+    public List<String> orderDefaultAttributes =
+            asList("id", "client_order_ref", "partner_id", "state", "order_line", "x_customer_weight");
+
     public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId) {
         Object[] records = odooClient.searchAndRead(
                 Constants.SALE_ORDER_MODEL,
                 List.of(asList("client_order_ref", "=", visitId), asList("state", "=", "draft")),
-                Constants.orderDefaultAttributes);
+                orderDefaultAttributes);
         if (records == null) {
             throw new EIPException(
                     String.format("Got null response while fetching for Sale order with client_order_ref %s", visitId));
         } else if (records.length == 1) {
-            SaleOrder saleOrder = OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
+            SaleOrder saleOrder = odooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
             log.debug("Sale order exists with client_order_ref {} sale order {}", visitId, saleOrder);
             return saleOrder;
         } else if (records.length == 0) {
