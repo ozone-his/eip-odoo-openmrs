@@ -33,7 +33,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.openmrs.eip.EIPException;
+import org.springframework.core.env.Environment;
 
 class SaleOrderLineHandlerTest {
 
@@ -70,8 +72,10 @@ class SaleOrderLineHandlerTest {
     @BeforeEach
     public void setup() {
         mocksCloser = openMocks(this);
+        Environment mockEnvironment = Mockito.mock(Environment.class);
+        when(mockEnvironment.getProperty("odoo.customer.weight.field")).thenReturn("x_customer_weight");
         odooUtils = new OdooUtils();
-        odooUtils.setOdooCustomerWeightField("x_customer_weight");
+        odooUtils.setEnvironment(mockEnvironment);
         saleOrderLineHandler.setOdooUtils(odooUtils);
     }
 

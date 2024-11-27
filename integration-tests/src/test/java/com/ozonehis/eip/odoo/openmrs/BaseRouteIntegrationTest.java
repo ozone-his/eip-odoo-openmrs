@@ -55,7 +55,9 @@ import org.apache.camel.test.infra.core.annotations.ContextFixture;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.hl7.fhir.r4.model.Resource;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 
 @Getter
@@ -63,6 +65,9 @@ import org.springframework.test.context.ActiveProfiles;
 @CamelSpringBootTest
 @SpringBootTest(classes = {TestSpringConfiguration.class})
 public abstract class BaseRouteIntegrationTest {
+
+    @Autowired
+    private Environment environment;
 
     private OdooClient odooClient;
 
@@ -117,7 +122,7 @@ public abstract class BaseRouteIntegrationTest {
 
     public OdooUtils getOdooUtils() {
         OdooUtils odooUtils = new OdooUtils();
-        odooUtils.setOdooCustomerWeightField("x_customer_weight");
+        odooUtils.setEnvironment(environment);
         return odooUtils;
     }
 

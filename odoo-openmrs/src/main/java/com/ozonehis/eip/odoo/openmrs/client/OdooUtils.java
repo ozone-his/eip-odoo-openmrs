@@ -14,7 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -22,18 +23,25 @@ import org.springframework.stereotype.Component;
 @Component
 public class OdooUtils {
 
-    @Value("${odoo.customer.weight.field}")
-    private String odooCustomerWeightField;
+    @Autowired
+    private Environment environment;
 
     public <T> T convertToObject(Map<String, Object> data, Class<T> objectClass) {
         ObjectMapper mapper = new ObjectMapper();
         log.debug("OdooUtils: Converting map {} to object {}", data, objectClass.getName());
         try {
-            if (data.containsKey(odooCustomerWeightField)) {
-                data.put("partner_weight", data.get(odooCustomerWeightField));
-                data.remove(odooCustomerWeightField);
-            }
             T obj = mapper.convertValue(data, objectClass);
+
+            for (Field field : obj.getClass().getDeclaredFields()) {
+                if (field.isAnnotationPresent(JsonProperty.class)) {
+                    JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
+                    String propertyValue = environment.getProperty(jsonProperty.value());
+                    if (propertyValue != null && data.containsKey(propertyValue)) {
+                        field.setAccessible(true);
+                        field.set(obj, convertValueToType(data.get(propertyValue), field.getType()));
+                    }
+                }
+            }
             log.debug("OdooUtils: Converted map {} to object {}", data, obj);
             return obj;
         } catch (Exception e) {
@@ -50,16 +58,30 @@ public class OdooUtils {
             field.setAccessible(true);
             if (field.isAnnotationPresent(JsonProperty.class)) {
                 JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
-                if (jsonProperty.value().equalsIgnoreCase("partner_weight")) {
-                    map.put(odooCustomerWeightField, field.get(object));
-                } else {
-                    String key = jsonProperty.value();
-                    Object value = field.get(object);
-                    map.put(key, value);
-                }
+                String propertyValue = environment.getProperty(jsonProperty.value());
+                String key = propertyValue == null ? jsonProperty.value() : propertyValue;
+                Object value = field.get(object);
+                map.put(key, value);
             }
         }
         log.debug("OdooUtils: Converted object {} to map {}", object.getClass().getName(), map);
         return map;
+    }
+
+    private Object convertValueToType(Object value, Class<?> targetType) {
+        if (targetType == Integer.class || targetType == int.class) {
+            return Integer.parseInt(value.toString());
+        } else if (targetType == Long.class || targetType == long.class) {
+            return Long.parseLong(value.toString());
+        } else if (targetType == Double.class || targetType == double.class) {
+            return Double.parseDouble(value.toString());
+        } else if (targetType == Float.class || targetType == float.class) {
+            return Float.parseFloat(value.toString());
+        } else if (targetType == Boolean.class || targetType == boolean.class) {
+            return Boolean.parseBoolean(value.toString());
+        } else if (targetType == String.class) {
+            return value.toString();
+        }
+        throw new IllegalArgumentException("Unsupported type: " + targetType.getName());
     }
 }

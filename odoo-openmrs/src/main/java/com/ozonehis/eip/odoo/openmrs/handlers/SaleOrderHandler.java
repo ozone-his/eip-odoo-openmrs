@@ -62,7 +62,7 @@ public class SaleOrderHandler {
 
     @Getter
     public List<String> orderDefaultAttributes =
-            asList("id", "client_order_ref", "partner_id", "state", "order_line", odooCustomerWeightField);
+            asList("id", "client_order_ref", "partner_id", "state", "order_line", "x_customer_weight");
 
     public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId) {
         Object[] records = odooClient.searchAndRead(

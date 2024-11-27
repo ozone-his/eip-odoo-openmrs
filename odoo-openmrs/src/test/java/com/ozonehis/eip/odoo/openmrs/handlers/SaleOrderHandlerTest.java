@@ -43,6 +43,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.openmrs.eip.EIPException;
+import org.springframework.core.env.Environment;
 
 class SaleOrderHandlerTest {
 
@@ -84,8 +85,10 @@ class SaleOrderHandlerTest {
     @BeforeEach
     public void setup() {
         mocksCloser = openMocks(this);
+        Environment mockEnvironment = Mockito.mock(Environment.class);
+        when(mockEnvironment.getProperty("odoo.customer.weight.field")).thenReturn("x_customer_weight");
         odooUtils = new OdooUtils();
-        odooUtils.setOdooCustomerWeightField("x_customer_weight");
+        odooUtils.setEnvironment(mockEnvironment);
         saleOrderHandler.setOdooUtils(odooUtils);
     }
 
@@ -286,7 +289,12 @@ class SaleOrderHandlerTest {
     }
 
     private SaleOrder getSaleOrder() {
-        return odooUtils.convertToObject(getSaleOrderMap(1, VISIT_ID_1, "draft", 12), SaleOrder.class);
+        SaleOrder saleOrder = new SaleOrder();
+        saleOrder.setOrderId(1);
+        saleOrder.setOrderClientOrderRef(VISIT_ID_1);
+        saleOrder.setOrderState("draft");
+        saleOrder.setOrderPartnerId(12);
+        return saleOrder;
     }
 
     @Test
