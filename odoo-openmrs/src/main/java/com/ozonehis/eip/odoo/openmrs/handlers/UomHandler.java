@@ -28,6 +28,9 @@ public class UomHandler {
     @Autowired
     private OdooClient odooClient;
 
+    @Autowired
+    private OdooUtils odooUtils;
+
     public Uom getUom(String externalId) {
         Object[] records = odooClient.searchAndRead(
                 Constants.IR_MODEL,
@@ -37,7 +40,7 @@ public class UomHandler {
             throw new EIPException(String.format("Got null response while fetching for Uom with id %s", externalId));
         } else if (records.length == 1) {
             log.debug("Uom exists with id {} record {}", externalId, records[0]);
-            return OdooUtils.convertToObject((Map<String, Object>) records[0], Uom.class);
+            return odooUtils.convertToObject((Map<String, Object>) records[0], Uom.class);
         } else if (records.length == 0) {
             log.warn("No Uom found with id {}", externalId);
             throw new EIPException(String.format("No Uom found with id %s", externalId));

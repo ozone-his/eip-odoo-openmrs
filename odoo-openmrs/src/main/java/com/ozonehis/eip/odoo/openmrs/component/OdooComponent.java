@@ -8,6 +8,7 @@
 package com.ozonehis.eip.odoo.openmrs.component;
 
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
+import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,9 @@ public class OdooComponent extends DefaultComponent {
     @Autowired
     private OdooClient odooClient;
 
+    @Autowired
+    private OdooUtils odooUtils;
+
     @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) {
         log.info("Creating odoo endpoint with uri: {} remaining: {} parameters: {} ", uri, remaining, parameters);
@@ -31,6 +35,6 @@ public class OdooComponent extends DefaultComponent {
         if (parts.length != 2) {
             throw new IllegalArgumentException("Invalid URI format. The expected format is 'odoo:method/model'");
         }
-        return new OdooEndpoint(uri, this, parts[0], parts[1], odooClient);
+        return new OdooEndpoint(uri, this, parts[0], parts[1], odooClient, odooUtils);
     }
 }

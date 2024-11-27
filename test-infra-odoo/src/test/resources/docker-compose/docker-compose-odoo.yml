@@ -51,4 +51,3 @@ volumes:
   odoo-checksums: ~
   odoo-filestore: ~
   odoo-web-data: ~
-  

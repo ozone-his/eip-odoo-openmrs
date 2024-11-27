@@ -1,0 +1,92 @@
+{
+  "resourceType": "Bundle",
+  "id": "28470868-0bef-43d7-bdb1-bc5000543225",
+  "meta": {
+    "lastUpdated": "2024-10-25T08:27:38.076+00:00"
+  },
+  "type": "searchset",
+  "total": 1,
+  "link": [
+    {
+      "relation": "self",
+      "url": "http://localhost/openmrs/ws/fhir2/R4/Observation"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "http://localhost/openmrs/ws/fhir2/R4/Observation/46d6e88d-d441-44c7-bb40-8587701ce8e0",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "46d6e88d-d441-44c7-bb40-8587701ce8e0",
+        "meta": {
+          "versionId": "1729844833000",
+          "lastUpdated": "2024-10-25T08:27:13.000+00:00"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><table class=\"hapiPropertyTable\"><tbody><tr><td>Id:</td><td>46d6e88d-d441-44c7-bb40-8587701ce8e0</td></tr><tr><td>Status:</td><td>FINAL</td></tr><tr><td>Category:</td><td> Exam </td></tr><tr><td>Code:</td><td>Weight (kg)</td></tr><tr><td>Subject:</td><td><a href=\"http://localhost:8080/openmrs/ws/fhir2/R4/Patient/9e8c5612-8742-4939-b36a-fbc445b7fbbc\">Siddharth Vaish (OpenMRS ID: 100000Y)</a></td></tr><tr><td>Encounter:</td><td><a href=\"http://localhost:8080/openmrs/ws/fhir2/R4/Encounter/7216f786-de19-43ce-888b-9de5b011f1ff\">Encounter/7216f786-de19-43ce-888b-9de5b011f1ff</a></td></tr><tr><td>Effective:</td><td> 25 October 2024 08:27:13 </td></tr><tr><td>Issued:</td><td>25/10/2024 08:27:13 AM</td></tr><tr><td>Value:</td><td>77.0 kg </td></tr><tr><td>Reference Ranges:</td><td><table class=\"subPropertyTable\"><tbody><tr><th>-</th><th>Low</th><th>High</th><th>Type</th><th>Applies To</th><th>Age</th></tr><tr><td>1</td><td>0.0 </td><td>250.0 </td><td> absolute </td><td/><td> - </td></tr></tbody></table></td></tr></tbody></table></div>"
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "exam",
+                "display": "Exam"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "code": "5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "display": "Weight (kg)"
+            },
+            {
+              "system": "https://cielterminology.org",
+              "code": "5089"
+            }
+          ],
+          "text": "Weight (kg)"
+        },
+        "subject": {
+          "reference": "Patient/79355a93-3a4f-4490-98aa-278f922fa87c",
+          "type": "Patient",
+          "display": "Jane Doe (OpenMRS ID: 100000Y)"
+        },
+        "encounter": {
+          "reference": "Encounter/7216f786-de19-43ce-888b-9de5b011f1ff",
+          "type": "Encounter"
+        },
+        "effectiveDateTime": "2024-10-25T08:27:13+00:00",
+        "issued": "2024-10-25T08:27:13.000+00:00",
+        "valueQuantity": {
+          "value": 77.0,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org",
+          "code": "kg"
+        },
+        "referenceRange": [
+          {
+            "low": {
+              "value": 0.0
+            },
+            "high": {
+              "value": 250.0
+            },
+            "type": {
+              "coding": [
+                {
+                  "system": "http://fhir.openmrs.org/ext/obs/reference-range",
+                  "code": "absolute"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

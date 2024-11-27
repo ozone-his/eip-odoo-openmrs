@@ -7,6 +7,10 @@
  */
 package com.ozonehis.eip.odoo.openmrs;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -14,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
-import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
@@ -34,6 +37,7 @@ import java.util.Map;
 import org.apache.camel.CamelContext;
 import org.apache.camel.test.infra.core.annotations.RouteFixture;
 import org.hl7.fhir.r4.model.Bundle;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,6 +59,13 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         for (Object id : result) {
             getOdooClient().delete(Constants.SALE_ORDER_MODEL, Collections.singletonList((Integer) id));
         }
+        // Mock OpenMRS FHIR metadata endpoint
+        mockOpenmrsFhirServer();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        wireMockServer.stop();
     }
 
     @RouteFixture
@@ -83,8 +94,13 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
     }
 
     @Test
-    @DisplayName("Should create sale order in Odoo given medication request bundle.")
+    @DisplayName("Should create sale order with Patient Weight in Odoo given medication request bundle.")
     public void shouldCreateSaleOrderInOdooGivenMedicationRequestBundle() {
+        // Setup
+        stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/Observation\\?.*"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(readJSON("fhir.bundle/observation-weight-bundle.json"))));
         // Act
         var headers = new HashMap<String, Object>();
         headers.put(HEADER_FHIR_EVENT_TYPE, "c");
@@ -95,16 +111,17 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
                 .searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", ENCOUNTER_PART_OF_UUID), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes);
+                        orderDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        SaleOrder createdSaleOrder = OdooUtils.convertToObject((Map<String, Object>) result[0], SaleOrder.class);
+        SaleOrder createdSaleOrder = getOdooUtils().convertToObject((Map<String, Object>) result[0], SaleOrder.class);
 
         assertNotNull(createdSaleOrder);
         assertEquals(ENCOUNTER_PART_OF_UUID, createdSaleOrder.getOrderClientOrderRef());
         assertEquals("draft", createdSaleOrder.getOrderState());
+        assertEquals("77.0 kg", createdSaleOrder.getPartnerWeight());
 
         // verify sale order has sale order line
         assertFalse(createdSaleOrder.getOrderLine().isEmpty());
@@ -121,7 +138,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         assertNotNull(result[0]);
 
         SaleOrderLine createdSaleOrderLine =
-                OdooUtils.convertToObject((Map<String, Object>) result[0], SaleOrderLine.class);
+                getOdooUtils().convertToObject((Map<String, Object>) result[0], SaleOrderLine.class);
 
         assertNotNull(createdSaleOrderLine);
         assertEquals(
@@ -138,7 +155,78 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        Partner createdPartner = OdooUtils.convertToObject((Map<String, Object>) result[0], Partner.class);
+        Partner createdPartner = getOdooUtils().convertToObject((Map<String, Object>) result[0], Partner.class);
+
+        assertNotNull(createdPartner);
+        assertEquals("Jane Doe", createdPartner.getPartnerName());
+        assertEquals(PATIENT_UUID, createdPartner.getPartnerRef());
+        assertEquals("Tororo", createdPartner.getPartnerCity());
+    }
+
+    @Test
+    @DisplayName("Should create sale order without Patient Weight in Odoo given medication request bundle.")
+    public void shouldCreateSaleOrderWithoutPatientWeightInOdooGivenMedicationRequestBundle() {
+        // Setup
+        stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/Observation\\?.*"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(readJSON("fhir.bundle/observation-empty-bundle.json"))));
+
+        // Act
+        var headers = new HashMap<String, Object>();
+        headers.put(HEADER_FHIR_EVENT_TYPE, "c");
+        sendBodyAndHeaders("direct:medication-request-to-sale-order-processor", medicationRequestBundle, headers);
+
+        // Verify sale order created
+        Object[] result = getOdooClient()
+                .searchAndRead(
+                        Constants.SALE_ORDER_MODEL,
+                        List.of(asList("client_order_ref", "=", ENCOUNTER_PART_OF_UUID), asList("state", "=", "draft")),
+                        orderDefaultAttributes);
+
+        assertNotNull(result);
+        assertNotNull(result[0]);
+
+        SaleOrder createdSaleOrder = getOdooUtils().convertToObject((Map<String, Object>) result[0], SaleOrder.class);
+
+        assertNotNull(createdSaleOrder);
+        assertEquals(ENCOUNTER_PART_OF_UUID, createdSaleOrder.getOrderClientOrderRef());
+        assertEquals("draft", createdSaleOrder.getOrderState());
+        assertEquals("false", createdSaleOrder.getPartnerWeight());
+
+        // verify sale order has sale order line
+        assertFalse(createdSaleOrder.getOrderLine().isEmpty());
+        assertEquals(1, createdSaleOrder.getOrderLine().size());
+
+        result = getOdooClient()
+                .searchAndRead(
+                        Constants.SALE_ORDER_LINE_MODEL,
+                        List.of(asList(
+                                "id", "=", createdSaleOrder.getOrderLine().get(0))),
+                        null);
+
+        assertNotNull(result);
+        assertNotNull(result[0]);
+
+        SaleOrderLine createdSaleOrderLine =
+                getOdooUtils().convertToObject((Map<String, Object>) result[0], SaleOrderLine.class);
+
+        assertNotNull(createdSaleOrderLine);
+        assertEquals(
+                "Aspirin 81mg | 20.0 Tablet | 2.0 Tablet - Oral - Twice daily - 5 day | Orderer: Super User (Identifier: admin)",
+                createdSaleOrderLine.getSaleOrderLineName());
+
+        // Verify partner created
+        result = getOdooClient()
+                .searchAndRead(
+                        Constants.PARTNER_MODEL,
+                        List.of(asList("ref", "=", PATIENT_UUID)),
+                        Constants.partnerDefaultAttributes);
+
+        assertNotNull(result);
+        assertNotNull(result[0]);
+
+        Partner createdPartner = getOdooUtils().convertToObject((Map<String, Object>) result[0], Partner.class);
 
         assertNotNull(createdPartner);
         assertEquals("Jane Doe", createdPartner.getPartnerName());
@@ -150,6 +238,11 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
     @DisplayName("Should cancel sale order in Odoo given medication request bundle when medication discontinued")
     public void shouldCancelSaleOrderInOdooGivenMedicationRequestBundle() {
         // Act
+        stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/Observation\\?.*"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(readJSON("fhir.bundle/observation-weight-bundle.json"))));
+
         // Create sale order
         var headers = new HashMap<String, Object>();
         headers.put(HEADER_FHIR_EVENT_TYPE, "c");
@@ -160,7 +253,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
                 .searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", ENCOUNTER_PART_OF_UUID), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes);
+                        orderDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
@@ -175,12 +268,12 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
                         List.of(
                                 asList("client_order_ref", "=", ENCOUNTER_PART_OF_UUID),
                                 asList("state", "=", "cancel")),
-                        Constants.orderDefaultAttributes);
+                        orderDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        SaleOrder updatedSaleOrder = OdooUtils.convertToObject((Map<String, Object>) result[0], SaleOrder.class);
+        SaleOrder updatedSaleOrder = getOdooUtils().convertToObject((Map<String, Object>) result[0], SaleOrder.class);
 
         assertNotNull(updatedSaleOrder);
         assertEquals(ENCOUNTER_PART_OF_UUID, updatedSaleOrder.getOrderClientOrderRef());

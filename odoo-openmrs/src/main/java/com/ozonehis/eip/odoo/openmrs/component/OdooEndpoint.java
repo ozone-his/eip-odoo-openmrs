@@ -8,6 +8,7 @@
 package com.ozonehis.eip.odoo.openmrs.component;
 
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
+import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -41,11 +42,20 @@ public class OdooEndpoint extends DefaultEndpoint {
 
     private final OdooClient odooClient;
 
-    public OdooEndpoint(String endpointUri, Component component, String method, String model, OdooClient odooClient) {
+    private final OdooUtils odooUtils;
+
+    public OdooEndpoint(
+            String endpointUri,
+            Component component,
+            String method,
+            String model,
+            OdooClient odooClient,
+            OdooUtils odooUtils) {
         super(endpointUri, component);
         this.method = method;
         this.model = model;
         this.odooClient = odooClient;
+        this.odooUtils = odooUtils;
     }
 
     @Override
@@ -56,7 +66,7 @@ public class OdooEndpoint extends DefaultEndpoint {
     @Override
     public Producer createProducer() {
         log.info("Creating odoo producer");
-        return new OdooProducer(this, odooClient);
+        return new OdooProducer(this, odooClient, odooUtils);
     }
 
     @Override

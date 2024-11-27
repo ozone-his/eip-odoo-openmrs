@@ -19,19 +19,28 @@ import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Resource;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Setter
 @Component
 public class SaleOrderHandler {
+
+    @Value("${eip.weight.concept}")
+    private String weightConcept;
+
+    @Value("${odoo.customer.weight.field}")
+    private String odooCustomerWeightField;
 
     @Autowired
     private OdooClient odooClient;
@@ -45,16 +54,26 @@ public class SaleOrderHandler {
     @Autowired
     private ProductHandler productHandler;
 
+    @Autowired
+    private ObservationHandler observationHandler;
+
+    @Autowired
+    private OdooUtils odooUtils;
+
+    @Getter
+    public List<String> orderDefaultAttributes =
+            asList("id", "client_order_ref", "partner_id", "state", "order_line", "x_customer_weight");
+
     public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId) {
         Object[] records = odooClient.searchAndRead(
                 Constants.SALE_ORDER_MODEL,
                 List.of(asList("client_order_ref", "=", visitId), asList("state", "=", "draft")),
-                Constants.orderDefaultAttributes);
+                orderDefaultAttributes);
         if (records == null) {
             throw new EIPException(
                     String.format("Got null response while fetching for Sale order with client_order_ref %s", visitId));
         } else if (records.length == 1) {
-            SaleOrder saleOrder = OdooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
+            SaleOrder saleOrder = odooUtils.convertToObject((Map<String, Object>) records[0], SaleOrder.class);
             log.debug("Sale order exists with client_order_ref {} sale order {}", visitId, saleOrder);
             return saleOrder;
         } else if (records.length == 0) {
@@ -77,7 +96,12 @@ public class SaleOrderHandler {
     }
 
     public void updateSaleOrderIfExistsWithSaleOrderLine(
-            Resource resource, SaleOrder saleOrder, String encounterVisitUuid, ProducerTemplate producerTemplate) {
+            Resource resource,
+            SaleOrder saleOrder,
+            String encounterVisitUuid,
+            int partnerId,
+            String patientID,
+            ProducerTemplate producerTemplate) {
         // If sale order exists create sale order line and link it to sale order
         SaleOrderLine saleOrderLine = saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder);
         if (saleOrderLine == null) {
@@ -88,6 +112,10 @@ public class SaleOrderHandler {
             return;
         }
 
+        // Update sale order with Patient Weight if not already present
+        if (saleOrder.getPartnerWeight() == null || saleOrder.getPartnerWeight().isEmpty()) {
+            updateSaleOrderWithPatientWeight(partnerId, patientID, saleOrder, producerTemplate);
+        }
         producerTemplate.sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
         log.debug(
                 "{}: Created sale order line {} and linked to sale order {}",
@@ -101,11 +129,16 @@ public class SaleOrderHandler {
             Encounter encounter,
             int partnerId,
             String encounterVisitUuid,
+            String patientID,
             ProducerTemplate producerTemplate) {
         // If the sale order does not exist, create it, then create sale order line and link it to sale order
         SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
         newSaleOrder.setOrderPartnerId(partnerId);
         newSaleOrder.setOrderState("draft");
+        String patientWeight = getPartnerWeight(patientID);
+        if (patientWeight != null) {
+            newSaleOrder.setPartnerWeight(getPartnerWeight(patientID));
+        }
 
         sendSaleOrder(producerTemplate, "direct:odoo-create-sale-order-route", newSaleOrder);
         log.debug(
@@ -158,5 +191,26 @@ public class SaleOrderHandler {
             saleOrder.setOrderPartnerId((Integer) partnerId);
             sendSaleOrder(producerTemplate, "direct:odoo-update-sale-order-route", saleOrder);
         }
+    }
+
+    public void updateSaleOrderWithPatientWeight(
+            int partnerId, String patientID, SaleOrder saleOrder, ProducerTemplate producerTemplate) {
+        String patientWeight = getPartnerWeight(patientID);
+        if (saleOrder != null && patientWeight != null) {
+            log.debug("SaleOrderHandler: Update sale order with Patient weight {}", saleOrder.getOrderId());
+            saleOrder.setOrderPartnerId(partnerId);
+            saleOrder.setPartnerWeight(patientWeight);
+            sendSaleOrder(producerTemplate, "direct:odoo-update-sale-order-route", saleOrder);
+        }
+    }
+
+    public String getPartnerWeight(String patientID) {
+        Observation observation = observationHandler.getObservationBySubjectIDAndConceptID(patientID, weightConcept);
+        if (observation == null) {
+            return null;
+        }
+
+        return observation.getValueQuantity().getValue() + " "
+                + observation.getValueQuantity().getUnit();
     }
 }

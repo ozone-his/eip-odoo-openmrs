@@ -12,6 +12,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,14 +32,18 @@ import java.util.Map;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
+import org.hl7.fhir.r4.model.Observation;
+import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.Resource;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.openmrs.eip.EIPException;
+import org.springframework.core.env.Environment;
 
 class SaleOrderHandlerTest {
 
@@ -53,12 +59,23 @@ class SaleOrderHandlerTest {
     @Mock
     private ProductHandler productHandler;
 
+    @Mock
+    private ObservationHandler observationHandler;
+
+    private OdooUtils odooUtils;
+
     @InjectMocks
     private SaleOrderHandler saleOrderHandler;
 
     private static AutoCloseable mocksCloser;
 
     private static final String VISIT_ID_1 = "e5ca6578-fb37-4900-a054-c68db82a551c";
+
+    private static final String OBSERVATION_ID = "h4ca6578-db37-2910-c055-c90db82a919c";
+
+    private static final String PATIENT_ID = "patient-id-987";
+
+    private static final int PARTNER_ID = 12;
 
     @AfterAll
     public static void close() throws Exception {
@@ -68,6 +85,11 @@ class SaleOrderHandlerTest {
     @BeforeEach
     public void setup() {
         mocksCloser = openMocks(this);
+        Environment mockEnvironment = Mockito.mock(Environment.class);
+        when(mockEnvironment.getProperty("odoo.customer.weight.field")).thenReturn("x_customer_weight");
+        odooUtils = new OdooUtils();
+        odooUtils.setEnvironment(mockEnvironment);
+        saleOrderHandler.setOdooUtils(odooUtils);
     }
 
     @Test
@@ -80,7 +102,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(saleOrders);
 
         // Act
@@ -106,7 +128,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(saleOrders);
 
         // Verify
@@ -122,7 +144,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(saleOrders);
 
         // Act
@@ -138,7 +160,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(null);
 
         // Verify
@@ -155,10 +177,13 @@ class SaleOrderHandlerTest {
         // Mock behaviour
         when(saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder))
                 .thenReturn(saleOrderLine);
+        when(observationHandler.getObservationBySubjectIDAndConceptID(eq(PATIENT_ID), any()))
+                .thenReturn(null);
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
         // Act
-        saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(resource, saleOrder, VISIT_ID_1, producerTemplate);
+        saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
+                resource, saleOrder, VISIT_ID_1, PARTNER_ID, PATIENT_ID, producerTemplate);
 
         // Verify
         verify(producerTemplate, times(1)).sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
@@ -179,14 +204,17 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(new Object[] {saleOrderMap});
         when(saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder))
                 .thenReturn(saleOrderLine);
+        when(observationHandler.getObservationBySubjectIDAndConceptID(eq(PATIENT_ID), any()))
+                .thenReturn(null);
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
         // Act
-        saleOrderHandler.createSaleOrderWithSaleOrderLine(resource, encounter, partnerId, VISIT_ID_1, producerTemplate);
+        saleOrderHandler.createSaleOrderWithSaleOrderLine(
+                resource, encounter, partnerId, VISIT_ID_1, PATIENT_ID, producerTemplate);
 
         // Verify
         verify(producerTemplate, times(1))
@@ -208,7 +236,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(new Object[] {saleOrderMap});
         when(productHandler.getProduct(resource)).thenReturn(product);
         when(saleOrderLineHandler.getSaleOrderLineIfExists(saleOrder.getOrderId(), product.getProductResId()))
@@ -239,7 +267,7 @@ class SaleOrderHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.SALE_ORDER_MODEL,
                         List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        Constants.orderDefaultAttributes))
+                        saleOrderHandler.getOrderDefaultAttributes()))
                 .thenReturn(new Object[] {saleOrderMap});
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
@@ -261,6 +289,42 @@ class SaleOrderHandlerTest {
     }
 
     private SaleOrder getSaleOrder() {
-        return OdooUtils.convertToObject(getSaleOrderMap(1, VISIT_ID_1, "draft", 12), SaleOrder.class);
+        SaleOrder saleOrder = new SaleOrder();
+        saleOrder.setOrderId(1);
+        saleOrder.setOrderClientOrderRef(VISIT_ID_1);
+        saleOrder.setOrderState("draft");
+        saleOrder.setOrderPartnerId(12);
+        return saleOrder;
+    }
+
+    @Test
+    void shouldReturnPatientWeightGivenPatientID() {
+        // Setup
+        Observation observation = new Observation();
+        observation.setId(OBSERVATION_ID);
+        observation.setValue(new Quantity().setValue(67).setUnit("Kg"));
+
+        // Mock
+        when(observationHandler.getObservationBySubjectIDAndConceptID(eq(PATIENT_ID), any()))
+                .thenReturn(observation);
+
+        // Act
+        String result = saleOrderHandler.getPartnerWeight(PATIENT_ID);
+
+        // Assert
+        assertEquals("67 Kg", result);
+    }
+
+    @Test
+    void shouldReturnNullWhenObservationIsNull() {
+        // Mock
+        when(observationHandler.getObservationBySubjectIDAndConceptID(eq(PATIENT_ID), any()))
+                .thenReturn(null);
+
+        // Act
+        String result = saleOrderHandler.getPartnerWeight(PATIENT_ID);
+
+        // Assert
+        Assertions.assertNull(result);
     }
 }

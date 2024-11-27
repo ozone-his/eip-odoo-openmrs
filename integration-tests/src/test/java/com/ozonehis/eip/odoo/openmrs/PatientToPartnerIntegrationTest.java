@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
-import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.routes.partner.CreatePartnerRoute;
 import com.ozonehis.eip.odoo.openmrs.routes.partner.DeletePartnerRoute;
@@ -88,7 +87,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        Partner createdPartner = OdooUtils.convertToObject((Map<String, Object>) result[0], Partner.class);
+        Partner createdPartner = getOdooUtils().convertToObject((Map<String, Object>) result[0], Partner.class);
 
         assertNotNull(createdPartner);
         assertEquals("Richard Jones", createdPartner.getPartnerName());
@@ -115,7 +114,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        Partner createdPartner = OdooUtils.convertToObject((Map<String, Object>) result[0], Partner.class);
+        Partner createdPartner = getOdooUtils().convertToObject((Map<String, Object>) result[0], Partner.class);
 
         assertNotNull(createdPartner);
         assertEquals("Joshua Johnson", createdPartner.getPartnerName());
@@ -138,7 +137,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        Partner updatedPartner = OdooUtils.convertToObject((Map<String, Object>) result[0], Partner.class);
+        Partner updatedPartner = getOdooUtils().convertToObject((Map<String, Object>) result[0], Partner.class);
 
         assertNotNull(updatedPartner);
         assertEquals("Test James", updatedPartner.getPartnerName());
@@ -165,7 +164,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertNotNull(result);
         assertNotNull(result[0]);
 
-        Partner createdPartner = OdooUtils.convertToObject((Map<String, Object>) result[0], Partner.class);
+        Partner createdPartner = getOdooUtils().convertToObject((Map<String, Object>) result[0], Partner.class);
 
         assertNotNull(createdPartner);
         assertEquals("Richard Jones", createdPartner.getPartnerName());

@@ -36,6 +36,9 @@ public class PartnerHandler {
     @Autowired
     private PartnerMapper partnerMapper;
 
+    @Autowired
+    private OdooUtils odooUtils;
+
     public Partner getPartnerByID(String partnerRefID) {
         Object[] records = odooClient.searchAndRead(
                 Constants.PARTNER_MODEL, List.of(asList("ref", "=", partnerRefID)), Constants.partnerDefaultAttributes);
@@ -44,7 +47,7 @@ public class PartnerHandler {
                     String.format("Got null response while searching for Partner with reference id %s", partnerRefID));
         } else if (records.length == 1) {
             log.debug("Partner exists with reference id {} record {}", partnerRefID, records[0]);
-            return OdooUtils.convertToObject((Map<String, Object>) records[0], Partner.class);
+            return odooUtils.convertToObject((Map<String, Object>) records[0], Partner.class);
         } else if (records.length == 0) {
             log.warn("No Partner found with reference id {}", partnerRefID);
             return null;
