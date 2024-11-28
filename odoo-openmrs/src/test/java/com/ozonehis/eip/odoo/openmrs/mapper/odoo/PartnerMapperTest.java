@@ -79,7 +79,7 @@ class PartnerMapperTest {
         assertEquals("12345", partner.getPartnerZip());
         assertEquals(2, partner.getPartnerStateId());
         assertEquals("Test Address Line 1", partner.getPartnerStreet());
-        assertEquals("1997-12-30", partner.getPartnerBirthDate());
+        assertEquals("1997-12-29", partner.getPartnerBirthDate());
     }
 
     @Test
@@ -128,7 +128,7 @@ class PartnerMapperTest {
         Patient patient = new Patient();
         patient.setId("123");
         patient.setActive(true);
-        patient.setBirthDate(new Date(883434538000L));
+        patient.setBirthDate(new Date(883414538000L));
         patient.setName(Collections.singletonList(
                 new HumanName().setFamily("Doe").addGiven("John").setText("John Doe")));
         patient.setIdentifier(Collections.singletonList(
