@@ -94,7 +94,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
     }
 
     @Test
-    @DisplayName("Should create sale order with Patient Weight in Odoo given medication request bundle.")
+    @DisplayName("Should create sale order with Patient Weight and DOB in Odoo given medication request bundle.")
     public void shouldCreateSaleOrderInOdooGivenMedicationRequestBundle() {
         // Setup
         stubFor(get(urlMatching("/openmrs/ws/fhir2/R4/Observation\\?.*"))
@@ -122,6 +122,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         assertEquals(ENCOUNTER_PART_OF_UUID, createdSaleOrder.getOrderClientOrderRef());
         assertEquals("draft", createdSaleOrder.getOrderState());
         assertEquals("77.0 kg", createdSaleOrder.getPartnerWeight());
+        assertEquals("1984-01-01", createdSaleOrder.getPartnerBirthDate());
 
         // verify sale order has sale order line
         assertFalse(createdSaleOrder.getOrderLine().isEmpty());
@@ -148,9 +149,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         // Verify partner created
         result = getOdooClient()
                 .searchAndRead(
-                        Constants.PARTNER_MODEL,
-                        List.of(asList("ref", "=", PATIENT_UUID)),
-                        Constants.partnerDefaultAttributes);
+                        Constants.PARTNER_MODEL, List.of(asList("ref", "=", PATIENT_UUID)), partnerDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
@@ -219,9 +218,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         // Verify partner created
         result = getOdooClient()
                 .searchAndRead(
-                        Constants.PARTNER_MODEL,
-                        List.of(asList("ref", "=", PATIENT_UUID)),
-                        Constants.partnerDefaultAttributes);
+                        Constants.PARTNER_MODEL, List.of(asList("ref", "=", PATIENT_UUID)), partnerDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);

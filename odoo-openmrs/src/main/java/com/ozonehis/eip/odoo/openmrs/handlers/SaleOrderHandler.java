@@ -43,6 +43,9 @@ public class SaleOrderHandler {
     @Value("${odoo.customer.weight.field}")
     private String odooCustomerWeightField;
 
+    @Value("${odoo.customer.dob.field}")
+    private String odooCustomerDobField;
+
     @Autowired
     private OdooClient odooClient;
 
@@ -62,8 +65,14 @@ public class SaleOrderHandler {
     private OdooUtils odooUtils;
 
     @Getter
-    public List<String> orderDefaultAttributes =
-            asList("id", "client_order_ref", "partner_id", "state", "order_line", "x_customer_weight");
+    public List<String> orderDefaultAttributes = asList(
+            "id",
+            "client_order_ref",
+            "partner_id",
+            "state",
+            "order_line",
+            odooCustomerWeightField,
+            odooCustomerDobField);
 
     public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId) {
         Object[] records = odooClient.searchAndRead(

@@ -81,8 +81,19 @@ public abstract class BaseRouteIntegrationTest {
 
     private static final String odooCustomerWeightField = "x_customer_weight";
 
-    protected static final List<String> orderDefaultAttributes =
-            asList("id", "client_order_ref", "partner_id", "state", "order_line", odooCustomerWeightField);
+    private static final String odooCustomerDobField = "x_customer_dob";
+
+    protected static final List<String> orderDefaultAttributes = asList(
+            "id",
+            "client_order_ref",
+            "partner_id",
+            "state",
+            "order_line",
+            odooCustomerWeightField,
+            odooCustomerDobField);
+
+    protected static final List<String> partnerDefaultAttributes =
+            asList("id", "name", "ref", "street", "street2", "city", "zip", "active", "comment", odooCustomerDobField);
 
     protected WireMockServer wireMockServer = new WireMockServer(8080);
 
@@ -162,6 +173,8 @@ public abstract class BaseRouteIntegrationTest {
         partnerHandler.setOdooClient(getOdooClient());
         partnerHandler.setPartnerMapper(partnerMapper);
         partnerHandler.setOdooUtils(odooUtils);
+        partnerHandler.setOdooCustomerDobField(odooCustomerDobField);
+        partnerHandler.setPartnerDefaultAttributes(partnerDefaultAttributes);
 
         // Setup IGenericClient
         FhirContext fhirContext = FhirContext.forR4();
@@ -184,6 +197,7 @@ public abstract class BaseRouteIntegrationTest {
         saleOrderHandler.setObservationHandler(observationHandler);
         saleOrderHandler.setWeightConcept("5089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
         saleOrderHandler.setOdooCustomerWeightField(odooCustomerWeightField);
+        saleOrderHandler.setOdooCustomerDobField(odooCustomerDobField);
         saleOrderHandler.setOrderDefaultAttributes(orderDefaultAttributes);
         saleOrderHandler.setOdooUtils(odooUtils);
 

@@ -83,7 +83,7 @@ class PartnerHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.PARTNER_MODEL,
                         List.of(asList("ref", "=", PARTNER_REF_ID)),
-                        Constants.partnerDefaultAttributes))
+                        partnerHandler.getPartnerDefaultAttributes()))
                 .thenReturn(partners);
 
         // Act
@@ -109,7 +109,7 @@ class PartnerHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.PARTNER_MODEL,
                         List.of(asList("ref", "=", PARTNER_REF_ID)),
-                        Constants.partnerDefaultAttributes))
+                        partnerHandler.getPartnerDefaultAttributes()))
                 .thenReturn(partners);
 
         // Verify
@@ -134,7 +134,7 @@ class PartnerHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.PARTNER_MODEL,
                         List.of(asList("ref", "=", patient.getIdPart())),
-                        Constants.partnerDefaultAttributes))
+                        partnerHandler.getPartnerDefaultAttributes()))
                 .thenReturn(partners);
         when(partnerMapper.toOdoo(patient)).thenReturn(getPartner());
 
@@ -160,7 +160,7 @@ class PartnerHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.PARTNER_MODEL,
                         List.of(asList("ref", "=", patient.getIdPart())),
-                        Constants.partnerDefaultAttributes))
+                        partnerHandler.getPartnerDefaultAttributes()))
                 .thenReturn(new Object[] {})
                 .thenReturn(new Object[] {getPartnerMap()});
         when(partnerMapper.toOdoo(patient)).thenReturn(getPartner());
