@@ -15,6 +15,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 import com.ozonehis.eip.odoo.openmrs.handlers.CountryHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.CountryStateHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import org.hl7.fhir.r4.model.Address;
@@ -128,7 +129,10 @@ class PartnerMapperTest {
         Patient patient = new Patient();
         patient.setId("123");
         patient.setActive(true);
-        patient.setBirthDate(new Date(883414538000L));
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(1997, Calendar.DECEMBER, 29);
+        Date birthDate = calendar.getTime();
+        patient.setBirthDate(birthDate);
         patient.setName(Collections.singletonList(
                 new HumanName().setFamily("Doe").addGiven("John").setText("John Doe")));
         patient.setIdentifier(Collections.singletonList(

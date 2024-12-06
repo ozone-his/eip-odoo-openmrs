@@ -88,7 +88,7 @@ public class OdooUtils {
         throw new IllegalArgumentException("Unsupported type: " + targetType.getName());
     }
 
-    public static String convertEEE_MMM_ddDateToOdooFormat(String date) {
+    public static String convertEEEMMMddDateToOdooFormat(String date) {
         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy");
         DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 

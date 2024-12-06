@@ -19,7 +19,7 @@ class OdooUtilsTest {
         String date = "Tue Dec 30 04:28:58 IST 1997";
 
         // Act
-        String result = OdooUtils.convertEEE_MMM_ddDateToOdooFormat(date);
+        String result = OdooUtils.convertEEEMMMddDateToOdooFormat(date);
 
         // Verify
         assertEquals("1997-12-30", result);
@@ -31,7 +31,7 @@ class OdooUtilsTest {
         String date = "Tue 30 04:28:58 IST 1997";
 
         // Act
-        String result = OdooUtils.convertEEE_MMM_ddDateToOdooFormat(date);
+        String result = OdooUtils.convertEEEMMMddDateToOdooFormat(date);
 
         // Verify
         assertEquals("", result);
