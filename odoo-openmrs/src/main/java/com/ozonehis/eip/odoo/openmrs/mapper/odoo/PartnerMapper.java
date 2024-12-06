@@ -7,6 +7,7 @@
  */
 package com.ozonehis.eip.odoo.openmrs.mapper.odoo;
 
+import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.handlers.CountryHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.CountryStateHandler;
 import com.ozonehis.eip.odoo.openmrs.mapper.ToOdooMapping;
@@ -50,6 +51,8 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
         String patientIdentifier = getPreferredPatientIdentifier(patient).orElse("");
         partner.setPartnerComment(patientIdentifier);
         partner.setPartnerName(patientName);
+        partner.setPartnerBirthDate(
+                OdooUtils.convertEEEMMMddDateToOdooFormat(patient.getBirthDate().toString()));
 
         addAddress(patient, partner);
         return partner;

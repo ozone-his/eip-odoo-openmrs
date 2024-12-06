@@ -80,9 +80,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         // verify
         Object[] result = getOdooClient()
                 .searchAndRead(
-                        Constants.PARTNER_MODEL,
-                        List.of(asList("ref", "=", PATIENT_1_UUID)),
-                        Constants.partnerDefaultAttributes);
+                        Constants.PARTNER_MODEL, List.of(asList("ref", "=", PATIENT_1_UUID)), partnerDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
@@ -94,6 +92,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertEquals(PATIENT_1_UUID, createdPartner.getPartnerRef());
         assertEquals("City2062", createdPartner.getPartnerCity());
         assertEquals(PATIENT_IDENTIFIER_1_VALUE, createdPartner.getPartnerComment());
+        assertEquals("1939-02-14", createdPartner.getPartnerBirthDate());
     }
 
     @Test
@@ -107,9 +106,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         // verify
         Object[] result = getOdooClient()
                 .searchAndRead(
-                        Constants.PARTNER_MODEL,
-                        List.of(asList("ref", "=", PATIENT_2_UUID)),
-                        Constants.partnerDefaultAttributes);
+                        Constants.PARTNER_MODEL, List.of(asList("ref", "=", PATIENT_2_UUID)), partnerDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
@@ -130,9 +127,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         // verify
         result = getOdooClient()
                 .searchAndRead(
-                        Constants.PARTNER_MODEL,
-                        List.of(asList("ref", "=", PATIENT_2_UUID)),
-                        Constants.partnerDefaultAttributes);
+                        Constants.PARTNER_MODEL, List.of(asList("ref", "=", PATIENT_2_UUID)), partnerDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
@@ -144,6 +139,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertEquals(PATIENT_2_UUID, updatedPartner.getPartnerRef());
         assertEquals("Nairobi", updatedPartner.getPartnerCity());
         assertEquals(PATIENT_IDENTIFIER_2_VALUE, updatedPartner.getPartnerComment());
+        assertEquals("2019-09-25", updatedPartner.getPartnerBirthDate());
     }
 
     @Test
@@ -157,9 +153,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         // verify
         Object[] result = getOdooClient()
                 .searchAndRead(
-                        Constants.PARTNER_MODEL,
-                        List.of(asList("ref", "=", PATIENT_1_UUID)),
-                        Constants.partnerDefaultAttributes);
+                        Constants.PARTNER_MODEL, List.of(asList("ref", "=", PATIENT_1_UUID)), partnerDefaultAttributes);
 
         assertNotNull(result);
         assertNotNull(result[0]);
@@ -179,9 +173,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         // verify
         result = getOdooClient()
                 .searchAndRead(
-                        Constants.PARTNER_MODEL,
-                        List.of(asList("ref", "=", PATIENT_1_UUID)),
-                        Constants.partnerDefaultAttributes);
+                        Constants.PARTNER_MODEL, List.of(asList("ref", "=", PATIENT_1_UUID)), partnerDefaultAttributes);
 
         assertNotNull(result);
         assertEquals(0, result.length);

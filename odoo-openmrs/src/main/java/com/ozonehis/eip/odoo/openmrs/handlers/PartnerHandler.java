@@ -17,18 +17,23 @@ import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Patient;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Setter
 @Component
 public class PartnerHandler {
+
+    @Value("${odoo.customer.dob.field}")
+    private String odooCustomerDobField;
 
     @Autowired
     private OdooClient odooClient;
@@ -39,9 +44,13 @@ public class PartnerHandler {
     @Autowired
     private OdooUtils odooUtils;
 
+    @Getter
+    public List<String> partnerDefaultAttributes =
+            asList("id", "name", "ref", "street", "street2", "city", "zip", "active", "comment", odooCustomerDobField);
+
     public Partner getPartnerByID(String partnerRefID) {
         Object[] records = odooClient.searchAndRead(
-                Constants.PARTNER_MODEL, List.of(asList("ref", "=", partnerRefID)), Constants.partnerDefaultAttributes);
+                Constants.PARTNER_MODEL, List.of(asList("ref", "=", partnerRefID)), partnerDefaultAttributes);
         if (records == null) {
             throw new EIPException(
                     String.format("Got null response while searching for Partner with reference id %s", partnerRefID));
@@ -57,7 +66,7 @@ public class PartnerHandler {
         }
     }
 
-    public int createOrUpdatePartner(ProducerTemplate producerTemplate, Patient patient) {
+    public Partner createOrUpdatePartner(ProducerTemplate producerTemplate, Patient patient) {
         Partner fetchedPartner = getPartnerByID(patient.getIdPart());
         if (fetchedPartner != null && fetchedPartner.getPartnerId() > 0) {
             int partnerId = fetchedPartner.getPartnerId();
@@ -65,12 +74,12 @@ public class PartnerHandler {
             Partner partner = partnerMapper.toOdoo(patient);
             partner.setPartnerId(partnerId);
             sendPartner(producerTemplate, "direct:odoo-update-partner-route", partner);
-            return partnerId;
+            return getPartnerByID(partner.getPartnerRef());
         } else {
             log.info("Partner with reference id {} does not exist, creating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
             sendPartner(producerTemplate, "direct:odoo-create-partner-route", partner);
-            return getPartnerByID(partner.getPartnerRef()).getPartnerId();
+            return getPartnerByID(partner.getPartnerRef());
         }
     }
 

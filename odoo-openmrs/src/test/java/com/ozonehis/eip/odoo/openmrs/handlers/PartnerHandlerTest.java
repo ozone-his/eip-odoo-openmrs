@@ -83,7 +83,7 @@ class PartnerHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.PARTNER_MODEL,
                         List.of(asList("ref", "=", PARTNER_REF_ID)),
-                        Constants.partnerDefaultAttributes))
+                        partnerHandler.getPartnerDefaultAttributes()))
                 .thenReturn(partners);
 
         // Act
@@ -109,7 +109,7 @@ class PartnerHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.PARTNER_MODEL,
                         List.of(asList("ref", "=", PARTNER_REF_ID)),
-                        Constants.partnerDefaultAttributes))
+                        partnerHandler.getPartnerDefaultAttributes()))
                 .thenReturn(partners);
 
         // Verify
@@ -134,15 +134,15 @@ class PartnerHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.PARTNER_MODEL,
                         List.of(asList("ref", "=", patient.getIdPart())),
-                        Constants.partnerDefaultAttributes))
+                        partnerHandler.getPartnerDefaultAttributes()))
                 .thenReturn(partners);
         when(partnerMapper.toOdoo(patient)).thenReturn(getPartner());
 
         // Act
-        int result = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
+        Partner result = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
 
         // Verify
-        assertEquals(12, result);
+        assertEquals(12, result.getPartnerId());
         verify(producerTemplate, times(1))
                 .sendBodyAndHeaders(eq("direct:odoo-update-partner-route"), eq(getPartner()), eq(headers));
     }
@@ -160,16 +160,16 @@ class PartnerHandlerTest {
         when(odooClient.searchAndRead(
                         Constants.PARTNER_MODEL,
                         List.of(asList("ref", "=", patient.getIdPart())),
-                        Constants.partnerDefaultAttributes))
+                        partnerHandler.getPartnerDefaultAttributes()))
                 .thenReturn(new Object[] {})
                 .thenReturn(new Object[] {getPartnerMap()});
         when(partnerMapper.toOdoo(patient)).thenReturn(getPartner());
 
         // Act
-        int result = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
+        Partner result = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
 
         // Verify
-        assertEquals(12, result);
+        assertEquals(12, result.getPartnerId());
         verify(producerTemplate, times(1))
                 .sendBodyAndHeaders(eq("direct:odoo-create-partner-route"), eq(getPartner()), eq(headers));
     }

@@ -7,10 +7,6 @@
  */
 package com.ozonehis.eip.odoo.openmrs;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 public class Constants {
     public static final String PARTNER_MODEL = "res.partner";
 
@@ -45,7 +41,4 @@ public class Constants {
     public static final String FHIR_RESOURCE_TYPE = "fhir.resource.type";
 
     public static final String HEADER_ENABLE_PATIENT_SYNC = "enable.patient.sync";
-
-    public static final List<String> partnerDefaultAttributes =
-            asList("id", "name", "ref", "street", "street2", "city", "zip", "active", "comment");
 }

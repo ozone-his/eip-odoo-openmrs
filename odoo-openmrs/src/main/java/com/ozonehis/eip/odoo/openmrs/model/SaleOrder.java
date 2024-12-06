@@ -40,4 +40,7 @@ public class SaleOrder implements OdooResource {
 
     @JsonProperty("odoo.customer.weight.field")
     private String partnerWeight;
+
+    @JsonProperty("odoo.customer.dob.field")
+    private String partnerBirthDate;
 }

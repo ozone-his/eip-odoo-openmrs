@@ -9,6 +9,7 @@ package com.ozonehis.eip.odoo.openmrs.processors;
 
 import com.ozonehis.eip.odoo.openmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.SaleOrderHandler;
+import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import java.util.List;
 import lombok.Setter;
@@ -73,7 +74,7 @@ public class MedicationRequestProcessor implements Processor {
                     throw new IllegalArgumentException("Event type not found in the exchange headers.");
                 }
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
-                int partnerId = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
+                Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     if (!medicationRequest.getStatus().equals(MedicationRequest.MedicationRequestStatus.CANCELLED)) {
                         SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
@@ -82,14 +83,14 @@ public class MedicationRequestProcessor implements Processor {
                                     medicationRequest,
                                     saleOrder,
                                     encounterVisitUuid,
-                                    partnerId,
+                                    partner.getPartnerId(),
                                     patient.getIdPart(),
                                     producerTemplate);
                         } else {
                             saleOrderHandler.createSaleOrderWithSaleOrderLine(
                                     medicationRequest,
                                     encounter,
-                                    partnerId,
+                                    partner,
                                     encounterVisitUuid,
                                     patient.getIdPart(),
                                     producerTemplate);
@@ -102,7 +103,7 @@ public class MedicationRequestProcessor implements Processor {
                     // Executed when DISCONTINUE option is selected in OpenMRS
                     saleOrderHandler.deleteSaleOrderLine(medicationRequest, encounterVisitUuid, producerTemplate);
                     saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
-                            partnerId, encounterVisitUuid, producerTemplate);
+                            partner.getPartnerId(), encounterVisitUuid, producerTemplate);
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
                 }

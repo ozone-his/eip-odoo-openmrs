@@ -18,6 +18,7 @@ import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
 import com.ozonehis.eip.odoo.openmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.SaleOrderHandler;
+import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,8 +86,11 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
 
         Exchange exchange = createExchange(bundle, "u");
 
+        Partner partner = new Partner();
+        partner.setPartnerId(PARTNER_ID);
+
         // Mock behavior
-        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(PARTNER_ID);
+        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(partner);
         when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_VISIT_ID))
                 .thenReturn(saleOrder);
 
@@ -105,12 +109,7 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
                         any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(serviceRequest),
-                        eq(encounter),
-                        eq(PARTNER_ID),
-                        eq(ENCOUNTER_VISIT_ID),
-                        eq(PATIENT_ID),
-                        any());
+                        eq(serviceRequest), eq(encounter), eq(partner), eq(ENCOUNTER_VISIT_ID), eq(PATIENT_ID), any());
     }
 
     @Test
@@ -133,8 +132,11 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
 
         Exchange exchange = createExchange(bundle, "c");
 
+        Partner partner = new Partner();
+        partner.setPartnerId(PARTNER_ID);
+
         // Mock behavior
-        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(PARTNER_ID);
+        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(partner);
         when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_VISIT_ID))
                 .thenReturn(null);
 
@@ -148,11 +150,6 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
                         eq(serviceRequest), any(), eq(ENCOUNTER_VISIT_ID), eq(PARTNER_ID), eq(PATIENT_ID), any());
         verify(saleOrderHandler, times(1))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(serviceRequest),
-                        eq(encounter),
-                        eq(PARTNER_ID),
-                        eq(ENCOUNTER_VISIT_ID),
-                        eq(PATIENT_ID),
-                        any());
+                        eq(serviceRequest), eq(encounter), eq(partner), eq(ENCOUNTER_VISIT_ID), eq(PATIENT_ID), any());
     }
 }
