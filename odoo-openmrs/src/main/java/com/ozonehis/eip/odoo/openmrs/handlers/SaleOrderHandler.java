@@ -20,7 +20,6 @@ import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
@@ -64,17 +63,17 @@ public class SaleOrderHandler {
     @Autowired
     private OdooUtils odooUtils;
 
-    @Getter
-    public List<String> orderDefaultAttributes = asList(
-            "id",
-            "client_order_ref",
-            "partner_id",
-            "state",
-            "order_line",
-            odooCustomerWeightField,
-            odooCustomerDobField);
+    public List<String> orderDefaultAttributes;
 
     public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId) {
+        orderDefaultAttributes = asList(
+                "id",
+                "client_order_ref",
+                "partner_id",
+                "state",
+                "order_line",
+                odooCustomerWeightField,
+                odooCustomerDobField);
         Object[] records = odooClient.searchAndRead(
                 Constants.SALE_ORDER_MODEL,
                 List.of(asList("client_order_ref", "=", visitId), asList("state", "=", "draft")),
@@ -123,7 +122,9 @@ public class SaleOrderHandler {
         }
 
         // Update sale order with Patient Weight if not already present
-        if (saleOrder.getPartnerWeight() == null || saleOrder.getPartnerWeight().isEmpty()) {
+        if (saleOrder.getPartnerWeight() == null
+                || saleOrder.getPartnerWeight().isEmpty()
+                || saleOrder.getPartnerWeight().equals("false")) {
             updateSaleOrderWithPatientWeight(partnerId, patientID, saleOrder, producerTemplate);
         }
         producerTemplate.sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);

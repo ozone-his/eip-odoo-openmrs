@@ -69,7 +69,6 @@ public class ServiceRequestProcessor implements Processor {
                 }
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
                 Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
-                //                int partnerId = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                             && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {

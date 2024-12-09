@@ -11,6 +11,7 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -81,9 +82,7 @@ class PartnerHandlerTest {
 
         // Mock behavior
         when(odooClient.searchAndRead(
-                        Constants.PARTNER_MODEL,
-                        List.of(asList("ref", "=", PARTNER_REF_ID)),
-                        partnerHandler.getPartnerDefaultAttributes()))
+                        eq(Constants.PARTNER_MODEL), eq(List.of(asList("ref", "=", PARTNER_REF_ID))), any()))
                 .thenReturn(partners);
 
         // Act
@@ -107,9 +106,7 @@ class PartnerHandlerTest {
 
         // Mock behavior
         when(odooClient.searchAndRead(
-                        Constants.PARTNER_MODEL,
-                        List.of(asList("ref", "=", PARTNER_REF_ID)),
-                        partnerHandler.getPartnerDefaultAttributes()))
+                        eq(Constants.PARTNER_MODEL), eq(List.of(asList("ref", "=", PARTNER_REF_ID))), any()))
                 .thenReturn(partners);
 
         // Verify
@@ -132,9 +129,7 @@ class PartnerHandlerTest {
         // Mock behavior
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
         when(odooClient.searchAndRead(
-                        Constants.PARTNER_MODEL,
-                        List.of(asList("ref", "=", patient.getIdPart())),
-                        partnerHandler.getPartnerDefaultAttributes()))
+                        eq(Constants.PARTNER_MODEL), eq(List.of(asList("ref", "=", patient.getIdPart()))), any()))
                 .thenReturn(partners);
         when(partnerMapper.toOdoo(patient)).thenReturn(getPartner());
 
@@ -158,9 +153,7 @@ class PartnerHandlerTest {
         // Mock behavior
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
         when(odooClient.searchAndRead(
-                        Constants.PARTNER_MODEL,
-                        List.of(asList("ref", "=", patient.getIdPart())),
-                        partnerHandler.getPartnerDefaultAttributes()))
+                        eq(Constants.PARTNER_MODEL), eq(List.of(asList("ref", "=", patient.getIdPart()))), any()))
                 .thenReturn(new Object[] {})
                 .thenReturn(new Object[] {getPartnerMap()});
         when(partnerMapper.toOdoo(patient)).thenReturn(getPartner());
