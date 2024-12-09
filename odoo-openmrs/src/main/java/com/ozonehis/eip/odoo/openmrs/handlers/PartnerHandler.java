@@ -17,7 +17,6 @@ import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
@@ -44,11 +43,11 @@ public class PartnerHandler {
     @Autowired
     private OdooUtils odooUtils;
 
-    @Getter
-    public List<String> partnerDefaultAttributes =
-            asList("id", "name", "ref", "street", "street2", "city", "zip", "active", "comment", odooCustomerDobField);
+    public List<String> partnerDefaultAttributes;
 
     public Partner getPartnerByID(String partnerRefID) {
+        partnerDefaultAttributes = asList(
+                "id", "name", "ref", "street", "street2", "city", "zip", "active", "comment", odooCustomerDobField);
         Object[] records = odooClient.searchAndRead(
                 Constants.PARTNER_MODEL, List.of(asList("ref", "=", partnerRefID)), partnerDefaultAttributes);
         if (records == null) {

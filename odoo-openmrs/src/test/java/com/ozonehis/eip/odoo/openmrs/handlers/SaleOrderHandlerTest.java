@@ -101,9 +101,9 @@ class SaleOrderHandlerTest {
 
         // Mock behavior
         when(odooClient.searchAndRead(
-                        Constants.SALE_ORDER_MODEL,
-                        List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        saleOrderHandler.getOrderDefaultAttributes()))
+                        eq(Constants.SALE_ORDER_MODEL),
+                        eq(List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft"))),
+                        any()))
                 .thenReturn(saleOrders);
 
         // Act
@@ -127,9 +127,9 @@ class SaleOrderHandlerTest {
 
         // Mock behavior
         when(odooClient.searchAndRead(
-                        Constants.SALE_ORDER_MODEL,
-                        List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        saleOrderHandler.getOrderDefaultAttributes()))
+                        eq(Constants.SALE_ORDER_MODEL),
+                        eq(List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft"))),
+                        any()))
                 .thenReturn(saleOrders);
 
         // Verify
@@ -143,9 +143,9 @@ class SaleOrderHandlerTest {
 
         // Mock behavior
         when(odooClient.searchAndRead(
-                        Constants.SALE_ORDER_MODEL,
-                        List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        saleOrderHandler.getOrderDefaultAttributes()))
+                        eq(Constants.SALE_ORDER_MODEL),
+                        eq(List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft"))),
+                        any()))
                 .thenReturn(saleOrders);
 
         // Act
@@ -159,9 +159,9 @@ class SaleOrderHandlerTest {
     public void shouldThrowErrorWhenNullResponseFromClient() {
         // Mock behavior
         when(odooClient.searchAndRead(
-                        Constants.SALE_ORDER_MODEL,
-                        List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        saleOrderHandler.getOrderDefaultAttributes()))
+                        eq(Constants.SALE_ORDER_MODEL),
+                        eq(List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft"))),
+                        any()))
                 .thenReturn(null);
 
         // Verify
@@ -203,9 +203,9 @@ class SaleOrderHandlerTest {
         // Mock behaviour
         when(saleOrderMapper.toOdoo(encounter)).thenReturn(saleOrder);
         when(odooClient.searchAndRead(
-                        Constants.SALE_ORDER_MODEL,
-                        List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        saleOrderHandler.getOrderDefaultAttributes()))
+                        eq(Constants.SALE_ORDER_MODEL),
+                        eq(List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft"))),
+                        any()))
                 .thenReturn(new Object[] {saleOrderMap});
         when(saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder))
                 .thenReturn(saleOrderLine);
@@ -238,9 +238,9 @@ class SaleOrderHandlerTest {
 
         // Mock behaviour
         when(odooClient.searchAndRead(
-                        Constants.SALE_ORDER_MODEL,
-                        List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        saleOrderHandler.getOrderDefaultAttributes()))
+                        eq(Constants.SALE_ORDER_MODEL),
+                        eq(List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft"))),
+                        any()))
                 .thenReturn(new Object[] {saleOrderMap});
         when(productHandler.getProduct(resource)).thenReturn(product);
         when(saleOrderLineHandler.getSaleOrderLineIfExists(saleOrder.getOrderId(), product.getProductResId()))
@@ -269,9 +269,9 @@ class SaleOrderHandlerTest {
 
         // Mock behaviour
         when(odooClient.searchAndRead(
-                        Constants.SALE_ORDER_MODEL,
-                        List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft")),
-                        saleOrderHandler.getOrderDefaultAttributes()))
+                        eq(Constants.SALE_ORDER_MODEL),
+                        eq(List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft"))),
+                        any()))
                 .thenReturn(new Object[] {saleOrderMap});
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
