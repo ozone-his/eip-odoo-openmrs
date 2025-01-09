@@ -9,6 +9,8 @@ package com.ozonehis.eip.odoo.openmrs.processors;
 
 import com.ozonehis.eip.odoo.openmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.SaleOrderHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.PatientHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import java.util.List;
@@ -38,6 +40,12 @@ public class ServiceRequestProcessor implements Processor {
     @Autowired
     private PartnerHandler partnerHandler;
 
+    @Autowired
+    private PatientHandler patientHandler;
+
+    @Autowired
+    private EncounterHandler encounterHandler;
+
     @Override
     public void process(Exchange exchange) {
         try (ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate()) {
@@ -58,9 +66,20 @@ public class ServiceRequestProcessor implements Processor {
                 }
             }
 
-            if (patient == null || encounter == null || serviceRequest == null) {
+            if (serviceRequest == null) {
+                throw new CamelExecutionException("Invalid Bundle. Bundle must contain ServiceRequest", exchange);
+            }
+            if (patient == null) {
+                patient = patientHandler.getPatientByPatientID(
+                        serviceRequest.getSubject().getReference().split("/")[1]);
+            }
+            if (encounter == null) {
+                encounter = encounterHandler.getEncounterByEncounterID(
+                        serviceRequest.getEncounter().getReference().split("/")[1]);
+            }
+            if (patient == null || encounter == null) {
                 throw new CamelExecutionException(
-                        "Invalid Bundle. Bundle must contain Patient, Encounter and ServiceRequest", exchange);
+                        "Invalid Bundle. Bundle must contain Patient and Encounter", exchange);
             } else {
                 log.debug("Processing ServiceRequest for Patient with UUID {}", patient.getIdPart());
                 String eventType = exchange.getMessage().getHeader(Constants.HEADER_FHIR_EVENT_TYPE, String.class);

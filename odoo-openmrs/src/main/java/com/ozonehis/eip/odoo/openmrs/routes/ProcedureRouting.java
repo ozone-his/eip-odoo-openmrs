@@ -7,16 +7,21 @@
  */
 package com.ozonehis.eip.odoo.openmrs.routes;
 
+import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.processors.ServiceRequestProcessor;
 import lombok.Setter;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.ServiceRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Setter
 @Component
 public class ProcedureRouting extends RouteBuilder {
+
+    private static final String SERVICE_REQUEST_ID = "service.request.id";
 
     @Autowired
     private ServiceRequestProcessor serviceRequestProcessor;
@@ -27,10 +32,16 @@ public class ProcedureRouting extends RouteBuilder {
         from("direct:fhir-procedure")
                 .routeId("procedure-to-sale-order-router")
                 .filter(body().isNotNull())
-                .log(LoggingLevel.INFO, "Processing Procedure router")
                 .process(exchange -> {
-                    log.info("Procedure body {}", exchange.getMessage().getBody(String.class));
-                })                .to("direct:procedure-to-sale-order-processor")
+                    ServiceRequest serviceRequest = exchange.getMessage().getBody(ServiceRequest.class);
+                    exchange.setProperty(Constants.FHIR_RESOURCE_TYPE, serviceRequest.fhirType());
+                    exchange.setProperty(
+                            SERVICE_REQUEST_ID, serviceRequest.getIdElement().getIdPart());
+                    Bundle bundle = new Bundle();
+                    bundle.addEntry().setResource(serviceRequest);
+                    exchange.getMessage().setBody(bundle);
+                })
+                .to("direct:procedure-to-sale-order-processor")
                 .end();
 
         from("direct:procedure-to-sale-order-processor")
