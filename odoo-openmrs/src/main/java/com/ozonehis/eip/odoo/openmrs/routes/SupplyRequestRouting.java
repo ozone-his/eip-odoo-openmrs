@@ -15,10 +15,9 @@ import org.apache.camel.builder.RouteBuilder;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.SupplyRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 @Setter
-@Component
+// @Component
 public class SupplyRequestRouting extends RouteBuilder {
 
     private static final String SUPPLY_REQUEST_ID = "supply.request.id";

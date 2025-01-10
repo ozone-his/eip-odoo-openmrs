@@ -24,11 +24,10 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.SupplyRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @Setter
-@Component
+// @Component
 public class SupplyRequestProcessor implements Processor {
 
     @Autowired
