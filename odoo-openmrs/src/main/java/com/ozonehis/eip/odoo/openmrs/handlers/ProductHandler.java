@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
+import org.hl7.fhir.r4.model.SupplyRequest;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -65,6 +66,10 @@ public class ProductHandler {
             String id =
                     medicationRequest.getMedicationReference().getReference().split("/")[1];
             log.debug("ProductHandler: MedicationRequest reference {}", id);
+            return id;
+        } else if (resource instanceof SupplyRequest supplyRequest) {
+            String id = supplyRequest.getItemReference().getReference().split("/")[1];
+            log.info("ProductHandler: SupplyRequest reference {}", id);
             return id;
         } else {
             throw new IllegalArgumentException(

@@ -15,6 +15,7 @@ import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
+import org.hl7.fhir.r4.model.SupplyRequest;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -46,6 +47,18 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
             saleOrderLine.setSaleOrderLineName(medicationDisplay + " | "
                     + constructDosageInstructionsText(medicationRequest) + " | Orderer: " + requesterDisplay);
 
+        } else if (resource instanceof SupplyRequest supplyRequest) {
+            log.info("In SaleOrderLineMapper {}", supplyRequest.getQuantity());
+
+            if (supplyRequest.hasQuantity()) {
+                Quantity quantity = supplyRequest.getQuantity();
+                saleOrderLine.setSaleOrderLineProductUomQty(quantity.getValue().floatValue());
+                saleOrderLine.setSaleOrderLineProductUom(quantity.getCode());
+            }
+
+            String requesterDisplay = supplyRequest.getRequester().getDisplay();
+            String supplyRequestDisplay = supplyRequest.getRequester().getDisplay();
+            saleOrderLine.setSaleOrderLineName(supplyRequestDisplay + " | " + "| Orderer: " + requesterDisplay);
         } else {
             throw new IllegalArgumentException("Sale Order Mapper Unsupported resource type: "
                     + resource.getClass().getName());

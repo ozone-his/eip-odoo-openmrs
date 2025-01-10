@@ -43,7 +43,7 @@ public class UomHandler {
             return odooUtils.convertToObject((Map<String, Object>) records[0], Uom.class);
         } else if (records.length == 0) {
             log.warn("No Uom found with id {}", externalId);
-            throw new EIPException(String.format("No Uom found with id %s", externalId));
+            return null;
         } else {
             log.warn("Multiple Uom exists with id {}", externalId);
             throw new EIPException(String.format("Multiple Uom exists with id %s", externalId));

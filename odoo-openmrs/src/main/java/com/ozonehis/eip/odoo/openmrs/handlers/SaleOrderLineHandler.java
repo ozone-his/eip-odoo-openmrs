@@ -26,6 +26,7 @@ import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
+import org.hl7.fhir.r4.model.SupplyRequest;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -71,12 +72,12 @@ public class SaleOrderLineHandler {
         SaleOrderLine saleOrderLine = saleOrderLineMapper.toOdoo(resource);
         saleOrderLine.setSaleOrderLineProductId(product.getProductResId());
         saleOrderLine.setSaleOrderLineOrderId(saleOrder.getOrderId());
-        if (resource instanceof MedicationRequest) {
+        if (resource instanceof MedicationRequest || resource instanceof SupplyRequest) {
             String uomExternalId = (String) saleOrderLine.getSaleOrderLineProductUom();
             Uom uom = uomHandler.getUom(uomExternalId);
             log.debug("SaleOrderLineHandler: Fetched Uom {}", uom);
             // Store Uom res_id in productUom to display unit in Odoo
-            saleOrderLine.setSaleOrderLineProductUom(uom.getUomResId());
+            saleOrderLine.setSaleOrderLineProductUom(uom == null ? 1 : uom.getUomResId());
         } else if (resource instanceof ServiceRequest) {
             // Hardcoded to 1 so that `Units` is shown for ServiceRequest
             saleOrderLine.setSaleOrderLineProductUom(1);

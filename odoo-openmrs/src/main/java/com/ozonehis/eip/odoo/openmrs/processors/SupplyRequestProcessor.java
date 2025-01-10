@@ -11,6 +11,8 @@ import com.ozonehis.eip.odoo.openmrs.handlers.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.SaleOrderHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.PatientHandler;
+import com.ozonehis.eip.odoo.openmrs.model.Partner;
+import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +25,13 @@ import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.SupplyRequest;
+import org.openmrs.eip.fhir.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Setter
-// @Component
+@Component
 public class SupplyRequestProcessor implements Processor {
 
     @Autowired
@@ -65,8 +69,61 @@ public class SupplyRequestProcessor implements Processor {
             if (supplyRequest == null) {
                 throw new CamelExecutionException("Invalid Bundle. Bundle must contain SupplyRequest", exchange);
             }
+            log.info("Processing SupplyRequest for Patient with UUID {}", supplyRequest.getId());
+            if (patient == null) {
+                patient = patientHandler.getPatientByPatientID(
+                        supplyRequest.getDeliverTo().getReference().split("/")[1]);
+            }
+            if (encounter == null) {
+                encounter = encounterHandler.getEncounterByEncounterID(
+                        supplyRequest.getReasonReference().get(0).getReference().split("/")[1]);
+            }
+            if (patient == null || encounter == null) {
+                throw new CamelExecutionException(
+                        "Invalid Bundle. Bundle must contain Patient and Encounter", exchange);
+            } else {
+                log.debug("Processing SupplyRequest for Patient with UUID {}", patient.getIdPart());
+                String eventType = exchange.getMessage().getHeader(Constants.HEADER_FHIR_EVENT_TYPE, String.class);
+                if (eventType == null) {
+                    throw new IllegalArgumentException("Event type not found in the exchange headers.");
+                }
+                String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
+                Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
+                if ("c".equals(eventType) || "u".equals(eventType)) {
+                    if (supplyRequest.getStatus().equals(SupplyRequest.SupplyRequestStatus.ACTIVE)) {
+                        SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
+                        if (saleOrder != null) {
+                            saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
+                                    supplyRequest,
+                                    saleOrder,
+                                    encounterVisitUuid,
+                                    partner.getPartnerId(),
+                                    patient.getIdPart(),
+                                    producerTemplate);
+                        } else {
+                            saleOrderHandler.createSaleOrderWithSaleOrderLine(
+                                    supplyRequest,
+                                    encounter,
+                                    partner,
+                                    encounterVisitUuid,
+                                    patient.getIdPart(),
+                                    producerTemplate);
+                        }
+                    } else {
+                        // Executed when MODIFY option is selected in OpenMRS
+                        saleOrderHandler.deleteSaleOrderLine(supplyRequest, encounterVisitUuid, producerTemplate);
+                    }
+                } else if ("d".equals(eventType)) {
+                    // Executed when DISCONTINUE option is selected in OpenMRS
+                    saleOrderHandler.deleteSaleOrderLine(supplyRequest, encounterVisitUuid, producerTemplate);
+                    saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
+                            partner.getPartnerId(), encounterVisitUuid, producerTemplate);
+                } else {
+                    throw new IllegalArgumentException("Unsupported event type: " + eventType);
+                }
+            }
         } catch (Exception e) {
-            throw new CamelExecutionException("Error processing ServiceRequest", exchange, e);
+            throw new CamelExecutionException("Error processing SupplyRequest", exchange, e);
         }
     }
 }
