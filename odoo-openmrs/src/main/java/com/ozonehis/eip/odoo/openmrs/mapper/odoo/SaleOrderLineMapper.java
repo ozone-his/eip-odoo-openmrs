@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Dosage;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Quantity;
+import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.SupplyRequest;
@@ -57,8 +58,9 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
             }
 
             String requesterDisplay = supplyRequest.getRequester().getDisplay();
-            String supplyRequestDisplay = supplyRequest.getRequester().getDisplay();
-            saleOrderLine.setSaleOrderLineName(supplyRequestDisplay + " | " + "| Orderer: " + requesterDisplay);
+            Reference supplyRequestReference = (Reference) supplyRequest.getItem();
+            String supplyRequestDisplay = supplyRequestReference.getDisplay();
+            saleOrderLine.setSaleOrderLineName(supplyRequestDisplay + " | Orderer: " + requesterDisplay);
         } else {
             throw new IllegalArgumentException("Sale Order Mapper Unsupported resource type: "
                     + resource.getClass().getName());
