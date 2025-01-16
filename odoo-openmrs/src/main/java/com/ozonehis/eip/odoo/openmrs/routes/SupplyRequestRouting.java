@@ -7,6 +7,7 @@
  */
 package com.ozonehis.eip.odoo.openmrs.routes;
 
+import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.processors.SupplyRequestProcessor;
 import lombok.Setter;
@@ -30,9 +31,9 @@ public class SupplyRequestRouting extends RouteBuilder {
     public void configure() {
         // spotless:off
         from("direct:fhir-supplyrequest")
-                .routeId("supplyrequest-to-sale-order-router")
-                .filter(body().isNotNull())
-                .process(exchange -> {
+            .routeId("supplyrequest-to-sale-order-router")
+            .filter(body().isNotNull())
+            .process(exchange -> {
                     SupplyRequest supplyRequest = exchange.getMessage().getBody(SupplyRequest.class);
                     exchange.setProperty(Constants.FHIR_RESOURCE_TYPE, supplyRequest.fhirType());
                     exchange.setProperty(
@@ -41,13 +42,13 @@ public class SupplyRequestRouting extends RouteBuilder {
                     bundle.addEntry().setResource(supplyRequest);
                     exchange.getMessage().setBody(bundle);
                 })
-                .to("direct:supplyrequest-to-sale-order-processor")
+            .to("direct:supplyrequest-to-sale-order-processor")
                 .end();
 
         from("direct:supplyrequest-to-sale-order-processor")
-                .routeId("supplyrequest-to-sale-order-processor")
-                .process(supplyRequestProcessor)
-                .log(LoggingLevel.INFO, "Processing SupplyRequest")
+            .routeId("supplyrequest-to-sale-order-processor")
+            .process(supplyRequestProcessor)
+            .log(LoggingLevel.INFO, "Processing SupplyRequest")
                 .end();
         // spotless:on
     }
