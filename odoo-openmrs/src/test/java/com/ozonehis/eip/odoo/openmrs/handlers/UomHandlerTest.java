@@ -9,6 +9,7 @@ package com.ozonehis.eip.odoo.openmrs.handlers;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -101,7 +102,7 @@ class UomHandlerTest {
     }
 
     @Test
-    public void shouldThrowErrorWhenNoUomFoundWithId() {
+    public void shouldNotThrowErrorWhenNoUomFoundWithId() {
         // Setup
         String externalId = "198AAAAAAAAAAA";
 
@@ -114,8 +115,11 @@ class UomHandlerTest {
                         null))
                 .thenReturn(uoms);
 
+        // Act
+        Uom result = uomHandler.getUom(externalId);
+
         // Verify
-        assertThrows(EIPException.class, () -> uomHandler.getUom(externalId));
+        assertNull(result);
     }
 
     public Map<String, Object> getUomMap(int id, String name, int resId, String displayName) {
