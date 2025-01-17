@@ -19,13 +19,10 @@ import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.ProductHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.kafka.common.protocol.types.Field;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Dosage;
@@ -73,7 +70,6 @@ class ProductHandlerTest {
 
     private static final String PATIENT_ID = "3ee4f5fc-6299-4c0e-a56e-dad957118edc";
 
-
     @Mock
     private OdooClient odooClient;
 
@@ -109,9 +105,9 @@ class ProductHandlerTest {
 
         // Mock behavior
         when(odooClient.searchAndRead(
-                Constants.IR_MODEL,
-                asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", MEDICATION_ID)),
-                null))
+                        Constants.IR_MODEL,
+                        asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", MEDICATION_ID)),
+                        null))
                 .thenReturn(products);
 
         // Act
@@ -135,11 +131,11 @@ class ProductHandlerTest {
 
         // Mock behavior
         when(odooClient.searchAndRead(
-                Constants.IR_MODEL,
-                asList(
-                        asList("model", "=", Constants.PRODUCT_MODEL),
-                        asList("name", "=", COMPLETE_BLOOD_COUNT_CODE)),
-                null))
+                        Constants.IR_MODEL,
+                        asList(
+                                asList("model", "=", Constants.PRODUCT_MODEL),
+                                asList("name", "=", COMPLETE_BLOOD_COUNT_CODE)),
+                        null))
                 .thenReturn(products);
 
         // Act
@@ -158,16 +154,15 @@ class ProductHandlerTest {
         // Setup
         SupplyRequest supplyRequest = getSupplyRequest();
 
-        Map<String, Object> productMap = getProductMap(1, "162396AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", 123, "Adhesive 5cm x 9m");
+        Map<String, Object> productMap =
+                getProductMap(1, "162396AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", 123, "Adhesive 5cm x 9m");
         Object[] products = {productMap};
 
         // Mock behavior
         when(odooClient.searchAndRead(
-                Constants.IR_MODEL,
-                asList(
-                        asList("model", "=", Constants.PRODUCT_MODEL),
-                        asList("name", "=", ADHESIVE_CODE)),
-                null))
+                        Constants.IR_MODEL,
+                        asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", ADHESIVE_CODE)),
+                        null))
                 .thenReturn(products);
 
         // Act
@@ -191,9 +186,9 @@ class ProductHandlerTest {
 
         // Mock behavior
         when(odooClient.searchAndRead(
-                Constants.IR_MODEL,
-                asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", SERVICE_REQUEST_ID)),
-                null))
+                        Constants.IR_MODEL,
+                        asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", SERVICE_REQUEST_ID)),
+                        null))
                 .thenReturn(products);
         // Verify
         assertThrows(IllegalArgumentException.class, () -> productHandler.getProduct(resource));
@@ -265,15 +260,14 @@ class ProductHandlerTest {
     public SupplyRequest getSupplyRequest() {
         SupplyRequest supplyRequest = new SupplyRequest();
         supplyRequest.setId(SUPPLY_REQUEST_ID);
-        supplyRequest.setItem(new Reference().setReference("MedicalSupply/" + ADHESIVE_CODE)
-                .setDisplay(ADHESIVE_DISPLAY));
+        supplyRequest.setItem(
+                new Reference().setReference("MedicalSupply/" + ADHESIVE_CODE).setDisplay(ADHESIVE_DISPLAY));
         supplyRequest.setReasonReference(Collections.singletonList(
                 new Reference().setType("Encounter").setReference("Encounter/" + ENCOUNTER_ID)));
         supplyRequest.setQuantity(new Quantity().setValue(10).setCode(QUANTITY_CODE));
-        supplyRequest.setRequester(
-                new Reference().setReference(PRACTITIONER_ID).setDisplay("Nurse Jane"));
-        supplyRequest.setDeliverTo(new Reference().setReference("Patient/" + PATIENT_ID)
-                .setDisplay("Tim"));
+        supplyRequest.setRequester(new Reference().setReference(PRACTITIONER_ID).setDisplay("Nurse Jane"));
+        supplyRequest.setDeliverTo(
+                new Reference().setReference("Patient/" + PATIENT_ID).setDisplay("Tim"));
         supplyRequest.setStatus(SupplyRequest.SupplyRequestStatus.ACTIVE);
 
         return supplyRequest;

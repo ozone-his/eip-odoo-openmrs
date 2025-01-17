@@ -12,10 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
-
 import java.util.Collections;
 import java.util.List;
-
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Dosage;
@@ -157,15 +155,14 @@ class SaleOrderLineMapperTest {
         // setup
         SupplyRequest supplyRequest = new SupplyRequest();
         supplyRequest.setId(SUPPLY_REQUEST_ID);
-        supplyRequest.setItem(new Reference().setReference("MedicalSupply/" + ADHESIVE_CODE)
-                .setDisplay(ADHESIVE_DISPLAY));
+        supplyRequest.setItem(
+                new Reference().setReference("MedicalSupply/" + ADHESIVE_CODE).setDisplay(ADHESIVE_DISPLAY));
         supplyRequest.setReasonReference(Collections.singletonList(
                 new Reference().setType("Encounter").setReference("Encounter/" + ENCOUNTER_ID)));
         supplyRequest.setQuantity(new Quantity().setValue(10).setCode(QUANTITY_CODE));
-        supplyRequest.setRequester(
-                new Reference().setReference(PRACTITIONER_ID).setDisplay("John Doe"));
-        supplyRequest.setDeliverTo(new Reference().setReference("Patient/" + PATIENT_ID)
-                .setDisplay("Tim"));
+        supplyRequest.setRequester(new Reference().setReference(PRACTITIONER_ID).setDisplay("John Doe"));
+        supplyRequest.setDeliverTo(
+                new Reference().setReference("Patient/" + PATIENT_ID).setDisplay("Tim"));
         supplyRequest.setStatus(SupplyRequest.SupplyRequestStatus.ACTIVE);
 
         // Act

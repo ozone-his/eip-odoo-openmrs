@@ -7,7 +7,6 @@
  */
 package com.ozonehis.eip.odoo.openmrs.routes;
 
-import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.processors.SupplyRequestProcessor;
 import lombok.Setter;
