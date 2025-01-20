@@ -77,7 +77,7 @@ public class SaleOrderLineHandler {
             Uom uom = uomHandler.getUom(uomExternalId);
             log.debug("SaleOrderLineHandler: Fetched Uom {}", uom);
             // Store Uom res_id in productUom to display unit in Odoo
-            saleOrderLine.setSaleOrderLineProductUom(uom == null ? 1 : uom.getUomResId());
+            saleOrderLine.setSaleOrderLineProductUom(uom.getUomResId());
         } else if (resource instanceof ServiceRequest) {
             // Hardcoded to 1 so that `Units` is shown for ServiceRequest
             saleOrderLine.setSaleOrderLineProductUom(1);
