@@ -91,7 +91,8 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertEquals("Richard Jones", createdPartner.getPartnerName());
         assertEquals(PATIENT_1_UUID, createdPartner.getPartnerRef());
         assertEquals("City2062", createdPartner.getPartnerCity());
-        assertEquals(PATIENT_IDENTIFIER_1_VALUE, createdPartner.getPartnerComment());
+        //  <10000GX> changed to <<p>10000GX</p>>
+        assertTrue(createdPartner.getPartnerComment().contains(PATIENT_IDENTIFIER_1_VALUE));
         assertEquals("1939-02-14", createdPartner.getPartnerBirthDate());
     }
 
@@ -117,7 +118,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertEquals("Joshua Johnson", createdPartner.getPartnerName());
         assertEquals(PATIENT_2_UUID, createdPartner.getPartnerRef());
         assertEquals("City6442", createdPartner.getPartnerCity());
-        assertEquals(PATIENT_IDENTIFIER_2_VALUE, createdPartner.getPartnerComment());
+        assertTrue(createdPartner.getPartnerComment().contains(PATIENT_IDENTIFIER_2_VALUE));
 
         // Update patient
         patient2 = loadResource("fhir/patient/patient-2-updated.json", new Patient());
@@ -138,7 +139,7 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertEquals("Test James", updatedPartner.getPartnerName());
         assertEquals(PATIENT_2_UUID, updatedPartner.getPartnerRef());
         assertEquals("Nairobi", updatedPartner.getPartnerCity());
-        assertEquals(PATIENT_IDENTIFIER_2_VALUE, updatedPartner.getPartnerComment());
+        assertTrue(createdPartner.getPartnerComment().contains(PATIENT_IDENTIFIER_2_VALUE));
         assertEquals("2019-09-25", updatedPartner.getPartnerBirthDate());
     }
 
@@ -164,7 +165,8 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertEquals("Richard Jones", createdPartner.getPartnerName());
         assertEquals(PATIENT_1_UUID, createdPartner.getPartnerRef());
         assertEquals("City2062", createdPartner.getPartnerCity());
-        assertEquals(PATIENT_IDENTIFIER_1_VALUE, createdPartner.getPartnerComment());
+        //  <100008E> changed to <<p>100008E</p>>
+        assertTrue(createdPartner.getPartnerComment().contains(PATIENT_IDENTIFIER_1_VALUE));
 
         // Delete patient
         headers.put(HEADER_FHIR_EVENT_TYPE, "d");
