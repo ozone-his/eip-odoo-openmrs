@@ -91,7 +91,6 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertEquals("Richard Jones", createdPartner.getPartnerName());
         assertEquals(PATIENT_1_UUID, createdPartner.getPartnerRef());
         assertEquals("City2062", createdPartner.getPartnerCity());
-        //  <10000GX> changed to <<p>10000GX</p>>
         assertTrue(createdPartner.getPartnerComment().contains(PATIENT_IDENTIFIER_1_VALUE));
         assertEquals("1939-02-14", createdPartner.getPartnerBirthDate());
     }
@@ -165,7 +164,6 @@ public class PatientToPartnerIntegrationTest extends BaseRouteIntegrationTest {
         assertEquals("Richard Jones", createdPartner.getPartnerName());
         assertEquals(PATIENT_1_UUID, createdPartner.getPartnerRef());
         assertEquals("City2062", createdPartner.getPartnerCity());
-        //  <100008E> changed to <<p>100008E</p>>
         assertTrue(createdPartner.getPartnerComment().contains(PATIENT_IDENTIFIER_1_VALUE));
 
         // Delete patient
