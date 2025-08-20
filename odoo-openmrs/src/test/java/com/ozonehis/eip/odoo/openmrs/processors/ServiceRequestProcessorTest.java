@@ -152,7 +152,7 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
                 .createSaleOrderWithSaleOrderLine(
                         eq(serviceRequest), eq(encounter), eq(partner), eq(ENCOUNTER_VISIT_ID), eq(PATIENT_ID), any());
     }
-    
+
     // Test for handling completed status
     @Test
     void shouldUpdateSaleOrderWhenServiceRequestIsCompleted() {

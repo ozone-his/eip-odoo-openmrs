@@ -89,13 +89,17 @@ public class ServiceRequestProcessor implements Processor {
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
                 Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
                 if ("c".equals(eventType) || "u".equals(eventType)) {
-                    boolean isOrderIntent = serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER);
-                    boolean isActiveStatus = serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE);
-                    boolean isCompletedStatus = serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.COMPLETED);
-                    
+                    boolean isOrderIntent =
+                            serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER);
+                    boolean isActiveStatus =
+                            serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE);
+                    boolean isCompletedStatus =
+                            serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.COMPLETED);
+
                     if (isOrderIntent) {
                         if (isActiveStatus || ("u".equals(eventType) && isCompletedStatus)) {
-                            SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
+                            SaleOrder saleOrder =
+                                    saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
                             if (saleOrder != null) {
                                 saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
                                         serviceRequest,
