@@ -13,6 +13,7 @@ import com.ozonehis.eip.odoo.openmrs.client.OdooFhirClient;
 import com.ozonehis.eip.odoo.openmrs.client.OpenmrsRestClient;
 import java.util.HashMap;
 import java.util.Map;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Coding;
@@ -30,11 +31,17 @@ public class ProductSynchronizer {
 
     private OpenmrsRestClient openmrsRestClient;
 
+    private DataSource openmrsDataSource;
+
     public ProductSynchronizer(
-            OdooFhirClient odooFhirClient, IGenericClient openmrsFhirClient, OpenmrsRestClient openmrsRestClient) {
+            OdooFhirClient odooFhirClient,
+            IGenericClient openmrsFhirClient,
+            OpenmrsRestClient openmrsRestClient,
+            DataSource openmrsDataSource) {
         this.odooFhirClient = odooFhirClient;
         this.openmrsFhirClient = openmrsFhirClient;
         this.openmrsRestClient = openmrsRestClient;
+        this.openmrsDataSource = openmrsDataSource;
     }
 
     @Scheduled(initialDelayString = "${eip.product.sync.initial.delay}", fixedDelayString = "${eip.product.sync.delay}")
@@ -50,12 +57,12 @@ public class ProductSynchronizer {
                     .getExtensionByUrl(Constants.FHIR_OPENMRS_FHIR_EXT_MEDICINE)
                     .getExtensionByUrl(Constants.FHIR_OPENMRS_EXT_DRUG_NAME);
             Coding coding = medication.getCode().getCoding().get(0);
+            String sourceName = ProductSyncUtils.getConceptSourceName(coding.getSystem(), openmrsDataSource);
             Map<String, Object> map = new HashMap<>();
             map.put("uuid", uuid);
             map.put("name", e.getValue().toString());
-            map.put("concept", coding.getSystem() + ":" + coding.getCode());
+            map.put("concept", sourceName + ":" + coding.getCode());
             map.put("combination", false);
-            map.put("retired", medication.getStatus() == MedicationStatus.ACTIVE);
             String body = new ObjectMapper().writeValueAsString(map);
             String resourceUuid = null;
             if (resp == null) {
@@ -63,6 +70,9 @@ public class ProductSynchronizer {
             } else {
                 log.info("Updating existing drug in OpenMRS");
                 resourceUuid = uuid;
+                if (medication.getStatus() == MedicationStatus.ACTIVE) {
+                    // TODO If inactive, delete(retire)
+                }
             }
 
             openmrsRestClient.createOrUpdate("drug", resourceUuid, body);

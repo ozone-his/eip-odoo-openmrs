@@ -11,8 +11,11 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.ozonehis.eip.odoo.openmrs.ProductSynchronizer;
 import com.ozonehis.eip.odoo.openmrs.client.OdooFhirClient;
 import com.ozonehis.eip.odoo.openmrs.client.OpenmrsRestClient;
+import javax.sql.DataSource;
+import org.openmrs.eip.Constants;
 import org.openmrs.eip.app.config.AppConfig;
 import org.openmrs.eip.fhir.spring.OpenmrsFhirAppConfig;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -28,7 +31,10 @@ public class EIPAppConfig {
 
     @Bean
     public ProductSynchronizer productCatalogSynchronizer(
-            OdooFhirClient odooFhirClient, IGenericClient openmrsFhirClient, OpenmrsRestClient openmrsRestClient) {
-        return new ProductSynchronizer(odooFhirClient, openmrsFhirClient, openmrsRestClient);
+            OdooFhirClient odooFhirClient,
+            IGenericClient openmrsFhirClient,
+            OpenmrsRestClient openmrsRestClient,
+            @Qualifier(Constants.OPENMRS_DATASOURCE_NAME) DataSource openmrsDataSource) {
+        return new ProductSynchronizer(odooFhirClient, openmrsFhirClient, openmrsRestClient, openmrsDataSource);
     }
 }
