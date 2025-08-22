@@ -9,6 +9,7 @@ package com.ozonehis.eip.odoo.openmrs;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.ozonehis.eip.odoo.openmrs.client.OdooFhirClient;
+import com.ozonehis.eip.odoo.openmrs.client.OpenmrsRestClient;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Medication;
@@ -21,14 +22,22 @@ public class ProductSynchronizer {
 
     private IGenericClient openmrsFhirClient;
 
-    public ProductSynchronizer(OdooFhirClient odooFhirClient, IGenericClient openmrsFhirClient) {
+    private OpenmrsRestClient openmrsRestClient;
+
+    public ProductSynchronizer(
+            OdooFhirClient odooFhirClient, IGenericClient openmrsFhirClient, OpenmrsRestClient openmrsRestClient) {
         this.odooFhirClient = odooFhirClient;
         this.openmrsFhirClient = openmrsFhirClient;
+        this.openmrsRestClient = openmrsRestClient;
     }
 
     @Scheduled(initialDelayString = "${eip.product.sync.initial.delay}", fixedDelayString = "${eip.product.sync.delay}")
-    public void syncProducts() {
+    public void syncProducts() throws Exception {
         Bundle bundle = odooFhirClient.getAll(Medication.class);
-        log.info("Read {} drugs from Odoo to sync: {}", bundle.getEntry().size());
+        log.info("Read {} drugs from Odoo to sync", bundle.getEntry().size());
+
+        for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+            Medication medication = (Medication) entry.getResource();
+        }
     }
 }

@@ -10,6 +10,7 @@ package com.ozonehis.eip.odoo.openmrs.config;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.ozonehis.eip.odoo.openmrs.ProductSynchronizer;
 import com.ozonehis.eip.odoo.openmrs.client.OdooFhirClient;
+import com.ozonehis.eip.odoo.openmrs.client.OpenmrsRestClient;
 import org.openmrs.eip.app.config.AppConfig;
 import org.openmrs.eip.fhir.spring.OpenmrsFhirAppConfig;
 import org.springframework.context.annotation.Bean;
@@ -27,7 +28,7 @@ public class EIPAppConfig {
 
     @Bean
     public ProductSynchronizer productCatalogSynchronizer(
-            OdooFhirClient odooFhirClient, IGenericClient openmrsFhirClient) {
-        return new ProductSynchronizer(odooFhirClient, openmrsFhirClient);
+            OdooFhirClient odooFhirClient, IGenericClient openmrsFhirClient, OpenmrsRestClient openmrsRestClient) {
+        return new ProductSynchronizer(odooFhirClient, openmrsFhirClient, openmrsRestClient);
     }
 }

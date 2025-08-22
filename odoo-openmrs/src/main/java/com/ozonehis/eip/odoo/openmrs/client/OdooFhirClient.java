@@ -27,7 +27,7 @@ public class OdooFhirClient {
     private String username;
 
     @Value("${odoo.fhir.password}")
-    private String password;
+    private char[] password;
 
     private FhirContext fhirContext;
 
@@ -58,7 +58,7 @@ public class OdooFhirClient {
                     fhirContext.getRestfulClientFactory().setConnectionRequestTimeout(120000);
                     fhirContext.getRestfulClientFactory().setSocketTimeout(120000);
                     fhirClient = fhirContext.newRestfulGenericClient(serverUrl + "/odoo/fhir/R4");
-                    fhirClient.registerInterceptor(new BasicAuthInterceptor(username, password));
+                    fhirClient.registerInterceptor(new BasicAuthInterceptor(username, new String(password)));
                 }
             }
         }
