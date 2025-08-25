@@ -17,8 +17,16 @@ public class ProductSyncUtils {
     private static final String SOURCE_QUERY = "SELECT s.name FROM concept_reference_source s, "
             + "fhir_concept_source f WHERE s.concept_source_id = f.concept_source_id AND f.url = ?";
 
-    protected static String getConceptSourceName(String uri, DataSource dataSource) throws Exception {
-        try (Connection c = dataSource.getConnection();
+    /**
+     * Reads the associated concept source name based on the specified coding system URI.
+     *
+     * @param uri the coding system URI
+     * @param openmrsDataSource OpenMRS datasource
+     * @return the concept source name if found otherwise null
+     * @throws Exception
+     */
+    protected static String getConceptSourceName(String uri, DataSource openmrsDataSource) throws Exception {
+        try (Connection c = openmrsDataSource.getConnection();
                 PreparedStatement s = c.prepareStatement(SOURCE_QUERY)) {
             s.setString(1, uri);
             try (ResultSet rs = s.executeQuery()) {

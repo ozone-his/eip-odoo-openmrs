@@ -25,6 +25,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 @Slf4j
 public class ProductSynchronizer {
 
+    private static final String RESOURCE = "drug";
+
+    private static ObjectMapper MAPPER = new ObjectMapper();
+
     private OdooFhirClient odooFhirClient;
 
     private IGenericClient openmrsFhirClient;
@@ -51,31 +55,40 @@ public class ProductSynchronizer {
 
         for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
             Medication medication = (Medication) entry.getResource();
-            final String uuid = medication.getIdElement().getIdPart();
-            byte[] resp = openmrsRestClient.get("drug", uuid);
+            final String id = medication.getIdElement().getIdPart();
+            byte[] resp = openmrsRestClient.get(RESOURCE, id);
             Extension e = medication
                     .getExtensionByUrl(Constants.FHIR_OPENMRS_FHIR_EXT_MEDICINE)
                     .getExtensionByUrl(Constants.FHIR_OPENMRS_EXT_DRUG_NAME);
             Coding coding = medication.getCode().getCoding().get(0);
             String sourceName = ProductSyncUtils.getConceptSourceName(coding.getSystem(), openmrsDataSource);
-            Map<String, Object> map = new HashMap<>();
-            map.put("uuid", uuid);
-            map.put("name", e.getValue().toString());
-            map.put("concept", sourceName + ":" + coding.getCode());
-            map.put("combination", false);
-            String body = new ObjectMapper().writeValueAsString(map);
-            String resourceUuid = null;
+            Map<String, Object> drug = new HashMap<>();
+            drug.put("uuid", id);
+            drug.put("name", e.getValue().toString());
+            drug.put("concept", sourceName + ":" + coding.getCode());
+            drug.put("combination", false);
+            String uuid = null;
+            if (resp == null && medication.getStatus() == MedicationStatus.INACTIVE) {
+                log.info("Skipping new inactive drug");
+                continue;
+            }
+
             if (resp == null) {
                 log.info("Creating new drug in OpenMRS");
             } else {
-                log.info("Updating existing drug in OpenMRS");
-                resourceUuid = uuid;
-                if (medication.getStatus() == MedicationStatus.ACTIVE) {
-                    // TODO If inactive, delete(retire)
+                uuid = id;
+                if (medication.getStatus() == MedicationStatus.INACTIVE) {
+                    log.info("Retiring existing drug in OpenMRS with uuid {}", uuid);
+                    openmrsRestClient.delete(RESOURCE, uuid);
+                    continue;
+                } else {
+                    log.info("Updating existing drug in OpenMRS with uuid {}", uuid);
+                    // TODO if retired in OpenMRS un retire
                 }
             }
 
-            openmrsRestClient.createOrUpdate("drug", resourceUuid, body);
+            String body = MAPPER.writeValueAsString(drug);
+            openmrsRestClient.createOrUpdate(RESOURCE, uuid, body);
         }
     }
 }

@@ -48,7 +48,7 @@ public class OpenmrsRestClient {
 
     public byte[] get(String resource, String uuid) throws Exception {
         HttpResponse<byte[]> response =
-                sendRequest(resource, uuid, null, Set.of(HttpStatus.OK.value(), HttpStatus.NOT_FOUND.value()));
+                sendRequest(resource, uuid, null, false, Set.of(HttpStatus.OK.value(), HttpStatus.NOT_FOUND.value()));
         if (response.statusCode() == HttpStatus.NOT_FOUND.value()) {
             return null;
         }
@@ -58,11 +58,17 @@ public class OpenmrsRestClient {
 
     public byte[] createOrUpdate(String resource, String uuid, String body) throws Exception {
         final HttpStatus expectedStatus = (uuid == null) ? HttpStatus.CREATED : HttpStatus.OK;
-        return sendRequest(resource, uuid, body, Set.of(expectedStatus.value())).body();
+        return sendRequest(resource, uuid, body, false, Set.of(expectedStatus.value()))
+                .body();
     }
 
-    public HttpResponse<byte[]> sendRequest(String resource, String uuid, String body, Set<Integer> allowedStatuses)
-            throws Exception {
+    public byte[] delete(String resource, String uuid) throws Exception {
+        return sendRequest(resource, uuid, null, true, Set.of(HttpStatus.NO_CONTENT.value()))
+                .body();
+    }
+
+    public HttpResponse<byte[]> sendRequest(
+            String resource, String uuid, String body, boolean delete, Set<Integer> allowedStatuses) throws Exception {
         String uri = baseUrl + PATH + resource;
         if (uuid != null) {
             uri += ("/" + uuid);
@@ -77,6 +83,8 @@ public class OpenmrsRestClient {
             reqBuilder.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
             BodyPublisher bodyPublisher = BodyPublishers.ofString(body, UTF_8);
             reqBuilder.POST(bodyPublisher);
+        } else if (delete) {
+            reqBuilder.DELETE();
         } else {
             reqBuilder.GET();
         }
