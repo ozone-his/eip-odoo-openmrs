@@ -74,7 +74,12 @@ public class ProductSynchronizer {
 
             boolean isRetired = false;
             if (drug == null) {
-                log.info("Creating new drug in OpenMRS");
+                if (medication.getCode().getCoding().isEmpty()) {
+                    log.warn("Skipping new drug with external id {} because of missing concept mapping", id);
+                    continue;
+                }
+
+                log.info("Creating new drug in OpenMRS with uuid {}", id);
                 Coding coding = medication.getCode().getCoding().get(0);
                 String sourceName = ProductSyncUtils.getConceptSourceName(coding.getSystem(), openmrsDataSource);
                 drugData.put("concept", sourceName + ":" + coding.getCode());
