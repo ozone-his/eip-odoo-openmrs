@@ -50,4 +50,6 @@ public class Constants {
     public static final String FHIR_OPENMRS_FHIR_EXT_MEDICINE = FHIR_OPENMRS_EXT_PREFIX + "medicine";
 
     public static final String FHIR_OPENMRS_EXT_DRUG_NAME = FHIR_OPENMRS_FHIR_EXT_MEDICINE + "#drugName";
+
+    public static final String FHIR_OPENMRS_EXT_DRUG_STRENGTH = FHIR_OPENMRS_FHIR_EXT_MEDICINE + "#strength";
 }

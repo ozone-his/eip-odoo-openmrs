@@ -56,14 +56,15 @@ public class ProductSynchronizer {
         for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
             Medication medication = (Medication) entry.getResource();
             final String id = medication.getIdElement().getIdPart();
-            Extension e = medication
-                    .getExtensionByUrl(Constants.FHIR_OPENMRS_FHIR_EXT_MEDICINE)
-                    .getExtensionByUrl(Constants.FHIR_OPENMRS_EXT_DRUG_NAME);
-            Coding coding = medication.getCode().getCoding().get(0);
-            String sourceName = ProductSyncUtils.getConceptSourceName(coding.getSystem(), openmrsDataSource);
+            Extension medExt = medication.getExtensionByUrl(Constants.FHIR_OPENMRS_FHIR_EXT_MEDICINE);
+            Extension nameExt = medExt.getExtensionByUrl(Constants.FHIR_OPENMRS_EXT_DRUG_NAME);
             Map<String, Object> drugData = new HashMap<>();
-            drugData.put("name", e.getValue().toString());
-            drugData.put("concept", sourceName + ":" + coding.getCode());
+            drugData.put("name", nameExt.getValue().toString());
+            Extension strengthExt = medExt.getExtensionByUrl(Constants.FHIR_OPENMRS_EXT_DRUG_STRENGTH);
+            if (strengthExt != null) {
+                drugData.put("strength", strengthExt.getValue().toString());
+            }
+
             String uuid = null;
             byte[] drug = openmrsRestClient.get(RESOURCE, id);
             if (drug == null && medication.getStatus() == MedicationStatus.INACTIVE) {
@@ -71,23 +72,31 @@ public class ProductSynchronizer {
                 continue;
             }
 
+            boolean isRetired = false;
             if (drug == null) {
                 log.info("Creating new drug in OpenMRS");
+                Coding coding = medication.getCode().getCoding().get(0);
+                String sourceName = ProductSyncUtils.getConceptSourceName(coding.getSystem(), openmrsDataSource);
+                drugData.put("concept", sourceName + ":" + coding.getCode());
                 drugData.put("uuid", id);
                 drugData.put("combination", false);
             } else {
                 uuid = id;
                 log.info("Updating existing drug in OpenMRS with uuid {}", uuid);
+                Map<String, Object> drugMap = MAPPER.readValue(drug, Map.class);
+                isRetired = Boolean.valueOf(drugMap.get("retired").toString());
             }
 
             String body = MAPPER.writeValueAsString(drugData);
             openmrsRestClient.createOrUpdate(RESOURCE, uuid, body);
 
-            if (medication.getStatus() == MedicationStatus.INACTIVE) {
+            if (!isRetired && medication.getStatus() == MedicationStatus.INACTIVE) {
                 log.info("Retiring existing drug in OpenMRS with uuid {}", uuid);
                 openmrsRestClient.delete(RESOURCE, uuid);
+            } else if (isRetired && medication.getStatus() == MedicationStatus.ACTIVE) {
+                log.info("Restoring existing drug in OpenMRS with uuid {}", uuid);
+                openmrsRestClient.createOrUpdate(RESOURCE, uuid, MAPPER.writeValueAsString(Map.of("deleted", "false")));
             }
-            // TODO if retired in OpenMRS un retire
         }
     }
 }
