@@ -24,7 +24,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 @Slf4j
 public class ProductSynchronizer {
 
-    private static final String RESOURCE = "drug";
+    protected static final String RESOURCE = "drug";
 
     private static ObjectMapper MAPPER = new ObjectMapper();
 
