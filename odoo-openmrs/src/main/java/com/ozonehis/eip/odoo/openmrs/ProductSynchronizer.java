@@ -7,7 +7,6 @@
  */
 package com.ozonehis.eip.odoo.openmrs;
 
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ozonehis.eip.odoo.openmrs.client.OdooFhirClient;
 import com.ozonehis.eip.odoo.openmrs.client.OpenmrsRestClient;
@@ -31,19 +30,13 @@ public class ProductSynchronizer {
 
     private OdooFhirClient odooFhirClient;
 
-    private IGenericClient openmrsFhirClient;
-
     private OpenmrsRestClient openmrsRestClient;
 
     private DataSource openmrsDataSource;
 
     public ProductSynchronizer(
-            OdooFhirClient odooFhirClient,
-            IGenericClient openmrsFhirClient,
-            OpenmrsRestClient openmrsRestClient,
-            DataSource openmrsDataSource) {
+            OdooFhirClient odooFhirClient, OpenmrsRestClient openmrsRestClient, DataSource openmrsDataSource) {
         this.odooFhirClient = odooFhirClient;
-        this.openmrsFhirClient = openmrsFhirClient;
         this.openmrsRestClient = openmrsRestClient;
         this.openmrsDataSource = openmrsDataSource;
     }

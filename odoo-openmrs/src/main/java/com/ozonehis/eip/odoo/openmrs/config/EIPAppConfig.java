@@ -7,7 +7,6 @@
  */
 package com.ozonehis.eip.odoo.openmrs.config;
 
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.ozonehis.eip.odoo.openmrs.ProductSynchronizer;
 import com.ozonehis.eip.odoo.openmrs.client.OdooFhirClient;
 import com.ozonehis.eip.odoo.openmrs.client.OpenmrsRestClient;
@@ -32,9 +31,8 @@ public class EIPAppConfig {
     @Bean
     public ProductSynchronizer productCatalogSynchronizer(
             OdooFhirClient odooFhirClient,
-            IGenericClient openmrsFhirClient,
             OpenmrsRestClient openmrsRestClient,
             @Qualifier(Constants.OPENMRS_DATASOURCE_NAME) DataSource openmrsDataSource) {
-        return new ProductSynchronizer(odooFhirClient, openmrsFhirClient, openmrsRestClient, openmrsDataSource);
+        return new ProductSynchronizer(odooFhirClient, openmrsRestClient, openmrsDataSource);
     }
 }
