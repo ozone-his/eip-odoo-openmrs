@@ -9,15 +9,19 @@ package com.ozonehis.eip.odoo.openmrs;
 
 import static com.ozonehis.eip.odoo.openmrs.ProductSynchronizer.RESOURCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.ozonehis.eip.odoo.openmrs.client.OdooFhirClient;
 import com.ozonehis.eip.odoo.openmrs.client.OpenmrsRestClient;
 import java.util.List;
+import java.util.Map;
 import javax.sql.DataSource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Extension;
@@ -40,6 +44,8 @@ public class ProductSynchronizerTest {
     private static final String SOURCE_URI = "http://localhost";
 
     private static final String SOURCE_NAME = "Loinc";
+
+    private static ObjectMapper MAPPER = new ObjectMapper();
 
     private static MockedStatic<ProductSyncUtils> mockProductSyncUtils;
 
@@ -119,6 +125,7 @@ public class ProductSynchronizerTest {
         assertEquals(SOURCE_NAME + ":" + code2, JsonPath.read(json, "concept"));
         assertEquals(id2, JsonPath.read(json, "uuid"));
         assertEquals(false, JsonPath.read(json, "combination"));
+        Mockito.verify(mockOpenmrsClient, never()).delete(any(), any());
     }
 
     @Test
@@ -145,5 +152,115 @@ public class ProductSynchronizerTest {
         assertEquals(id, JsonPath.read(json, "uuid"));
         assertEquals(false, JsonPath.read(json, "combination"));
         assertEquals(strength, JsonPath.read(json, "strength"));
+        Mockito.verify(mockOpenmrsClient, never()).delete(any(), any());
+    }
+
+    @Test
+    public void syncProducts_shouldUpdateAnExistingDrugInOpenMRS() throws Exception {
+        final String name = "Tylenol";
+        final String id = "some-uuid";
+        final String code = "12345";
+        final String strength = "200mg";
+        Medication m = new Medication();
+        m.setId(id);
+        m.setStatus(MedicationStatus.ACTIVE);
+        m.getCode().addCoding().setSystem(SOURCE_URI).setCode(code);
+        addExtension(m, Constants.FHIR_OPENMRS_EXT_DRUG_NAME, name);
+        addExtension(m, Constants.FHIR_OPENMRS_EXT_DRUG_STRENGTH, strength);
+        when(mockOdooClient.getAll(Medication.class)).thenReturn(createBundle(List.of(m)));
+        Map<String, Object> drugData = Map.of("name", name, "strength", strength, "retired", false);
+        when(mockOpenmrsClient.get(RESOURCE, id)).thenReturn(MAPPER.writeValueAsBytes(drugData));
+
+        synchronizer.syncProducts();
+
+        ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(mockOpenmrsClient).createOrUpdate(eq(RESOURCE), eq(id), argCaptor.capture());
+        String json = argCaptor.getValue();
+        assertEquals(name, JsonPath.read(json, "name"));
+        assertEquals(SOURCE_NAME + ":" + code, JsonPath.read(json, "concept"));
+        assertEquals(strength, JsonPath.read(json, "strength"));
+        Mockito.verify(mockOpenmrsClient, never()).delete(any(), any());
+    }
+
+    @Test
+    public void syncProducts_shouldUpdateAnExistingDrugInOpenMRSWithNoConceptMapping() throws Exception {
+        final String name = "Tylenol";
+        final String id = "some-uuid";
+        Medication m = new Medication();
+        m.setId(id);
+        m.setStatus(MedicationStatus.ACTIVE);
+        addExtension(m, Constants.FHIR_OPENMRS_EXT_DRUG_NAME, name);
+        when(mockOdooClient.getAll(Medication.class)).thenReturn(createBundle(List.of(m)));
+        Map<String, Object> drugData = Map.of("name", name, "retired", false);
+        when(mockOpenmrsClient.get(RESOURCE, id)).thenReturn(MAPPER.writeValueAsBytes(drugData));
+
+        synchronizer.syncProducts();
+
+        ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(mockOpenmrsClient).createOrUpdate(eq(RESOURCE), eq(id), argCaptor.capture());
+        String json = argCaptor.getValue();
+        assertEquals(name, JsonPath.read(json, "name"));
+        Mockito.verify(mockOpenmrsClient, never()).delete(any(), any());
+    }
+
+    @Test
+    public void syncProducts_shouldRetireAnExistingDrugInOpenMRSIfArchivedInOdoo() throws Exception {
+        final String name = "Tylenol";
+        final String id = "some-uuid";
+        Medication m = new Medication();
+        m.setId(id);
+        m.setStatus(MedicationStatus.INACTIVE);
+        addExtension(m, Constants.FHIR_OPENMRS_EXT_DRUG_NAME, name);
+        when(mockOdooClient.getAll(Medication.class)).thenReturn(createBundle(List.of(m)));
+        Map<String, Object> drugData = Map.of("name", name, "retired", false);
+        when(mockOpenmrsClient.get(RESOURCE, id)).thenReturn(MAPPER.writeValueAsBytes(drugData));
+
+        synchronizer.syncProducts();
+
+        ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(mockOpenmrsClient).createOrUpdate(eq(RESOURCE), eq(id), argCaptor.capture());
+        String json = argCaptor.getValue();
+        assertEquals(name, JsonPath.read(json, "name"));
+        Mockito.verify(mockOpenmrsClient).delete(eq(RESOURCE), eq(id));
+    }
+
+    @Test
+    public void syncProducts_shouldRestoreARetiredExistingDrugInOpenMRSIfNotArchivedInOdoo() throws Exception {
+        final String name = "Tylenol";
+        final String id = "some-uuid";
+        Medication m = new Medication();
+        m.setId(id);
+        m.setStatus(MedicationStatus.ACTIVE);
+        addExtension(m, Constants.FHIR_OPENMRS_EXT_DRUG_NAME, name);
+        when(mockOdooClient.getAll(Medication.class)).thenReturn(createBundle(List.of(m)));
+        Map<String, Object> drugData = Map.of("name", name, "retired", true);
+        when(mockOpenmrsClient.get(RESOURCE, id)).thenReturn(MAPPER.writeValueAsBytes(drugData));
+
+        synchronizer.syncProducts();
+
+        ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(mockOpenmrsClient, times(2)).createOrUpdate(eq(RESOURCE), eq(id), argCaptor.capture());
+        String json = argCaptor.getAllValues().get(0);
+        assertEquals(name, JsonPath.read(json, "name"));
+        json = argCaptor.getAllValues().get(1);
+        Map<String, Object> deserializedJson = MAPPER.readValue(json, Map.class);
+        assertEquals(1, deserializedJson.size());
+        assertEquals("false", deserializedJson.get("deleted"));
+    }
+
+    @Test
+    public void syncProducts_shouldAddAnArchivedDrugToOpenMRSIfItDoesNotExist() throws Exception {
+        final String name = "Tylenol";
+        final String id = "some-uuid";
+        Medication m = new Medication();
+        m.setId(id);
+        m.setStatus(MedicationStatus.INACTIVE);
+        addExtension(m, Constants.FHIR_OPENMRS_EXT_DRUG_NAME, name);
+        when(mockOdooClient.getAll(Medication.class)).thenReturn(createBundle(List.of(m)));
+
+        synchronizer.syncProducts();
+
+        Mockito.verify(mockOpenmrsClient, never()).createOrUpdate(any(), any(), any());
+        Mockito.verify(mockOpenmrsClient, never()).delete(eq(RESOURCE), eq(id));
     }
 }

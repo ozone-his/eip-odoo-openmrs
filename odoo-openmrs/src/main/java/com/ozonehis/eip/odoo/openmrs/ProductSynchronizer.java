@@ -53,6 +53,12 @@ public class ProductSynchronizer {
             Extension nameExt = medExt.getExtensionByUrl(Constants.FHIR_OPENMRS_EXT_DRUG_NAME);
             Map<String, Object> drugData = new HashMap<>();
             drugData.put("name", nameExt.getValue().toString());
+            if (medication.getCode().getCoding().size() == 1) {
+                Coding coding = medication.getCode().getCoding().get(0);
+                String sourceName = ProductSyncUtils.getConceptSourceName(coding.getSystem(), openmrsDataSource);
+                drugData.put("concept", sourceName + ":" + coding.getCode());
+            }
+
             Extension strengthExt = medExt.getExtensionByUrl(Constants.FHIR_OPENMRS_EXT_DRUG_STRENGTH);
             if (strengthExt != null) {
                 drugData.put("strength", strengthExt.getValue().toString());
@@ -73,9 +79,6 @@ public class ProductSynchronizer {
                 }
 
                 log.info("Creating new drug in OpenMRS with uuid {}", id);
-                Coding coding = medication.getCode().getCoding().get(0);
-                String sourceName = ProductSyncUtils.getConceptSourceName(coding.getSystem(), openmrsDataSource);
-                drugData.put("concept", sourceName + ":" + coding.getCode());
                 drugData.put("uuid", id);
                 drugData.put("combination", false);
             } else {
