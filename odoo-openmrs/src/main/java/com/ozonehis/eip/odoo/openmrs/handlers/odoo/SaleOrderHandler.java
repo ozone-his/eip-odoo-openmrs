@@ -46,6 +46,9 @@ public class SaleOrderHandler {
     @Value("${odoo.customer.dob.field}")
     private String odooCustomerDobField;
 
+    @Value("${odoo.customer.id.field}")
+    private String odooCustomerIdField;
+
     @Autowired
     private OdooClient odooClient;
 
@@ -74,7 +77,8 @@ public class SaleOrderHandler {
                 "state",
                 "order_line",
                 odooCustomerWeightField,
-                odooCustomerDobField);
+                odooCustomerDobField,
+                odooCustomerIdField);
         Object[] records = odooClient.searchAndRead(
                 Constants.SALE_ORDER_MODEL,
                 List.of(asList("client_order_ref", "=", visitId), asList("state", "=", "draft")),
@@ -149,6 +153,8 @@ public class SaleOrderHandler {
         newSaleOrder.setOrderState("draft");
         // Add Patient DOB to Odoo Quotation
         newSaleOrder.setPartnerBirthDate(partner.getPartnerBirthDate());
+        // Add Patient Id to Odoo Quotation
+        newSaleOrder.setOdooCustomerId(partner.getPartnerComment().replaceAll("(?i)</?p>", ""));
         String patientWeight = getPartnerWeight(patientID);
         if (patientWeight != null) {
             newSaleOrder.setPartnerWeight(getPartnerWeight(patientID));
