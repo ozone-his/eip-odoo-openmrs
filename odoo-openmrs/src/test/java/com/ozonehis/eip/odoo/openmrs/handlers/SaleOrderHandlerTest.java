@@ -82,6 +82,8 @@ class SaleOrderHandlerTest {
 
     private static final int PARTNER_ID = 12;
 
+    private static final String PATIENT_IDENTIFIER = "10000Y";
+
     @AfterAll
     public static void close() throws Exception {
         mocksCloser.close();
@@ -92,6 +94,7 @@ class SaleOrderHandlerTest {
         mocksCloser = openMocks(this);
         Environment mockEnvironment = Mockito.mock(Environment.class);
         when(mockEnvironment.getProperty("odoo.customer.weight.field")).thenReturn("x_customer_weight");
+        when(mockEnvironment.getProperty("odoo.customer.id.field")).thenReturn("x_customer_id");
         odooUtils = new OdooUtils();
         odooUtils.setEnvironment(mockEnvironment);
         saleOrderHandler.setOdooUtils(odooUtils);
@@ -211,7 +214,7 @@ class SaleOrderHandlerTest {
                         eq(List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft"))),
                         any()))
                 .thenReturn(new Object[] {saleOrderMap});
-        when(saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder))
+        when(saleOrderLineHandler.buildSaleOrderLineIfProductExists(any(), any()))
                 .thenReturn(saleOrderLine);
         when(observationHandler.getObservationBySubjectIDAndConceptID(eq(PATIENT_ID), any()))
                 .thenReturn(null);
@@ -219,6 +222,7 @@ class SaleOrderHandlerTest {
 
         Partner partner = new Partner();
         partner.setPartnerId(PARTNER_ID);
+        partner.setPartnerComment(PATIENT_IDENTIFIER);
 
         // Act
         saleOrderHandler.createSaleOrderWithSaleOrderLine(

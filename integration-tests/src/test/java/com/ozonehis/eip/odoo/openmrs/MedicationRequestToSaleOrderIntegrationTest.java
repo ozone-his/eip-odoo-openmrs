@@ -123,6 +123,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         assertEquals("draft", createdSaleOrder.getOrderState());
         assertEquals("77.0 kg", createdSaleOrder.getPartnerWeight());
         assertEquals("1984-01-01", createdSaleOrder.getPartnerBirthDate());
+        assertEquals("100000Y", createdSaleOrder.getOdooCustomerId());
 
         // verify sale order has sale order line
         assertFalse(createdSaleOrder.getOrderLine().isEmpty());
@@ -192,6 +193,7 @@ public class MedicationRequestToSaleOrderIntegrationTest extends BaseRouteIntegr
         assertEquals(ENCOUNTER_PART_OF_UUID, createdSaleOrder.getOrderClientOrderRef());
         assertEquals("draft", createdSaleOrder.getOrderState());
         assertEquals("false", createdSaleOrder.getPartnerWeight());
+        assertEquals("100000Y", createdSaleOrder.getOdooCustomerId());
 
         // verify sale order has sale order line
         assertFalse(createdSaleOrder.getOrderLine().isEmpty());

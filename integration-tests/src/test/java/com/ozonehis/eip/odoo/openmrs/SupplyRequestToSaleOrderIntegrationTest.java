@@ -134,6 +134,7 @@ public class SupplyRequestToSaleOrderIntegrationTest extends BaseRouteIntegratio
         assertNotNull(createdSaleOrder);
         assertEquals(ENCOUNTER_PART_OF_UUID, createdSaleOrder.getOrderClientOrderRef());
         assertEquals("draft", createdSaleOrder.getOrderState());
+        assertEquals("H-3000000", createdSaleOrder.getOdooCustomerId());
         // TODO: Add assert for Sale order line (Error: Product and Uom doesn't exist in Odoo)
     }
 }
