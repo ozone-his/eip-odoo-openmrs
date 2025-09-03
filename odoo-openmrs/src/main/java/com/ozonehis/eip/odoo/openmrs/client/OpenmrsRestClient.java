@@ -97,12 +97,12 @@ public class OpenmrsRestClient {
         }
 
         if (!allowedStatuses.contains(response.statusCode())) {
-            String msg = "with status code: " + response.statusCode();
+            String msg = " with status code: " + response.statusCode();
             if (response.body() != null) {
-                msg = ", " + new String(response.body(), UTF_8);
+                msg += (", " + new String(response.body(), UTF_8));
             }
 
-            throw new Exception("Request to OpenMRS failed " + msg);
+            throw new Exception("Request to OpenMRS failed" + msg);
         }
 
         return response;
