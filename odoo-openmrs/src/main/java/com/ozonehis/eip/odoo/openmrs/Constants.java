@@ -8,6 +8,7 @@
 package com.ozonehis.eip.odoo.openmrs;
 
 public class Constants {
+
     public static final String PARTNER_MODEL = "res.partner";
 
     public static final String SALE_ORDER_MODEL = "sale.order";
@@ -41,4 +42,14 @@ public class Constants {
     public static final String FHIR_RESOURCE_TYPE = "fhir.resource.type";
 
     public static final String HEADER_ENABLE_PATIENT_SYNC = "enable.patient.sync";
+
+    public static final String FHIR_OPENMRS_SYSTEM_PREFIX = "http://fhir.openmrs.org/";
+
+    public static final String FHIR_OPENMRS_EXT_PREFIX = FHIR_OPENMRS_SYSTEM_PREFIX + "ext/";
+
+    public static final String FHIR_OPENMRS_FHIR_EXT_MEDICINE = FHIR_OPENMRS_EXT_PREFIX + "medicine";
+
+    public static final String FHIR_OPENMRS_EXT_DRUG_NAME = FHIR_OPENMRS_FHIR_EXT_MEDICINE + "#drugName";
+
+    public static final String FHIR_OPENMRS_EXT_DRUG_STRENGTH = FHIR_OPENMRS_FHIR_EXT_MEDICINE + "#strength";
 }
