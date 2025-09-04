@@ -19,6 +19,10 @@ import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Base64;
 import java.util.Set;
+import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
+import org.apache.camel.builder.ExchangeBuilder;
+import org.openmrs.eip.camel.OauthProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -38,13 +42,22 @@ public class OpenmrsRestClient {
     @Value("${openmrs.baseUrl}")
     private String baseUrl;
 
-    @Value("${openmrs.username}")
+    @Value("${openmrs.username:}")
     private String username;
 
-    @Value("${openmrs.password}")
+    @Value("${openmrs.password:}")
     private char[] password;
 
+    private OauthProcessor oauthProcessor;
+
+    private CamelContext camelContext;
+
     private HttpClient client = HttpClient.newHttpClient();
+
+    public OpenmrsRestClient(OauthProcessor oauthProcessor, CamelContext camelContext) {
+        this.oauthProcessor = oauthProcessor;
+        this.camelContext = camelContext;
+    }
 
     public byte[] get(String resource, String uuid) throws Exception {
         HttpResponse<byte[]> response =
@@ -74,10 +87,7 @@ public class OpenmrsRestClient {
             uri += ("/" + uuid);
         }
 
-        final String userAndPass = username + ":" + new String(password);
-        byte[] auth = Base64.getEncoder().encode(userAndPass.getBytes(UTF_8));
-        HttpRequest.Builder reqBuilder =
-                HttpRequest.newBuilder().setHeader(HttpHeaders.AUTHORIZATION, "Basic " + new String(auth, UTF_8));
+        HttpRequest.Builder reqBuilder = HttpRequest.newBuilder().setHeader(HttpHeaders.AUTHORIZATION, getAuthHeader());
         reqBuilder.uri(URI.create(uri));
         if (body != null) {
             reqBuilder.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
@@ -106,5 +116,18 @@ public class OpenmrsRestClient {
         }
 
         return response;
+    }
+
+    protected String getAuthHeader() throws Exception {
+        Exchange exchange = ExchangeBuilder.anExchange(camelContext).build();
+        oauthProcessor.process(exchange);
+        String oauthHeader = exchange.getMessage().getBody(String.class);
+        if (oauthHeader != null) {
+            return oauthHeader;
+        }
+
+        final String userAndPass = username + ":" + new String(password);
+        byte[] auth = Base64.getEncoder().encode(userAndPass.getBytes(UTF_8));
+        return "Basic " + new String(auth, UTF_8);
     }
 }
