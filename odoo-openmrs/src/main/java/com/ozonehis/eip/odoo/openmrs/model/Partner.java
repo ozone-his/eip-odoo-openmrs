@@ -57,4 +57,7 @@ public class Partner implements OdooResource {
 
     @JsonProperty("odoo.customer.dob.field")
     private String partnerBirthDate;
+
+    @JsonProperty("odoo.customer.id.field")
+    private String partnerExternalId;
 }

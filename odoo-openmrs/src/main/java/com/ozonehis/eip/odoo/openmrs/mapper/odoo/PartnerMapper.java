@@ -50,6 +50,7 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
         String patientName = getPatientName(patient).orElse("");
         String patientIdentifier = getPreferredPatientIdentifier(patient).orElse("");
         partner.setPartnerComment(patientIdentifier);
+        partner.setPartnerExternalId(patientIdentifier);
         partner.setPartnerName(patientName);
         partner.setPartnerBirthDate(
                 OdooUtils.convertEEEMMMddDateToOdooFormat(patient.getBirthDate().toString()));

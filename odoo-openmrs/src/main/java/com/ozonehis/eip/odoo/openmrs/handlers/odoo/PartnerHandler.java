@@ -34,6 +34,9 @@ public class PartnerHandler {
     @Value("${odoo.customer.dob.field}")
     private String odooCustomerDobField;
 
+    @Value("${odoo.customer.id.field}")
+    private String odooCustomerIdField;
+
     @Autowired
     private OdooClient odooClient;
 
@@ -47,7 +50,17 @@ public class PartnerHandler {
 
     public Partner getPartnerByID(String partnerRefID) {
         partnerDefaultAttributes = asList(
-                "id", "name", "ref", "street", "street2", "city", "zip", "active", "comment", odooCustomerDobField);
+                "id",
+                "name",
+                "ref",
+                "street",
+                "street2",
+                "city",
+                "zip",
+                "active",
+                "comment",
+                odooCustomerDobField,
+                odooCustomerIdField);
         Object[] records = odooClient.searchAndRead(
                 Constants.PARTNER_MODEL, List.of(asList("ref", "=", partnerRefID)), partnerDefaultAttributes);
         if (records == null) {

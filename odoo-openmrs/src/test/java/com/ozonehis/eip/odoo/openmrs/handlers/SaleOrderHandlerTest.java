@@ -94,7 +94,7 @@ class SaleOrderHandlerTest {
         mocksCloser = openMocks(this);
         Environment mockEnvironment = Mockito.mock(Environment.class);
         when(mockEnvironment.getProperty("odoo.customer.weight.field")).thenReturn("x_customer_weight");
-        when(mockEnvironment.getProperty("odoo.customer.id.field")).thenReturn("x_customer_id");
+        when(mockEnvironment.getProperty("odoo.customer.id.field")).thenReturn("x_external_identifier");
         odooUtils = new OdooUtils();
         odooUtils.setEnvironment(mockEnvironment);
         saleOrderHandler.setOdooUtils(odooUtils);
@@ -223,6 +223,7 @@ class SaleOrderHandlerTest {
         Partner partner = new Partner();
         partner.setPartnerId(PARTNER_ID);
         partner.setPartnerComment(PATIENT_IDENTIFIER);
+        partner.setPartnerExternalId(PATIENT_IDENTIFIER);
 
         // Act
         saleOrderHandler.createSaleOrderWithSaleOrderLine(
