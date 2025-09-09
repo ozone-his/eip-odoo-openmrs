@@ -88,7 +88,7 @@ public abstract class BaseRouteIntegrationTest {
 
     private static final String odooCustomerDobField = "x_customer_dob";
 
-    private static final String odooCustomerIdField = "x_customer_id";
+    private static final String odooCustomerIdField = "x_external_identifier";
 
     protected static final List<String> orderDefaultAttributes = asList(
             "id",
@@ -100,8 +100,18 @@ public abstract class BaseRouteIntegrationTest {
             odooCustomerDobField,
             odooCustomerIdField);
 
-    protected static final List<String> partnerDefaultAttributes =
-            asList("id", "name", "ref", "street", "street2", "city", "zip", "active", "comment", odooCustomerDobField);
+    protected static final List<String> partnerDefaultAttributes = asList(
+            "id",
+            "name",
+            "ref",
+            "street",
+            "street2",
+            "city",
+            "zip",
+            "active",
+            "comment",
+            odooCustomerDobField,
+            odooCustomerIdField);
 
     protected WireMockServer wireMockServer = new WireMockServer(8080);
 
@@ -182,6 +192,7 @@ public abstract class BaseRouteIntegrationTest {
         partnerHandler.setPartnerMapper(partnerMapper);
         partnerHandler.setOdooUtils(odooUtils);
         partnerHandler.setOdooCustomerDobField(odooCustomerDobField);
+        partnerHandler.setOdooCustomerIdField(odooCustomerIdField);
         partnerHandler.setPartnerDefaultAttributes(partnerDefaultAttributes);
 
         // Setup IGenericClient
