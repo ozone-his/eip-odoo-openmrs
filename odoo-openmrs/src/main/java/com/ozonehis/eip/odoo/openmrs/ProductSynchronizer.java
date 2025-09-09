@@ -83,7 +83,9 @@ public class ProductSynchronizer {
                 drugData.put("combination", false);
             } else {
                 uuid = id;
-                log.info("Updating existing drug in OpenMRS with uuid {}", uuid);
+                if (log.isDebugEnabled()) {
+                    log.debug("Updating existing drug in OpenMRS with uuid {}", uuid);
+                }
                 Map<String, Object> drugMap = MAPPER.readValue(drug, Map.class);
                 isRetired = Boolean.valueOf(drugMap.get("retired").toString());
             }
