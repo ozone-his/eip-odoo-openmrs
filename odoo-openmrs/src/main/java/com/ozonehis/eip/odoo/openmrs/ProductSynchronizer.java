@@ -82,7 +82,7 @@ public class ProductSynchronizer {
                 if (!ou.getIssue().isEmpty()) {
                     final String op = exists ? "updating" : "creating";
                     log.error(
-                            "An issue has been encountered while {} the resource with uuid {} in OpenMRS, ",
+                            "An issue has been encountered while {} the resource with uuid {} in OpenMRS, {}",
                             op,
                             uuid,
                             ou.getIssue().get(0).getDiagnostics());
