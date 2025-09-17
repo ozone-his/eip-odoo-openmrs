@@ -7,18 +7,17 @@
  */
 package com.ozonehis.eip.odoo.openmrs;
 
+import ca.uhn.fhir.rest.api.MethodOutcome;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ozonehis.eip.odoo.openmrs.client.OdooFhirClient;
 import com.ozonehis.eip.odoo.openmrs.client.OpenmrsRestClient;
-import java.util.HashMap;
 import java.util.Map;
-import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Medication;
 import org.hl7.fhir.r4.model.Medication.MedicationStatus;
+import org.hl7.fhir.r4.model.OperationOutcome;
 import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
@@ -30,15 +29,15 @@ public class ProductSynchronizer {
 
     private OdooFhirClient odooFhirClient;
 
+    private IGenericClient openmrsFhirClient;
+
     private OpenmrsRestClient openmrsRestClient;
 
-    private DataSource openmrsDataSource;
-
     public ProductSynchronizer(
-            OdooFhirClient odooFhirClient, OpenmrsRestClient openmrsRestClient, DataSource openmrsDataSource) {
+            OdooFhirClient odooFhirClient, IGenericClient openmrsFhirClient, OpenmrsRestClient openmrsRestClient) {
         this.odooFhirClient = odooFhirClient;
+        this.openmrsFhirClient = openmrsFhirClient;
         this.openmrsRestClient = openmrsRestClient;
-        this.openmrsDataSource = openmrsDataSource;
     }
 
     @Scheduled(initialDelayString = "${eip.product.sync.initial.delay}", fixedDelayString = "${eip.product.sync.delay}")
@@ -49,21 +48,6 @@ public class ProductSynchronizer {
         for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
             Medication medication = (Medication) entry.getResource();
             final String id = medication.getIdElement().getIdPart();
-            Extension medExt = medication.getExtensionByUrl(Constants.FHIR_OPENMRS_FHIR_EXT_MEDICINE);
-            Extension nameExt = medExt.getExtensionByUrl(Constants.FHIR_OPENMRS_EXT_DRUG_NAME);
-            Map<String, Object> drugData = new HashMap<>();
-            drugData.put("name", nameExt.getValue().toString());
-            if (medication.getCode().getCoding().size() == 1) {
-                Coding coding = medication.getCode().getCoding().get(0);
-                String sourceName = ProductSyncUtils.getConceptSourceName(coding.getSystem(), openmrsDataSource);
-                drugData.put("concept", sourceName + ":" + coding.getCode());
-            }
-
-            Extension strengthExt = medExt.getExtensionByUrl(Constants.FHIR_OPENMRS_EXT_DRUG_STRENGTH);
-            if (strengthExt != null) {
-                drugData.put("strength", strengthExt.getValue().toString());
-            }
-
             String uuid = null;
             byte[] drug = openmrsRestClient.get(RESOURCE, id);
             if (drug == null && medication.getStatus() == MedicationStatus.INACTIVE) {
@@ -72,6 +56,7 @@ public class ProductSynchronizer {
             }
 
             boolean isRetired = false;
+            boolean exists = false;
             if (drug == null) {
                 if (medication.getCode().getCoding().isEmpty()) {
                     log.warn("Skipping new drug with external id {} because of missing concept mapping", id);
@@ -79,19 +64,30 @@ public class ProductSynchronizer {
                 }
 
                 log.info("Creating new drug in OpenMRS with uuid {}", id);
-                drugData.put("uuid", id);
-                drugData.put("combination", false);
             } else {
                 uuid = id;
+                exists = true;
                 if (log.isDebugEnabled()) {
                     log.debug("Updating existing drug in OpenMRS with uuid {}", uuid);
                 }
+
                 Map<String, Object> drugMap = MAPPER.readValue(drug, Map.class);
                 isRetired = Boolean.valueOf(drugMap.get("retired").toString());
             }
 
-            String body = MAPPER.writeValueAsString(drugData);
-            openmrsRestClient.createOrUpdate(RESOURCE, uuid, body);
+            MethodOutcome outcome =
+                    openmrsFhirClient.update().resource(medication).execute();
+            if (outcome.getOperationOutcome() != null) {
+                OperationOutcome ou = (OperationOutcome) outcome.getOperationOutcome();
+                if (!ou.getIssue().isEmpty()) {
+                    final String op = exists ? "updating" : "creating";
+                    log.error(
+                            "An issue has been encountered while {} the resource with uuid {} in OpenMRS, ",
+                            op,
+                            uuid,
+                            ou.getIssue().get(0).getDiagnostics());
+                }
+            }
 
             if (!isRetired && medication.getStatus() == MedicationStatus.INACTIVE) {
                 log.info("Retiring existing drug in OpenMRS with uuid {}", uuid);
