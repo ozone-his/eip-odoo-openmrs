@@ -12,7 +12,7 @@ services:
       - ADDONS=sale_management,stock,account_account,purchase,mrp,odoo_initializer,ozone_settings,mrp_product_expiry,product_expiry,l10n_generic_coa
       - INITIALIZER_DATA_FILES_PATH=/mnt/odoo_config
       - INITIALIZER_CONFIG_FILE_PATH=/mnt/odoo_config/initializer_config.json
-    image: mekomsolutions/odoo
+    image: mekomsolutions/odoo:14-1.0.0
     ports:
       - '8069:8069'
     restart: unless-stopped
