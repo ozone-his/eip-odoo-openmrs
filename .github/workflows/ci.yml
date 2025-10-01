@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, 2.1.x]
   pull_request:
-    branches: [main]
+    branches: [main, 2.1.x]
   release:
     types: [published]
 
@@ -20,7 +20,7 @@ jobs:
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-spotless-check.yml@main
 
   release:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
+    if: ${{ (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/2.1.x')) || github.event_name == 'release' }}
     needs: spotless
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-publish.yml@main
     secrets:
