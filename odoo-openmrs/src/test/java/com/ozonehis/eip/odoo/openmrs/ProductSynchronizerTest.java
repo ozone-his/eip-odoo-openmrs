@@ -11,30 +11,29 @@ import static com.ozonehis.eip.odoo.openmrs.ProductSynchronizer.RESOURCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+import ca.uhn.fhir.rest.api.MethodOutcome;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.gclient.IUpdate;
+import ca.uhn.fhir.rest.gclient.IUpdateTyped;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import com.ozonehis.eip.odoo.openmrs.client.OdooFhirClient;
 import com.ozonehis.eip.odoo.openmrs.client.OpenmrsRestClient;
 import java.util.List;
 import java.util.Map;
-import javax.sql.DataSource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Medication;
 import org.hl7.fhir.r4.model.Medication.MedicationStatus;
 import org.hl7.fhir.r4.model.StringType;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -43,33 +42,32 @@ public class ProductSynchronizerTest {
 
     private static final String SOURCE_URI = "http://localhost";
 
-    private static final String SOURCE_NAME = "Loinc";
-
     private static ObjectMapper MAPPER = new ObjectMapper();
-
-    private static MockedStatic<ProductSyncUtils> mockProductSyncUtils;
 
     @Mock
     private OdooFhirClient mockOdooClient;
 
     @Mock
+    private IGenericClient openmrsFhirClient;
+
+    @Mock
     private OpenmrsRestClient mockOpenmrsClient;
 
     @Mock
-    private DataSource mockDataSource;
+    private IUpdate mockIUpdate;
+
+    @Mock
+    private IUpdateTyped mockIUpdateTyped;
+
+    @Mock
+    private MethodOutcome mockMethodOutcome;
 
     private ProductSynchronizer synchronizer;
 
     @BeforeEach
-    public void setUp() throws Exception {
-        mockProductSyncUtils = Mockito.mockStatic(ProductSyncUtils.class);
-        synchronizer = new ProductSynchronizer(mockOdooClient, mockOpenmrsClient, mockDataSource);
-        when(ProductSyncUtils.getConceptSourceName(SOURCE_URI, mockDataSource)).thenReturn(SOURCE_NAME);
-    }
-
-    @AfterEach
-    public void tearDown() {
-        mockProductSyncUtils.close();
+    public void setUp() {
+        lenient().when(openmrsFhirClient.update()).thenReturn(mockIUpdate);
+        synchronizer = new ProductSynchronizer(mockOdooClient, openmrsFhirClient, mockOpenmrsClient);
     }
 
     private Bundle createBundle(List<Medication> medications) {
@@ -109,97 +107,17 @@ public class ProductSynchronizerTest {
         m2.setStatus(MedicationStatus.ACTIVE);
         m2.getCode().addCoding().setSystem(SOURCE_URI).setCode(code2);
         addExtension(m2, Constants.FHIR_OPENMRS_EXT_DRUG_NAME, name2);
+        final IUpdateTyped mockIUpdateTyped2 = Mockito.mock(IUpdateTyped.class);
+        when(mockIUpdate.resource(m1)).thenReturn(mockIUpdateTyped);
+        when(mockIUpdateTyped.execute()).thenReturn(mockMethodOutcome);
+        when(mockIUpdate.resource(m2)).thenReturn(mockIUpdateTyped2);
+        when(mockIUpdateTyped2.execute()).thenReturn(mockMethodOutcome);
         when(mockOdooClient.getAll(Medication.class)).thenReturn(createBundle(List.of(m1, m2)));
 
         synchronizer.syncProducts();
 
-        ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(mockOpenmrsClient, times(2)).createOrUpdate(eq(RESOURCE), isNull(), argCaptor.capture());
-        String json = argCaptor.getAllValues().get(0);
-        assertEquals(name1, JsonPath.read(json, "name"));
-        assertEquals(SOURCE_NAME + ":" + code1, JsonPath.read(json, "concept"));
-        assertEquals(id1, JsonPath.read(json, "uuid"));
-        assertEquals(false, JsonPath.read(json, "combination"));
-        json = argCaptor.getAllValues().get(1);
-        assertEquals(name2, JsonPath.read(json, "name"));
-        assertEquals(SOURCE_NAME + ":" + code2, JsonPath.read(json, "concept"));
-        assertEquals(id2, JsonPath.read(json, "uuid"));
-        assertEquals(false, JsonPath.read(json, "combination"));
-        Mockito.verify(mockOpenmrsClient, never()).delete(any(), any());
-    }
-
-    @Test
-    public void syncProducts_shouldCreateADrugWithStrengthInOpenMRSIfItDoesNotExist() throws Exception {
-        final String name = "Tylenol";
-        final String id = "some-uuid";
-        final String code = "12345";
-        final String strength = "200mg";
-        Medication m = new Medication();
-        m.setId(id);
-        m.setStatus(MedicationStatus.ACTIVE);
-        m.getCode().addCoding().setSystem(SOURCE_URI).setCode(code);
-        addExtension(m, Constants.FHIR_OPENMRS_EXT_DRUG_NAME, name);
-        addExtension(m, Constants.FHIR_OPENMRS_EXT_DRUG_STRENGTH, strength);
-        when(mockOdooClient.getAll(Medication.class)).thenReturn(createBundle(List.of(m)));
-
-        synchronizer.syncProducts();
-
-        ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(mockOpenmrsClient).createOrUpdate(eq(RESOURCE), isNull(), argCaptor.capture());
-        String json = argCaptor.getValue();
-        assertEquals(name, JsonPath.read(json, "name"));
-        assertEquals(SOURCE_NAME + ":" + code, JsonPath.read(json, "concept"));
-        assertEquals(id, JsonPath.read(json, "uuid"));
-        assertEquals(false, JsonPath.read(json, "combination"));
-        assertEquals(strength, JsonPath.read(json, "strength"));
-        Mockito.verify(mockOpenmrsClient, never()).delete(any(), any());
-    }
-
-    @Test
-    public void syncProducts_shouldUpdateAnExistingDrugInOpenMRS() throws Exception {
-        final String name = "Tylenol";
-        final String id = "some-uuid";
-        final String code = "12345";
-        final String strength = "200mg";
-        Medication m = new Medication();
-        m.setId(id);
-        m.setStatus(MedicationStatus.ACTIVE);
-        m.getCode().addCoding().setSystem(SOURCE_URI).setCode(code);
-        addExtension(m, Constants.FHIR_OPENMRS_EXT_DRUG_NAME, name);
-        addExtension(m, Constants.FHIR_OPENMRS_EXT_DRUG_STRENGTH, strength);
-        when(mockOdooClient.getAll(Medication.class)).thenReturn(createBundle(List.of(m)));
-        Map<String, Object> drugData = Map.of("name", name, "strength", strength, "retired", false);
-        when(mockOpenmrsClient.get(RESOURCE, id)).thenReturn(MAPPER.writeValueAsBytes(drugData));
-
-        synchronizer.syncProducts();
-
-        ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(mockOpenmrsClient).createOrUpdate(eq(RESOURCE), eq(id), argCaptor.capture());
-        String json = argCaptor.getValue();
-        assertEquals(name, JsonPath.read(json, "name"));
-        assertEquals(SOURCE_NAME + ":" + code, JsonPath.read(json, "concept"));
-        assertEquals(strength, JsonPath.read(json, "strength"));
-        Mockito.verify(mockOpenmrsClient, never()).delete(any(), any());
-    }
-
-    @Test
-    public void syncProducts_shouldUpdateAnExistingDrugInOpenMRSWithNoConceptMapping() throws Exception {
-        final String name = "Tylenol";
-        final String id = "some-uuid";
-        Medication m = new Medication();
-        m.setId(id);
-        m.setStatus(MedicationStatus.ACTIVE);
-        addExtension(m, Constants.FHIR_OPENMRS_EXT_DRUG_NAME, name);
-        when(mockOdooClient.getAll(Medication.class)).thenReturn(createBundle(List.of(m)));
-        Map<String, Object> drugData = Map.of("name", name, "retired", false);
-        when(mockOpenmrsClient.get(RESOURCE, id)).thenReturn(MAPPER.writeValueAsBytes(drugData));
-
-        synchronizer.syncProducts();
-
-        ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(mockOpenmrsClient).createOrUpdate(eq(RESOURCE), eq(id), argCaptor.capture());
-        String json = argCaptor.getValue();
-        assertEquals(name, JsonPath.read(json, "name"));
+        Mockito.verify(mockIUpdateTyped).execute();
+        Mockito.verify(mockIUpdateTyped2).execute();
         Mockito.verify(mockOpenmrsClient, never()).delete(any(), any());
     }
 
@@ -214,13 +132,12 @@ public class ProductSynchronizerTest {
         when(mockOdooClient.getAll(Medication.class)).thenReturn(createBundle(List.of(m)));
         Map<String, Object> drugData = Map.of("name", name, "retired", false);
         when(mockOpenmrsClient.get(RESOURCE, id)).thenReturn(MAPPER.writeValueAsBytes(drugData));
+        when(mockIUpdate.resource(m)).thenReturn(mockIUpdateTyped);
+        when(mockIUpdateTyped.execute()).thenReturn(mockMethodOutcome);
 
         synchronizer.syncProducts();
 
-        ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(mockOpenmrsClient).createOrUpdate(eq(RESOURCE), eq(id), argCaptor.capture());
-        String json = argCaptor.getValue();
-        assertEquals(name, JsonPath.read(json, "name"));
+        Mockito.verify(mockIUpdateTyped).execute();
         Mockito.verify(mockOpenmrsClient).delete(eq(RESOURCE), eq(id));
     }
 
@@ -235,14 +152,15 @@ public class ProductSynchronizerTest {
         when(mockOdooClient.getAll(Medication.class)).thenReturn(createBundle(List.of(m)));
         Map<String, Object> drugData = Map.of("name", name, "retired", true);
         when(mockOpenmrsClient.get(RESOURCE, id)).thenReturn(MAPPER.writeValueAsBytes(drugData));
+        when(mockIUpdate.resource(m)).thenReturn(mockIUpdateTyped);
+        when(mockIUpdateTyped.execute()).thenReturn(mockMethodOutcome);
 
         synchronizer.syncProducts();
 
+        Mockito.verify(mockIUpdateTyped).execute();
         ArgumentCaptor<String> argCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(mockOpenmrsClient, times(2)).createOrUpdate(eq(RESOURCE), eq(id), argCaptor.capture());
+        Mockito.verify(mockOpenmrsClient).createOrUpdate(eq(RESOURCE), eq(id), argCaptor.capture());
         String json = argCaptor.getAllValues().get(0);
-        assertEquals(name, JsonPath.read(json, "name"));
-        json = argCaptor.getAllValues().get(1);
         Map<String, Object> deserializedJson = MAPPER.readValue(json, Map.class);
         assertEquals(1, deserializedJson.size());
         assertEquals("false", deserializedJson.get("deleted"));
