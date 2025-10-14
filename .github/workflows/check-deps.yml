@@ -7,7 +7,7 @@ on:
 
 jobs:
   check-deps:
-    uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-check-deps-build-publish.yml@main
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-check-deps-build-publish.yml@improve-check-deps
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}

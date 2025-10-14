@@ -108,6 +108,9 @@
               <goal>track</goal>
             </goals>
             <phase>compile</phase>
+              <configuration>
+                  <compare>true</compare>
+              </configuration>
           </execution>
         </executions>
       </plugin>
