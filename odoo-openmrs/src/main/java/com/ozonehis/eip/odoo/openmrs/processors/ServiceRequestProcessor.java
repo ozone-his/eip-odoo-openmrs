@@ -97,9 +97,8 @@ public class ServiceRequestProcessor implements Processor {
                             serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.COMPLETED);
 
                     if (isOrderIntent) {
+                        SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
                         if (isActiveStatus || ("u".equals(eventType) && isCompletedStatus)) {
-                            SaleOrder saleOrder =
-                                    saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
                             if (saleOrder != null) {
                                 saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
                                         serviceRequest,
@@ -117,6 +116,14 @@ public class ServiceRequestProcessor implements Processor {
                                         patient.getIdPart(),
                                         producerTemplate);
                             }
+                        } else if ("u".equals(eventType) && isCompletedStatus && !isActiveStatus) {
+                            saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
+                                    serviceRequest,
+                                    saleOrder,
+                                    encounterVisitUuid,
+                                    partner.getPartnerId(),
+                                    patient.getIdPart(),
+                                    producerTemplate);
                         } else {
                             // Executed when MODIFY option is selected in OpenMRS for other statuses
                             saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
