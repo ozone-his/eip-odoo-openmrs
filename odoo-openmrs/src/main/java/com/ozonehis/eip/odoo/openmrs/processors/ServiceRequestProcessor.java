@@ -116,14 +116,6 @@ public class ServiceRequestProcessor implements Processor {
                                         patient.getIdPart(),
                                         producerTemplate);
                             }
-                        } else if ("u".equals(eventType) && isCompletedStatus && !isActiveStatus) {
-                            saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
-                                    serviceRequest,
-                                    saleOrder,
-                                    encounterVisitUuid,
-                                    partner.getPartnerId(),
-                                    patient.getIdPart(),
-                                    producerTemplate);
                         } else {
                             // Executed when MODIFY option is selected in OpenMRS for other statuses
                             saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
@@ -133,10 +125,16 @@ public class ServiceRequestProcessor implements Processor {
                         saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {
-                    // Executed when DISCONTINUE option is selected in OpenMRS
-                    saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
-                    saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
-                            partner.getPartnerId(), encounterVisitUuid, producerTemplate);
+                    // Executed when a DISCONTINUE option is selected in OpenMRS
+                    // When an Order in OpenMRS is fulfilled, the status is changed to COMPLETED. Therefore, no action
+                    // is taken.
+                    if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.COMPLETED)) {
+                        log.info("ServiceRequest status is COMPLETED. No action taken on Sale Order.");
+                    } else {
+                        saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
+                        saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
+                                partner.getPartnerId(), encounterVisitUuid, producerTemplate);
+                    }
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
                 }
