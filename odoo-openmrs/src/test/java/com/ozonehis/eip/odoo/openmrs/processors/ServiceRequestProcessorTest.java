@@ -152,4 +152,50 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
                 .createSaleOrderWithSaleOrderLine(
                         eq(serviceRequest), eq(encounter), eq(partner), eq(ENCOUNTER_VISIT_ID), eq(PATIENT_ID), any());
     }
+
+    // Test for handling completed status
+    @Test
+    void shouldUpdateSaleOrderWhenServiceRequestIsCompleted() {
+        // Arrange
+        Patient patient = new Patient();
+        patient.setId(PATIENT_ID);
+        Encounter encounter = new Encounter();
+        encounter.setPartOf(new Reference(ENCOUNTER_REFERENCE_ID));
+        ServiceRequest serviceRequest = new ServiceRequest();
+        serviceRequest.setStatus(ServiceRequest.ServiceRequestStatus.COMPLETED);
+        serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
+
+        Bundle bundle = new Bundle();
+        List<Bundle.BundleEntryComponent> entries = new ArrayList<>();
+        entries.add(new Bundle.BundleEntryComponent().setResource(patient));
+        entries.add(new Bundle.BundleEntryComponent().setResource(encounter));
+        entries.add(new Bundle.BundleEntryComponent().setResource(serviceRequest));
+        bundle.setEntry(entries);
+
+        Exchange exchange = createExchange(bundle, "u");
+
+        Partner partner = new Partner();
+        partner.setPartnerId(PARTNER_ID);
+
+        SaleOrder saleOrder = new SaleOrder();
+
+        // Mock behavior
+        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(partner);
+        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_VISIT_ID))
+                .thenReturn(saleOrder);
+
+        // Act
+        serviceRequestProcessor.process(exchange);
+
+        // Assert
+        assertEquals("u", exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE));
+        verify(saleOrderHandler, times(1))
+                .updateSaleOrderIfExistsWithSaleOrderLine(
+                        eq(serviceRequest),
+                        eq(saleOrder),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PARTNER_ID),
+                        eq(PATIENT_ID),
+                        any());
+    }
 }

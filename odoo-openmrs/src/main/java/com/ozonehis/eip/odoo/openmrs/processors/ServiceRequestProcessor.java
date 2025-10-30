@@ -89,35 +89,55 @@ public class ServiceRequestProcessor implements Processor {
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
                 Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
                 if ("c".equals(eventType) || "u".equals(eventType)) {
-                    if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
-                            && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
+                    boolean isOrderIntent =
+                            serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER);
+                    boolean isActiveStatus =
+                            serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE);
+                    boolean isCompletedStatus =
+                            serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.COMPLETED);
+
+                    if (isOrderIntent) {
                         SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
-                        if (saleOrder != null) {
-                            saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
-                                    serviceRequest,
-                                    saleOrder,
-                                    encounterVisitUuid,
-                                    partner.getPartnerId(),
-                                    patient.getIdPart(),
-                                    producerTemplate);
+                        if (isActiveStatus || ("u".equals(eventType) && isCompletedStatus)) {
+                            if (saleOrder != null) {
+                                saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
+                                        serviceRequest,
+                                        saleOrder,
+                                        encounterVisitUuid,
+                                        partner.getPartnerId(),
+                                        patient.getIdPart(),
+                                        producerTemplate);
+                            } else {
+                                saleOrderHandler.createSaleOrderWithSaleOrderLine(
+                                        serviceRequest,
+                                        encounter,
+                                        partner,
+                                        encounterVisitUuid,
+                                        patient.getIdPart(),
+                                        producerTemplate);
+                            }
                         } else {
-                            saleOrderHandler.createSaleOrderWithSaleOrderLine(
-                                    serviceRequest,
-                                    encounter,
-                                    partner,
-                                    encounterVisitUuid,
-                                    patient.getIdPart(),
-                                    producerTemplate);
+                            // Executed when MODIFY option is selected in OpenMRS for other statuses
+                            saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
                         }
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
                         saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {
-                    // Executed when DISCONTINUE option is selected in OpenMRS
-                    saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
-                    saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
-                            partner.getPartnerId(), encounterVisitUuid, producerTemplate);
+                    // Executed when a DISCONTINUE option is selected in OpenMRS
+                    // When an Order in OpenMRS is fulfilled, the status is changed to COMPLETED. Therefore, no action
+                    // is taken.
+                    if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.COMPLETED)) {
+                        log.debug(
+                                "ServiceRequest with id: {} has status {}. No action taken on Sale Order.",
+                                serviceRequest.getIdPart(),
+                                serviceRequest.getStatus());
+                    } else {
+                        saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
+                        saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
+                                partner.getPartnerId(), encounterVisitUuid, producerTemplate);
+                    }
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
                 }
