@@ -129,8 +129,10 @@ public class ServiceRequestProcessor implements Processor {
                     // When an Order in OpenMRS is fulfilled, the status is changed to COMPLETED. Therefore, no action
                     // is taken.
                     if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.COMPLETED)) {
-                        log.debug("ServiceRequest with id: {} has status {}. No action taken on Sale Order.",
-		                        serviceRequest.getIdPart(), serviceRequest.getStatus());
+                        log.debug(
+                                "ServiceRequest with id: {} has status {}. No action taken on Sale Order.",
+                                serviceRequest.getIdPart(),
+                                serviceRequest.getStatus());
                     } else {
                         saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
                         saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
