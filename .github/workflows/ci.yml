@@ -2,11 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
   release:
-    types: [published]
+    types: [ published ]
 
 jobs:
   validate:
@@ -19,9 +19,17 @@ jobs:
     needs: validate
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-spotless-check.yml@main
 
+  integration-tests:
+    needs: spotless
+    uses: peter-evans/repository-dispatch@v4
+    with:
+      token: ${{ secrets.GITHUB_TOKEN }}
+      repository: ozone-his/ozone-it
+      event-type: eip-odoo-openmrs-it
+
   release:
     if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
-    needs: spotless
+    needs: integration-tests
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-publish.yml@main
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
