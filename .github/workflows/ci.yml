@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ozone-his/ozone-it
-          path: /test-workspace/ozone-it
+          path: /home/runner/work/
 
       - name: Set up JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v4
@@ -72,7 +72,7 @@ jobs:
             }]
 
       - name: Navigate to Integration Test Repo
-        run: cd /test-workspace/ozone-it
+        run: cd /home/runner/work/ozone-it
 
       - name: Run Integration Tests
         run: mvn clean install -pl eip-odoo-openmrs-it -am
