@@ -16,11 +16,9 @@ jobs:
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
 
   spotless:
-    needs: validate
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-spotless-check.yml@main
 
   integration-tests:
-    needs: spotless
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-integration-test.yml@OZ-638
     with:
       maven-args: '-pl eip-odoo-openmrs-it -am'
@@ -28,7 +26,7 @@ jobs:
 
   release:
     if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
-    needs: integration-tests
+    needs: [integration-tests, spotless, validate]
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-publish.yml@main
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
