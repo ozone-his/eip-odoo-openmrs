@@ -19,12 +19,12 @@ jobs:
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-spotless-check.yml@main
 
   integration-tests:
-    uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-integration-test.yml@OZ-638
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-integration-test.yml@main
     with:
       maven-args: '-pl eip-odoo-openmrs-it -am'
       maven-phase: 'verify'
 
-  release:
+  publish:
     if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
     needs: [integration-tests, spotless, validate]
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-publish.yml@main
