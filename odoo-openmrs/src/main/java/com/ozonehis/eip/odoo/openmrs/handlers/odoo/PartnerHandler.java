@@ -79,17 +79,23 @@ public class PartnerHandler {
     }
 
     public Partner createOrUpdatePartner(ProducerTemplate producerTemplate, Patient patient) {
+        return createOrUpdatePartner(producerTemplate, patient, null);
+    }
+
+    public Partner createOrUpdatePartner(ProducerTemplate producerTemplate, Patient patient, Integer companyId) {
         Partner fetchedPartner = getPartnerByID(patient.getIdPart());
         if (fetchedPartner != null && fetchedPartner.getPartnerId() > 0) {
             int partnerId = fetchedPartner.getPartnerId();
             log.info("Partner with reference id {} already exists, updating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
             partner.setPartnerId(partnerId);
+            partner.setPartnerCompanyId(companyId);
             sendPartner(producerTemplate, "direct:odoo-update-partner-route", partner);
             return getPartnerByID(partner.getPartnerRef());
         } else {
             log.info("Partner with reference id {} does not exist, creating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
+            partner.setPartnerCompanyId(companyId);
             sendPartner(producerTemplate, "direct:odoo-create-partner-route", partner);
             return getPartnerByID(partner.getPartnerRef());
         }

@@ -93,8 +93,8 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
         partner.setPartnerId(PARTNER_ID);
 
         // Mock behavior
-        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(partner);
-        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_VISIT_ID))
+        when(partnerHandler.createOrUpdatePartner(any(), eq(patient), any())).thenReturn(partner);
+        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(eq(ENCOUNTER_VISIT_ID), any()))
                 .thenReturn(saleOrder);
 
         // Act
@@ -109,6 +109,7 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
                         eq(ENCOUNTER_VISIT_ID),
                         eq(PARTNER_ID),
                         eq(PATIENT_ID),
+                        any(),
                         any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
@@ -117,6 +118,7 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
                         eq(partner),
                         eq(ENCOUNTER_VISIT_ID),
                         eq(PATIENT_ID),
+                        any(),
                         any());
     }
 
@@ -145,8 +147,8 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
         partner.setPartnerId(PARTNER_ID);
 
         // Mock behavior
-        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(partner);
-        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_VISIT_ID))
+        when(partnerHandler.createOrUpdatePartner(any(), eq(patient), any())).thenReturn(partner);
+        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(eq(ENCOUNTER_VISIT_ID), any()))
                 .thenReturn(null);
 
         // Act
@@ -156,7 +158,13 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "c");
         verify(saleOrderHandler, times(0))
                 .updateSaleOrderIfExistsWithSaleOrderLine(
-                        eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), eq(PARTNER_ID), eq(PATIENT_ID), any());
+                        eq(medicationRequest),
+                        any(),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PARTNER_ID),
+                        eq(PATIENT_ID),
+                        any(),
+                        any());
         verify(saleOrderHandler, times(1))
                 .createSaleOrderWithSaleOrderLine(
                         eq(medicationRequest),
@@ -164,6 +172,7 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
                         eq(partner),
                         eq(ENCOUNTER_VISIT_ID),
                         eq(PATIENT_ID),
+                        any(),
                         any());
     }
 
@@ -191,17 +200,24 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
         partner.setPartnerId(PARTNER_ID);
 
         // Mock behavior
-        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(partner);
+        when(partnerHandler.createOrUpdatePartner(any(), eq(patient), any())).thenReturn(partner);
 
         // Act
         medicationRequestProcessor.process(exchange);
 
         // Assert
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "u");
-        verify(saleOrderHandler, times(1)).deleteSaleOrderLine(eq(medicationRequest), eq(ENCOUNTER_VISIT_ID), any());
+        verify(saleOrderHandler, times(1))
+                .deleteSaleOrderLine(eq(medicationRequest), eq(ENCOUNTER_VISIT_ID), any(), any());
         verify(saleOrderHandler, times(0))
                 .updateSaleOrderIfExistsWithSaleOrderLine(
-                        eq(medicationRequest), any(), eq(ENCOUNTER_VISIT_ID), eq(PARTNER_ID), eq(PATIENT_ID), any());
+                        eq(medicationRequest),
+                        any(),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PARTNER_ID),
+                        eq(PATIENT_ID),
+                        any(),
+                        any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
                         eq(medicationRequest),
@@ -209,6 +225,7 @@ class MedicationRequestProcessorTest extends BaseProcessorTest {
                         eq(partner),
                         eq(ENCOUNTER_VISIT_ID),
                         eq(PATIENT_ID),
+                        any(),
                         any());
     }
 }

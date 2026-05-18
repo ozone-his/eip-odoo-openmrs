@@ -7,6 +7,7 @@
  */
 package com.ozonehis.eip.odoo.openmrs.processors;
 
+import com.ozonehis.eip.odoo.openmrs.handlers.odoo.CompanyHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
@@ -26,6 +27,7 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Resource;
 import org.openmrs.eip.fhir.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -33,11 +35,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class MedicationRequestProcessor implements Processor {
 
+    @Value("${bahmni.multi.company.enabled:false}")
+    private boolean bahmniMultiCompanyEnabled;
+
     @Autowired
     private SaleOrderHandler saleOrderHandler;
 
     @Autowired
     private PartnerHandler partnerHandler;
+
+    @Autowired
+    private CompanyHandler companyHandler;
 
     @Override
     public void process(Exchange exchange) {
@@ -74,10 +82,31 @@ public class MedicationRequestProcessor implements Processor {
                     throw new IllegalArgumentException("Event type not found in the exchange headers.");
                 }
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
-                Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
+
+                Integer companyId = null;
+                if (bahmniMultiCompanyEnabled) {
+                    String locationDisplay = resolveEncounterLocationDisplay(encounter);
+                    if (locationDisplay == null) {
+                        log.info(
+                                "Bahmni multi-company: skipping MedicationRequest sync — encounter {} has no location display",
+                                encounter.getIdPart());
+                        return;
+                    }
+                    companyId = companyHandler.getCompanyIdByName(locationDisplay);
+                    if (companyId == null) {
+                        log.info(
+                                "Bahmni multi-company: skipping MedicationRequest sync — no res.company matches location display '{}' for encounter {}",
+                                locationDisplay,
+                                encounter.getIdPart());
+                        return;
+                    }
+                }
+
+                Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient, companyId);
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     if (!medicationRequest.getStatus().equals(MedicationRequest.MedicationRequestStatus.CANCELLED)) {
-                        SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
+                        SaleOrder saleOrder =
+                                saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid, companyId);
                         if (saleOrder != null) {
                             saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
                                     medicationRequest,
@@ -85,6 +114,7 @@ public class MedicationRequestProcessor implements Processor {
                                     encounterVisitUuid,
                                     partner.getPartnerId(),
                                     patient.getIdPart(),
+                                    companyId,
                                     producerTemplate);
                         } else {
                             saleOrderHandler.createSaleOrderWithSaleOrderLine(
@@ -93,17 +123,20 @@ public class MedicationRequestProcessor implements Processor {
                                     partner,
                                     encounterVisitUuid,
                                     patient.getIdPart(),
+                                    companyId,
                                     producerTemplate);
                         }
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
-                        saleOrderHandler.deleteSaleOrderLine(medicationRequest, encounterVisitUuid, producerTemplate);
+                        saleOrderHandler.deleteSaleOrderLine(
+                                medicationRequest, encounterVisitUuid, companyId, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {
                     // Executed when DISCONTINUE option is selected in OpenMRS
-                    saleOrderHandler.deleteSaleOrderLine(medicationRequest, encounterVisitUuid, producerTemplate);
+                    saleOrderHandler.deleteSaleOrderLine(
+                            medicationRequest, encounterVisitUuid, companyId, producerTemplate);
                     saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
-                            partner.getPartnerId(), encounterVisitUuid, producerTemplate);
+                            partner.getPartnerId(), encounterVisitUuid, companyId, producerTemplate);
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
                 }
@@ -111,5 +144,16 @@ public class MedicationRequestProcessor implements Processor {
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing MedicationRequest", exchange, e);
         }
+    }
+
+    private String resolveEncounterLocationDisplay(Encounter encounter) {
+        if (encounter == null || !encounter.hasLocation()) {
+            return null;
+        }
+        String display = encounter.getLocationFirstRep().getLocation().getDisplay();
+        if (display == null || display.isBlank()) {
+            return null;
+        }
+        return display.trim();
     }
 }

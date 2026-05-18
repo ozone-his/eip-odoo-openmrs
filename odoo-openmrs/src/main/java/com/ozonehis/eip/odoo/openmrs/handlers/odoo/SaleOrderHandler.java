@@ -18,6 +18,7 @@ import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,19 +71,27 @@ public class SaleOrderHandler {
     public List<String> orderDefaultAttributes;
 
     public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId) {
+        return getDraftSaleOrderIfExistsByVisitId(visitId, null);
+    }
+
+    public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId, Integer companyId) {
         orderDefaultAttributes = asList(
                 "id",
                 "client_order_ref",
                 "partner_id",
                 "state",
                 "order_line",
+                "company_id",
                 odooCustomerWeightField,
                 odooCustomerDobField,
                 odooCustomerIdField);
-        Object[] records = odooClient.searchAndRead(
-                Constants.SALE_ORDER_MODEL,
-                List.of(asList("client_order_ref", "=", visitId), asList("state", "=", "draft")),
-                orderDefaultAttributes);
+        List<Object> criteria = new ArrayList<>();
+        criteria.add(asList("client_order_ref", "=", visitId));
+        criteria.add(asList("state", "=", "draft"));
+        if (companyId != null) {
+            criteria.add(asList("company_id", "=", companyId));
+        }
+        Object[] records = odooClient.searchAndRead(Constants.SALE_ORDER_MODEL, criteria, orderDefaultAttributes);
         if (records == null) {
             throw new EIPException(
                     String.format("Got null response while fetching for Sale order with client_order_ref %s", visitId));
@@ -116,6 +125,18 @@ public class SaleOrderHandler {
             int partnerId,
             String patientID,
             ProducerTemplate producerTemplate) {
+        updateSaleOrderIfExistsWithSaleOrderLine(
+                resource, saleOrder, encounterVisitUuid, partnerId, patientID, null, producerTemplate);
+    }
+
+    public void updateSaleOrderIfExistsWithSaleOrderLine(
+            Resource resource,
+            SaleOrder saleOrder,
+            String encounterVisitUuid,
+            int partnerId,
+            String patientID,
+            Integer companyId,
+            ProducerTemplate producerTemplate) {
         // If sale order exists create sale order line and link it to sale order
         SaleOrderLine saleOrderLine = saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, saleOrder);
         if (saleOrderLine == null) {
@@ -125,6 +146,7 @@ public class SaleOrderHandler {
                     encounterVisitUuid);
             return;
         }
+        saleOrderLine.setSaleOrderLineCompanyId(companyId);
 
         // Update sale order with Patient Weight if not already present
         if (saleOrder.getPartnerWeight() == null
@@ -147,10 +169,23 @@ public class SaleOrderHandler {
             String encounterVisitUuid,
             String patientID,
             ProducerTemplate producerTemplate) {
+        createSaleOrderWithSaleOrderLine(
+                resource, encounter, partner, encounterVisitUuid, patientID, null, producerTemplate);
+    }
+
+    public void createSaleOrderWithSaleOrderLine(
+            Resource resource,
+            Encounter encounter,
+            Partner partner,
+            String encounterVisitUuid,
+            String patientID,
+            Integer companyId,
+            ProducerTemplate producerTemplate) {
         // If the sale order does not exist, create it, then create sale order line and link it to sale order
         SaleOrder newSaleOrder = saleOrderMapper.toOdoo(encounter);
         newSaleOrder.setOrderPartnerId(partner.getPartnerId());
         newSaleOrder.setOrderState("draft");
+        newSaleOrder.setCompanyId(companyId);
         // Add Patient DOB to Odoo Quotation
         newSaleOrder.setPartnerBirthDate(partner.getPartnerBirthDate());
         // Add Patient Id to Odoo Quotation
@@ -164,7 +199,7 @@ public class SaleOrderHandler {
         log.debug(
                 "{}: Created sale order with partner_id {}", resource.getClass().getName(), partner.getPartnerId());
 
-        SaleOrder fetchedSaleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
+        SaleOrder fetchedSaleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid, companyId);
         if (fetchedSaleOrder != null) {
             SaleOrderLine saleOrderLine =
                     saleOrderLineHandler.buildSaleOrderLineIfProductExists(resource, fetchedSaleOrder);
@@ -175,6 +210,7 @@ public class SaleOrderHandler {
                         partner.getPartnerId());
                 return;
             }
+            saleOrderLine.setSaleOrderLineCompanyId(companyId);
 
             producerTemplate.sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
             log.debug(
@@ -186,7 +222,12 @@ public class SaleOrderHandler {
     }
 
     public void deleteSaleOrderLine(Resource resource, String encounterVisitUuid, ProducerTemplate producerTemplate) {
-        SaleOrder saleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
+        deleteSaleOrderLine(resource, encounterVisitUuid, null, producerTemplate);
+    }
+
+    public void deleteSaleOrderLine(
+            Resource resource, String encounterVisitUuid, Integer companyId, ProducerTemplate producerTemplate) {
+        SaleOrder saleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid, companyId);
         if (saleOrder != null) {
             Product product = productHandler.getProduct(resource);
             if (product != null) {
@@ -203,7 +244,12 @@ public class SaleOrderHandler {
     // Check if sale order has no sale order line, then cancel the sale order
     public void cancelSaleOrderWhenNoSaleOrderLine(
             int partnerId, String encounterVisitUuid, ProducerTemplate producerTemplate) {
-        SaleOrder saleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
+        cancelSaleOrderWhenNoSaleOrderLine(partnerId, encounterVisitUuid, null, producerTemplate);
+    }
+
+    public void cancelSaleOrderWhenNoSaleOrderLine(
+            int partnerId, String encounterVisitUuid, Integer companyId, ProducerTemplate producerTemplate) {
+        SaleOrder saleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid, companyId);
         if (saleOrder != null
                 && (saleOrder.getOrderLine() == null || saleOrder.getOrderLine().isEmpty())) {
             log.debug("SaleOrderHandler: Count of sale order line {}", saleOrder.getOrderLine());
