@@ -78,10 +78,6 @@ public class PartnerHandler {
         }
     }
 
-    public Partner createOrUpdatePartner(ProducerTemplate producerTemplate, Patient patient) {
-        return createOrUpdatePartner(producerTemplate, patient, null);
-    }
-
     public Partner createOrUpdatePartner(ProducerTemplate producerTemplate, Patient patient, Integer companyId) {
         Partner fetchedPartner = getPartnerByID(patient.getIdPart());
         if (fetchedPartner != null && fetchedPartner.getPartnerId() > 0) {

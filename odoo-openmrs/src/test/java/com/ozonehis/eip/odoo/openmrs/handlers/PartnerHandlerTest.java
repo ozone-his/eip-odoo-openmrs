@@ -135,7 +135,7 @@ class PartnerHandlerTest {
         when(partnerMapper.toOdoo(patient)).thenReturn(getPartner());
 
         // Act
-        Partner result = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
+        Partner result = partnerHandler.createOrUpdatePartner(producerTemplate, patient, null);
 
         // Verify
         assertEquals(12, result.getPartnerId());
@@ -160,7 +160,7 @@ class PartnerHandlerTest {
         when(partnerMapper.toOdoo(patient)).thenReturn(getPartner());
 
         // Act
-        Partner result = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
+        Partner result = partnerHandler.createOrUpdatePartner(producerTemplate, patient, null);
 
         // Verify
         assertEquals(12, result.getPartnerId());

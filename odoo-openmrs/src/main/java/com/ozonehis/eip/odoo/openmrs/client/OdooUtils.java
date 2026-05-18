@@ -64,10 +64,6 @@ public class OdooUtils {
                 String propertyValue = environment.getProperty(jsonProperty.value());
                 String key = propertyValue == null ? jsonProperty.value() : propertyValue;
                 Object value = field.get(object);
-                // Skip null values so we don't override Odoo defaults (e.g. company_id NOT NULL on sale.order).
-                if (value == null) {
-                    continue;
-                }
                 map.put(key, value);
             }
         }

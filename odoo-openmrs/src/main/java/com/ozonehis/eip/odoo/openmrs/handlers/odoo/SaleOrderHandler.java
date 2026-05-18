@@ -70,10 +70,6 @@ public class SaleOrderHandler {
 
     public List<String> orderDefaultAttributes;
 
-    public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId) {
-        return getDraftSaleOrderIfExistsByVisitId(visitId, null);
-    }
-
     public SaleOrder getDraftSaleOrderIfExistsByVisitId(String visitId, Integer companyId) {
         orderDefaultAttributes = asList(
                 "id",
@@ -124,17 +120,6 @@ public class SaleOrderHandler {
             String encounterVisitUuid,
             int partnerId,
             String patientID,
-            ProducerTemplate producerTemplate) {
-        updateSaleOrderIfExistsWithSaleOrderLine(
-                resource, saleOrder, encounterVisitUuid, partnerId, patientID, null, producerTemplate);
-    }
-
-    public void updateSaleOrderIfExistsWithSaleOrderLine(
-            Resource resource,
-            SaleOrder saleOrder,
-            String encounterVisitUuid,
-            int partnerId,
-            String patientID,
             Integer companyId,
             ProducerTemplate producerTemplate) {
         // If sale order exists create sale order line and link it to sale order
@@ -160,17 +145,6 @@ public class SaleOrderHandler {
                 resource.getClass().getName(),
                 saleOrderLine,
                 saleOrder);
-    }
-
-    public void createSaleOrderWithSaleOrderLine(
-            Resource resource,
-            Encounter encounter,
-            Partner partner,
-            String encounterVisitUuid,
-            String patientID,
-            ProducerTemplate producerTemplate) {
-        createSaleOrderWithSaleOrderLine(
-                resource, encounter, partner, encounterVisitUuid, patientID, null, producerTemplate);
     }
 
     public void createSaleOrderWithSaleOrderLine(
@@ -221,10 +195,6 @@ public class SaleOrderHandler {
         }
     }
 
-    public void deleteSaleOrderLine(Resource resource, String encounterVisitUuid, ProducerTemplate producerTemplate) {
-        deleteSaleOrderLine(resource, encounterVisitUuid, null, producerTemplate);
-    }
-
     public void deleteSaleOrderLine(
             Resource resource, String encounterVisitUuid, Integer companyId, ProducerTemplate producerTemplate) {
         SaleOrder saleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid, companyId);
@@ -242,11 +212,6 @@ public class SaleOrderHandler {
     }
 
     // Check if sale order has no sale order line, then cancel the sale order
-    public void cancelSaleOrderWhenNoSaleOrderLine(
-            int partnerId, String encounterVisitUuid, ProducerTemplate producerTemplate) {
-        cancelSaleOrderWhenNoSaleOrderLine(partnerId, encounterVisitUuid, null, producerTemplate);
-    }
-
     public void cancelSaleOrderWhenNoSaleOrderLine(
             int partnerId, String encounterVisitUuid, Integer companyId, ProducerTemplate producerTemplate) {
         SaleOrder saleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid, companyId);

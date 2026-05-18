@@ -67,7 +67,8 @@ class EncounterProcessorTest extends BaseProcessorTest {
         Exchange exchange = createExchange(encounter, "c");
 
         // Mock behavior
-        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID)).thenReturn(saleOrder);
+        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID, null))
+                .thenReturn(saleOrder);
 
         // Act
         encounterProcessor.process(exchange);
@@ -75,7 +76,7 @@ class EncounterProcessorTest extends BaseProcessorTest {
         // Assert
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "u");
         assertEquals(exchange.getProperty(Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER), false);
-        verify(saleOrderHandler, times(1)).getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID);
+        verify(saleOrderHandler, times(1)).getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID, null);
     }
 
     @Test
@@ -91,7 +92,8 @@ class EncounterProcessorTest extends BaseProcessorTest {
         Exchange exchange = createExchange(encounter, "c");
 
         // Mock behavior
-        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID)).thenReturn(null);
+        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID, null))
+                .thenReturn(null);
 
         // Act
         encounterProcessor.process(exchange);
@@ -99,7 +101,7 @@ class EncounterProcessorTest extends BaseProcessorTest {
         // Assert
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "c");
         assertEquals(exchange.getProperty(Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER), true);
-        verify(saleOrderHandler, times(1)).getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID);
+        verify(saleOrderHandler, times(1)).getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID, null);
     }
 
     @Test
@@ -110,7 +112,8 @@ class EncounterProcessorTest extends BaseProcessorTest {
         Exchange exchange = createExchange(encounter, "c");
 
         // Mock behavior
-        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID)).thenReturn(null);
+        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID, null))
+                .thenReturn(null);
 
         // Act
         encounterProcessor.process(exchange);
@@ -118,6 +121,6 @@ class EncounterProcessorTest extends BaseProcessorTest {
         // Assert
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "c");
         assertEquals(exchange.getProperty(Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER), true);
-        verify(saleOrderHandler, times(0)).getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID);
+        verify(saleOrderHandler, times(0)).getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_ID, null);
     }
 }
