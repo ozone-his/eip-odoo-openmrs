@@ -100,7 +100,9 @@ public class ServiceRequestProcessor implements Processor {
                 if (enableEncounterLocationCompanyMapping) {
                     companyId = getCompanyIdByEncounterLocationUuid(encounter);
                     if (companyId == null) {
-                        log.warn("Skipping ServiceRequest sync as company id is null for ServiceRequest id {}", serviceRequest.getIdPart());
+                        log.warn(
+                                "Skipping ServiceRequest sync as company id is null for ServiceRequest id {}",
+                                serviceRequest.getIdPart());
                         return;
                     }
                 }
@@ -179,7 +181,10 @@ public class ServiceRequestProcessor implements Processor {
         }
         Integer companyId = companyHandler.getCompanyIdByExternalId(locationUuid);
         if (companyId == null) {
-            log.warn("No res.company external id matches location uuid {} for encounter {}", locationUuid, encounter.getIdPart());
+            log.warn(
+                    "No res.company external id matches location uuid {} for encounter {}",
+                    locationUuid,
+                    encounter.getIdPart());
             return null;
         }
         return companyId;

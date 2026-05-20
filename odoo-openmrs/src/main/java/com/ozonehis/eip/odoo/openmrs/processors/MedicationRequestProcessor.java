@@ -87,7 +87,9 @@ public class MedicationRequestProcessor implements Processor {
                 if (enableEncounterLocationCompanyMapping) {
                     companyId = getCompanyIdByEncounterLocationUuid(encounter);
                     if (companyId == null) {
-                        log.warn("Skipping MedicationRequest sync as company id is null for MedicationRequest id {}", medicationRequest.getIdPart());
+                        log.warn(
+                                "Skipping MedicationRequest sync as company id is null for MedicationRequest id {}",
+                                medicationRequest.getIdPart());
                         return;
                     }
                 }
@@ -144,7 +146,10 @@ public class MedicationRequestProcessor implements Processor {
         }
         Integer companyId = companyHandler.getCompanyIdByExternalId(locationUuid);
         if (companyId == null) {
-            log.warn("No res.company external id matches location uuid {} for encounter {}", locationUuid, encounter.getIdPart());
+            log.warn(
+                    "No res.company external id matches location uuid {} for encounter {}",
+                    locationUuid,
+                    encounter.getIdPart());
             return null;
         }
         return companyId;
