@@ -35,8 +35,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class MedicationRequestProcessor implements Processor {
 
-    @Value("${bahmni.multi.company.enabled:false}")
-    private boolean bahmniMultiCompanyEnabled;
+    @Value("${enable.encounter.location.company.mapping:false}")
+    private boolean enableEncounterLocationCompanyMapping;
 
     @Autowired
     private SaleOrderHandler saleOrderHandler;
@@ -84,20 +84,10 @@ public class MedicationRequestProcessor implements Processor {
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
 
                 Integer companyId = null;
-                if (bahmniMultiCompanyEnabled) {
-                    String locationDisplay = resolveEncounterLocationDisplay(encounter);
-                    if (locationDisplay == null) {
-                        log.info(
-                                "Bahmni multi-company: skipping MedicationRequest sync — encounter {} has no location display",
-                                encounter.getIdPart());
-                        return;
-                    }
-                    companyId = companyHandler.getCompanyIdByName(locationDisplay);
+                if (enableEncounterLocationCompanyMapping) {
+                    companyId = getCompanyIdByEncounterLocationUuid(encounter);
                     if (companyId == null) {
-                        log.info(
-                                "Bahmni multi-company: skipping MedicationRequest sync — no res.company matches location display '{}' for encounter {}",
-                                locationDisplay,
-                                encounter.getIdPart());
+                        log.warn("Skipping MedicationRequest sync as company id is null for MedicationRequest id {}", medicationRequest.getIdPart());
                         return;
                     }
                 }
@@ -146,14 +136,32 @@ public class MedicationRequestProcessor implements Processor {
         }
     }
 
-    private String resolveEncounterLocationDisplay(Encounter encounter) {
+    private Integer getCompanyIdByEncounterLocationUuid(Encounter encounter) {
+        String locationUuid = resolveEncounterLocationUuid(encounter);
+        if (locationUuid == null) {
+            log.warn("Encounter {} has no location reference", encounter.getIdPart());
+            return null;
+        }
+        Integer companyId = companyHandler.getCompanyIdByExternalId(locationUuid);
+        if (companyId == null) {
+            log.warn("No res.company external id matches location uuid {} for encounter {}", locationUuid, encounter.getIdPart());
+            return null;
+        }
+        return companyId;
+    }
+
+    private String resolveEncounterLocationUuid(Encounter encounter) {
         if (encounter == null || !encounter.hasLocation()) {
             return null;
         }
-        String display = encounter.getLocationFirstRep().getLocation().getDisplay();
-        if (display == null || display.isBlank()) {
+        String uuid = encounter
+                .getLocationFirstRep()
+                .getLocation()
+                .getReferenceElement()
+                .getIdPart();
+        if (uuid == null || uuid.isBlank()) {
             return null;
         }
-        return display.trim();
+        return uuid.trim();
     }
 }

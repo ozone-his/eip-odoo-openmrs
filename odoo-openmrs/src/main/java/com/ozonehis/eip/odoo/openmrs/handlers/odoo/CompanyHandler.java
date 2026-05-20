@@ -11,7 +11,6 @@ import static java.util.Arrays.asList;
 
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
-import java.util.List;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -27,29 +26,32 @@ public class CompanyHandler {
     @Autowired
     private OdooClient odooClient;
 
-    public Integer getCompanyIdByName(String name) {
-        if (name == null || name.isBlank()) {
+    public Integer getCompanyIdByExternalId(String externalId) {
+        if (externalId == null || externalId.isBlank()) {
             return null;
         }
         Object[] records = odooClient.searchAndRead(
-                Constants.COMPANY_MODEL, List.of(asList("name", "=", name)), List.of("id", "name"));
+                Constants.IR_MODEL,
+                asList(asList("model", "=", Constants.COMPANY_MODEL), asList("name", "=", externalId)),
+                asList("res_id"));
         if (records == null) {
             throw new EIPException(
-                    String.format("Got null response while fetching for res.company with name %s", name));
+                    String.format("Got null response while fetching for res.company with external id %s", externalId));
         } else if (records.length == 0) {
-            log.warn("No res.company found with name {}", name);
+            log.warn("No res.company found with external id {}", externalId);
             return null;
         } else if (records.length > 1) {
-            log.warn("Multiple res.company found with name {}", name);
-            throw new EIPException(String.format("Multiple res.company found with name %s", name));
+            log.warn("Multiple res.company external id mappings found for {}", externalId);
+            throw new EIPException(String.format("Multiple res.company external id mappings found for %s", externalId));
         }
-        Object id = ((Map<String, Object>) records[0]).get("id");
-        if (id instanceof Integer) {
-            return (Integer) id;
+        Object resId = ((Map<String, Object>) records[0]).get("res_id");
+        if (resId instanceof Integer) {
+            return (Integer) resId;
         }
-        if (id instanceof Number) {
-            return ((Number) id).intValue();
+        if (resId instanceof Number) {
+            return ((Number) resId).intValue();
         }
-        throw new EIPException(String.format("Unexpected id type returned for res.company name %s: %s", name, id));
+        throw new EIPException(
+                String.format("Unexpected res_id type returned for res.company external id %s: %s", externalId, resId));
     }
 }
