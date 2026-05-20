@@ -14,6 +14,7 @@ import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.r4.model.Encounter;
 import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,5 +54,37 @@ public class CompanyHandler {
         }
         throw new EIPException(
                 String.format("Unexpected res_id type returned for res.company external id %s: %s", externalId, resId));
+    }
+
+    public Integer getCompanyIdByEncounterLocation(Encounter encounter) {
+        String locationUuid = resolveEncounterLocationUuid(encounter);
+        if (locationUuid == null) {
+            log.warn("Encounter {} has no location reference", encounter == null ? null : encounter.getIdPart());
+            return null;
+        }
+        Integer companyId = getCompanyIdByExternalId(locationUuid);
+        if (companyId == null) {
+            log.warn(
+                    "No res.company external id matches location uuid {} for encounter {}",
+                    locationUuid,
+                    encounter.getIdPart());
+            return null;
+        }
+        return companyId;
+    }
+
+    private String resolveEncounterLocationUuid(Encounter encounter) {
+        if (encounter == null || !encounter.hasLocation()) {
+            return null;
+        }
+        String uuid = encounter
+                .getLocationFirstRep()
+                .getLocation()
+                .getReferenceElement()
+                .getIdPart();
+        if (uuid == null || uuid.isBlank()) {
+            return null;
+        }
+        return uuid.trim();
     }
 }

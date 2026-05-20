@@ -98,7 +98,7 @@ public class ServiceRequestProcessor implements Processor {
 
                 Integer companyId = null;
                 if (enableEncounterLocationCompanyMapping) {
-                    companyId = getCompanyIdByEncounterLocationUuid(encounter);
+                    companyId = companyHandler.getCompanyIdByEncounterLocation(encounter);
                     if (companyId == null) {
                         log.warn(
                                 "Skipping ServiceRequest sync as company id is null for ServiceRequest id {}",
@@ -171,37 +171,5 @@ public class ServiceRequestProcessor implements Processor {
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing ServiceRequest", exchange, e);
         }
-    }
-
-    private Integer getCompanyIdByEncounterLocationUuid(Encounter encounter) {
-        String locationUuid = resolveEncounterLocationUuid(encounter);
-        if (locationUuid == null) {
-            log.warn("Encounter {} has no location reference", encounter.getIdPart());
-            return null;
-        }
-        Integer companyId = companyHandler.getCompanyIdByExternalId(locationUuid);
-        if (companyId == null) {
-            log.warn(
-                    "No res.company external id matches location uuid {} for encounter {}",
-                    locationUuid,
-                    encounter.getIdPart());
-            return null;
-        }
-        return companyId;
-    }
-
-    private String resolveEncounterLocationUuid(Encounter encounter) {
-        if (encounter == null || !encounter.hasLocation()) {
-            return null;
-        }
-        String uuid = encounter
-                .getLocationFirstRep()
-                .getLocation()
-                .getReferenceElement()
-                .getIdPart();
-        if (uuid == null || uuid.isBlank()) {
-            return null;
-        }
-        return uuid.trim();
     }
 }
