@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MedicationRequestProcessor implements Processor {
 
-    @Value("${enable.encounter.location.company.mapping:false}")
+    @Value("${enable.encounter.location.to.company.mapping:false}")
     private boolean enableEncounterLocationCompanyMapping;
 
     @Autowired
