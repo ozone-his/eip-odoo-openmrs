@@ -88,10 +88,11 @@ public class SupplyRequestProcessor implements Processor {
                     throw new IllegalArgumentException("Event type not found in the exchange headers.");
                 }
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
-                Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
+                Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient, null);
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     if (supplyRequest.getStatus().equals(SupplyRequest.SupplyRequestStatus.ACTIVE)) {
-                        SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
+                        SaleOrder saleOrder =
+                                saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid, null);
                         if (saleOrder != null) {
                             saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
                                     supplyRequest,
@@ -99,6 +100,7 @@ public class SupplyRequestProcessor implements Processor {
                                     encounterVisitUuid,
                                     partner.getPartnerId(),
                                     patient.getIdPart(),
+                                    null,
                                     producerTemplate);
                         } else {
                             saleOrderHandler.createSaleOrderWithSaleOrderLine(
@@ -107,17 +109,18 @@ public class SupplyRequestProcessor implements Processor {
                                     partner,
                                     encounterVisitUuid,
                                     patient.getIdPart(),
+                                    null,
                                     producerTemplate);
                         }
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
-                        saleOrderHandler.deleteSaleOrderLine(supplyRequest, encounterVisitUuid, producerTemplate);
+                        saleOrderHandler.deleteSaleOrderLine(supplyRequest, encounterVisitUuid, null, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {
                     // Executed when DISCONTINUE option is selected in OpenMRS
-                    saleOrderHandler.deleteSaleOrderLine(supplyRequest, encounterVisitUuid, producerTemplate);
+                    saleOrderHandler.deleteSaleOrderLine(supplyRequest, encounterVisitUuid, null, producerTemplate);
                     saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
-                            partner.getPartnerId(), encounterVisitUuid, producerTemplate);
+                            partner.getPartnerId(), encounterVisitUuid, null, producerTemplate);
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
                 }

@@ -7,6 +7,7 @@
  */
 package com.ozonehis.eip.odoo.openmrs.processors;
 
+import com.ozonehis.eip.odoo.openmrs.handlers.odoo.CompanyHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
@@ -27,12 +28,16 @@ import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.openmrs.eip.fhir.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Setter
 @Component
 public class ServiceRequestProcessor implements Processor {
+
+    @Value("${enable.encounter.location.to.company.mapping:false}")
+    private boolean enableEncounterLocationCompanyMapping;
 
     @Autowired
     private SaleOrderHandler saleOrderHandler;
@@ -45,6 +50,9 @@ public class ServiceRequestProcessor implements Processor {
 
     @Autowired
     private EncounterHandler encounterHandler;
+
+    @Autowired
+    private CompanyHandler companyHandler;
 
     @Override
     public void process(Exchange exchange) {
@@ -87,7 +95,19 @@ public class ServiceRequestProcessor implements Processor {
                     throw new IllegalArgumentException("Event type not found in the exchange headers.");
                 }
                 String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
-                Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient);
+
+                Integer companyId = null;
+                if (enableEncounterLocationCompanyMapping) {
+                    companyId = companyHandler.getCompanyIdByEncounterLocation(encounter);
+                    if (companyId == null) {
+                        log.warn(
+                                "Skipping ServiceRequest sync as company id is null for ServiceRequest id {}",
+                                serviceRequest.getIdPart());
+                        return;
+                    }
+                }
+
+                Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient, companyId);
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     boolean isOrderIntent =
                             serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER);
@@ -97,7 +117,8 @@ public class ServiceRequestProcessor implements Processor {
                             serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.COMPLETED);
 
                     if (isOrderIntent) {
-                        SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
+                        SaleOrder saleOrder =
+                                saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid, companyId);
                         if (isActiveStatus || ("u".equals(eventType) && isCompletedStatus)) {
                             if (saleOrder != null) {
                                 saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
@@ -106,6 +127,7 @@ public class ServiceRequestProcessor implements Processor {
                                         encounterVisitUuid,
                                         partner.getPartnerId(),
                                         patient.getIdPart(),
+                                        companyId,
                                         producerTemplate);
                             } else {
                                 saleOrderHandler.createSaleOrderWithSaleOrderLine(
@@ -114,15 +136,18 @@ public class ServiceRequestProcessor implements Processor {
                                         partner,
                                         encounterVisitUuid,
                                         patient.getIdPart(),
+                                        companyId,
                                         producerTemplate);
                             }
                         } else {
                             // Executed when MODIFY option is selected in OpenMRS for other statuses
-                            saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
+                            saleOrderHandler.deleteSaleOrderLine(
+                                    serviceRequest, encounterVisitUuid, companyId, producerTemplate);
                         }
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
-                        saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
+                        saleOrderHandler.deleteSaleOrderLine(
+                                serviceRequest, encounterVisitUuid, companyId, producerTemplate);
                     }
                 } else if ("d".equals(eventType)) {
                     // Executed when a DISCONTINUE option is selected in OpenMRS
@@ -134,9 +159,10 @@ public class ServiceRequestProcessor implements Processor {
                                 serviceRequest.getIdPart(),
                                 serviceRequest.getStatus());
                     } else {
-                        saleOrderHandler.deleteSaleOrderLine(serviceRequest, encounterVisitUuid, producerTemplate);
+                        saleOrderHandler.deleteSaleOrderLine(
+                                serviceRequest, encounterVisitUuid, companyId, producerTemplate);
                         saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(
-                                partner.getPartnerId(), encounterVisitUuid, producerTemplate);
+                                partner.getPartnerId(), encounterVisitUuid, companyId, producerTemplate);
                     }
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);

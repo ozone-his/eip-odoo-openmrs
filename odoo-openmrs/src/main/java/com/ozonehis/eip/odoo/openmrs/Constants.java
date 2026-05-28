@@ -23,6 +23,8 @@ public class Constants {
 
     public static final String PRODUCT_MODEL = "product.product";
 
+    public static final String COMPANY_MODEL = "res.company";
+
     public static final String IR_MODEL = "ir.model.data";
 
     public static final String CREATE_METHOD = "create";

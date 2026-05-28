@@ -113,7 +113,7 @@ class SaleOrderHandlerTest {
                 .thenReturn(saleOrders);
 
         // Act
-        SaleOrder result = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(VISIT_ID_1);
+        SaleOrder result = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(VISIT_ID_1, null);
 
         // Verify
         assertNotNull(result);
@@ -139,7 +139,7 @@ class SaleOrderHandlerTest {
                 .thenReturn(saleOrders);
 
         // Verify
-        assertThrows(EIPException.class, () -> saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(VISIT_ID_1));
+        assertThrows(EIPException.class, () -> saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(VISIT_ID_1, null));
     }
 
     @Test
@@ -155,7 +155,7 @@ class SaleOrderHandlerTest {
                 .thenReturn(saleOrders);
 
         // Act
-        SaleOrder result = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(VISIT_ID_1);
+        SaleOrder result = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(VISIT_ID_1, null);
 
         // Verify
         assertNull(result);
@@ -171,7 +171,7 @@ class SaleOrderHandlerTest {
                 .thenReturn(null);
 
         // Verify
-        assertThrows(EIPException.class, () -> saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(VISIT_ID_1));
+        assertThrows(EIPException.class, () -> saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(VISIT_ID_1, null));
     }
 
     @Test
@@ -190,7 +190,7 @@ class SaleOrderHandlerTest {
 
         // Act
         saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
-                resource, saleOrder, VISIT_ID_1, PARTNER_ID, PATIENT_ID, producerTemplate);
+                resource, saleOrder, VISIT_ID_1, PARTNER_ID, PATIENT_ID, null, producerTemplate);
 
         // Verify
         verify(producerTemplate, times(1)).sendBody("direct:odoo-create-sale-order-line-route", saleOrderLine);
@@ -226,7 +226,7 @@ class SaleOrderHandlerTest {
 
         // Act
         saleOrderHandler.createSaleOrderWithSaleOrderLine(
-                resource, encounter, partner, VISIT_ID_1, PATIENT_ID, producerTemplate);
+                resource, encounter, partner, VISIT_ID_1, PATIENT_ID, null, producerTemplate);
 
         // Verify
         verify(producerTemplate, times(1))
@@ -256,7 +256,7 @@ class SaleOrderHandlerTest {
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
         // Act
-        saleOrderHandler.deleteSaleOrderLine(resource, VISIT_ID_1, producerTemplate);
+        saleOrderHandler.deleteSaleOrderLine(resource, VISIT_ID_1, null, producerTemplate);
 
         // Verify
         verify(saleOrderLineHandler, times(1))
@@ -284,7 +284,7 @@ class SaleOrderHandlerTest {
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
 
         // Act
-        saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(partnerId, VISIT_ID_1, producerTemplate);
+        saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(partnerId, VISIT_ID_1, null, producerTemplate);
 
         // Verify
         verify(producerTemplate, times(1))

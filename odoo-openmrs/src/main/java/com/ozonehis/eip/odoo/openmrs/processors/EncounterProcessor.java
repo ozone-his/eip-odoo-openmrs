@@ -34,7 +34,7 @@ public class EncounterProcessor implements Processor {
         Encounter encounter = message.getBody(Encounter.class);
         if (encounter != null && encounter.hasPeriod() && encounter.getPeriod().hasEnd()) {
             String encounterVisitUuid = encounter.getIdPart(); // TODO: Check if this should be referenceId
-            SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid);
+            SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid, null);
             if (saleOrder != null) {
                 Map<String, Object> headers = new HashMap<>();
                 // Check if Sale Order needs to be moved from `draft` state to `sale` state

@@ -60,4 +60,7 @@ public class Partner implements OdooResource {
 
     @JsonProperty("odoo.customer.id.field")
     private String partnerExternalId;
+
+    @JsonProperty("company_id")
+    private Object partnerCompanyId; // Can be Integer on write, [id, name] list on read
 }

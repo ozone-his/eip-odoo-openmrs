@@ -90,8 +90,8 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
         partner.setPartnerId(PARTNER_ID);
 
         // Mock behavior
-        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(partner);
-        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_VISIT_ID))
+        when(partnerHandler.createOrUpdatePartner(any(), eq(patient), any())).thenReturn(partner);
+        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(eq(ENCOUNTER_VISIT_ID), any()))
                 .thenReturn(saleOrder);
 
         // Act
@@ -106,10 +106,17 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
                         eq(ENCOUNTER_VISIT_ID),
                         eq(PARTNER_ID),
                         eq(PATIENT_ID),
+                        any(),
                         any());
         verify(saleOrderHandler, times(0))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(serviceRequest), eq(encounter), eq(partner), eq(ENCOUNTER_VISIT_ID), eq(PATIENT_ID), any());
+                        eq(serviceRequest),
+                        eq(encounter),
+                        eq(partner),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PATIENT_ID),
+                        any(),
+                        any());
     }
 
     @Test
@@ -136,8 +143,8 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
         partner.setPartnerId(PARTNER_ID);
 
         // Mock behavior
-        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(partner);
-        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_VISIT_ID))
+        when(partnerHandler.createOrUpdatePartner(any(), eq(patient), any())).thenReturn(partner);
+        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(eq(ENCOUNTER_VISIT_ID), any()))
                 .thenReturn(null);
 
         // Act
@@ -147,10 +154,22 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "c");
         verify(saleOrderHandler, times(0))
                 .updateSaleOrderIfExistsWithSaleOrderLine(
-                        eq(serviceRequest), any(), eq(ENCOUNTER_VISIT_ID), eq(PARTNER_ID), eq(PATIENT_ID), any());
+                        eq(serviceRequest),
+                        any(),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PARTNER_ID),
+                        eq(PATIENT_ID),
+                        any(),
+                        any());
         verify(saleOrderHandler, times(1))
                 .createSaleOrderWithSaleOrderLine(
-                        eq(serviceRequest), eq(encounter), eq(partner), eq(ENCOUNTER_VISIT_ID), eq(PATIENT_ID), any());
+                        eq(serviceRequest),
+                        eq(encounter),
+                        eq(partner),
+                        eq(ENCOUNTER_VISIT_ID),
+                        eq(PATIENT_ID),
+                        any(),
+                        any());
     }
 
     // Test for handling completed status
@@ -180,8 +199,8 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
         SaleOrder saleOrder = new SaleOrder();
 
         // Mock behavior
-        when(partnerHandler.createOrUpdatePartner(any(), eq(patient))).thenReturn(partner);
-        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(ENCOUNTER_VISIT_ID))
+        when(partnerHandler.createOrUpdatePartner(any(), eq(patient), any())).thenReturn(partner);
+        when(saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(eq(ENCOUNTER_VISIT_ID), any()))
                 .thenReturn(saleOrder);
 
         // Act
@@ -196,6 +215,7 @@ class ServiceRequestProcessorTest extends BaseProcessorTest {
                         eq(ENCOUNTER_VISIT_ID),
                         eq(PARTNER_ID),
                         eq(PATIENT_ID),
+                        any(),
                         any());
     }
 }
