@@ -64,7 +64,9 @@ public class OdooUtils {
                 String propertyValue = environment.getProperty(jsonProperty.value());
                 String key = propertyValue == null ? jsonProperty.value() : propertyValue;
                 Object value = field.get(object);
-                map.put(key, value);
+                if (value != null) {
+                    map.put(key, value);
+                }
             }
         }
         log.debug("OdooUtils: Converted object {} to map {}", object.getClass().getName(), map);
