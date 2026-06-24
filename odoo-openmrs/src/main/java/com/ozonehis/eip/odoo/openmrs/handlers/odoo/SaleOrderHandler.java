@@ -107,9 +107,10 @@ public class SaleOrderHandler {
     public void sendSaleOrder(ProducerTemplate producerTemplate, String endpointUri, SaleOrder saleOrder) {
         Map<String, Object> saleOrderHeaders = new HashMap<>();
         if (endpointUri.contains("update")) {
-            saleOrderHeaders.put(
-                    com.ozonehis.eip.odoo.openmrs.Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE,
-                    List.of(saleOrder.getOrderId()));
+            saleOrderHeaders.put(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, List.of(saleOrder.getOrderId()));
+            // Odoo returns many2one fields as [id, name] on read but requires a bare id on write.
+            saleOrder.setCompanyId(toMany2oneId(saleOrder.getCompanyId()));
+            saleOrder.setOrderPartnerId(toMany2oneId(saleOrder.getOrderPartnerId()));
         }
         producerTemplate.sendBodyAndHeaders(endpointUri, saleOrder, saleOrderHeaders);
     }
@@ -243,5 +244,12 @@ public class SaleOrderHandler {
 
         return observation.getValueQuantity().getValue() + " "
                 + observation.getValueQuantity().getUnit();
+    }
+
+    private Object toMany2oneId(Object value) {
+        if (value instanceof List<?> pair && !pair.isEmpty()) {
+            return pair.get(0);
+        }
+        return value;
     }
 }
