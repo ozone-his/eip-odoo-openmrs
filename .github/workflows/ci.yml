@@ -19,7 +19,7 @@ jobs:
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-spotless-check.yml@main
 
   integration-tests:
-    uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-integration-test.yml@it-tests
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-integration-test.yml@main
     with:
       maven-args: '-pl eip-odoo-openmrs-it -am'
       maven-phase: 'verify'
