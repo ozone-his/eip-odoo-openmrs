@@ -30,7 +30,7 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
             saleOrderLine.setSaleOrderLineProductUomQty(1.0f); // default quantity is 1 for serviceRequests.
             String requesterDisplay = serviceRequest.getRequester().getDisplay();
             String serviceDisplay = serviceRequest.getCode().getText();
-            saleOrderLine.setSaleOrderLineName(serviceDisplay + " | Orderer: " + requesterDisplay);
+            saleOrderLine.setSaleOrderLineName(serviceDisplay + " | Orderer: " + requesterDisplay + " | SR:" + serviceRequest.getIdPart());
 
         } else if (resource instanceof MedicationRequest medicationRequest) {
             if (medicationRequest.hasDispenseRequest()) {
