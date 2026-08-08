@@ -45,9 +45,6 @@ public class PartnerHandler {
     @Value("${odoo.customer.id.field}")
     private String odooCustomerIdField;
 
-    @Value("${insurance.coverage.tier.mode:required}")
-    private String insuranceCoverageTierMode;
-
     @Autowired
     private OdooClient odooClient;
 
@@ -111,12 +108,9 @@ public class PartnerHandler {
         }
     }
 
-    private void applyExplicitPricelist(Patient patient, Partner partner) {
+    public void applyExplicitPricelist(Patient patient, Partner partner) {
         String tier = extractCoverageTier(patient);
         if (tier == null || tier.isBlank()) {
-            if ("optional".equalsIgnoreCase(insuranceCoverageTierMode)) {
-                return;
-            }
             throw new EIPException(String.format("Patient %s is missing required %s person attribute", patient.getIdPart(), INSURANCE_COVERAGE_ATTRIBUTE_NAME));
         }
         String pricelistName = switch (tier.trim()) {

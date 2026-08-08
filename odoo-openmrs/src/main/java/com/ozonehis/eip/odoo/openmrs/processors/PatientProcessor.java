@@ -42,12 +42,15 @@ public class PatientProcessor implements Processor {
         try {
             Message message = exchange.getMessage();
             Patient patient = message.getBody(Patient.class);
+            if (patient == null) {
+                return;
+            }
             Partner partner = mapper.toOdoo(patient);
-
-            if (patient == null || partner == null) {
+            if (partner == null) {
                 return;
             }
 
+            partnerHandler.applyExplicitPricelist(patient, partner);
             String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
             Partner fetchedPartner = partnerHandler.getPartnerByID(partner.getPartnerRef());
             if (fetchedPartner != null) {
@@ -55,7 +58,7 @@ public class PatientProcessor implements Processor {
                 Map<String, Object> headers = new HashMap<>();
                 headers.put(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, List.of(partner.getPartnerId()));
 
-                if (eventType.equals("c") || eventType.equals("u")) {
+                if ("c".equals(eventType) || "u".equals(eventType)) {
                     headers.put(HEADER_FHIR_EVENT_TYPE, "u");
                 } else {
                     headers.put(HEADER_FHIR_EVENT_TYPE, "d");

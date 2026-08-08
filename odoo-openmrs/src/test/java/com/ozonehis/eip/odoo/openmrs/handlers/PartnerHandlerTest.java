@@ -28,7 +28,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.camel.ProducerTemplate;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.StringType;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,6 +75,9 @@ class PartnerHandlerTest {
         odooUtils = new OdooUtils();
         odooUtils.setEnvironment(mockEnvironment);
         partnerHandler.setOdooUtils(odooUtils);
+        when(odooClient.searchAndRead(
+                        eq("product.pricelist"), any(), any()))
+                .thenReturn(new Object[] {Map.of("id", 42, "name", "Insurance 50%")});
     }
 
     @Test
@@ -119,6 +125,7 @@ class PartnerHandlerTest {
         // Setup
         Patient patient = new Patient();
         patient.setId(PARTNER_REF_ID);
+        addInsuranceTier(patient, "50%");
 
         Map<String, Object> headers = new HashMap<>();
         headers.put(
@@ -148,6 +155,7 @@ class PartnerHandlerTest {
         // Setup
         Patient patient = new Patient();
         patient.setId(PARTNER_REF_ID);
+        addInsuranceTier(patient, "50%");
 
         Map<String, Object> headers = new HashMap<>();
 
@@ -168,6 +176,42 @@ class PartnerHandlerTest {
                 .sendBodyAndHeaders(eq("direct:odoo-create-partner-route"), eq(getPartner()), eq(headers));
     }
 
+    @Test
+    public void shouldMapEverySupportedTierToItsExactPricelist() {
+        for (String tier : List.of("50%", "60%", "70%", "80%", "90%", "100%")) {
+            Patient patient = patientWithTier(tier);
+            Partner partner = new Partner();
+            String expectedName = "Insurance " + tier;
+            when(odooClient.searchAndRead(eq("product.pricelist"), any(), any()))
+                    .thenReturn(new Object[] {Map.of("id", 42, "name", expectedName)});
+
+            partnerHandler.applyExplicitPricelist(patient, partner);
+
+            assertEquals(42, partner.getPartnerPricelistId());
+        }
+    }
+
+    @Test
+    public void shouldFailClosedForMissingBlankAndUnsupportedTier() {
+        for (String tier : asList(null, "", "   ", "95%")) {
+            Patient patient = patientWithTier(tier);
+            EIPException error = assertThrows(EIPException.class,
+                    () -> partnerHandler.applyExplicitPricelist(patient, new Partner()));
+            assertNotNull(error.getMessage());
+        }
+    }
+
+    @Test
+    public void shouldFailClosedWhenPricelistIsMissingOrDuplicated() {
+        Patient patient = patientWithTier("100%");
+        when(odooClient.searchAndRead(eq("product.pricelist"), any(), any())).thenReturn(new Object[] {});
+        assertThrows(EIPException.class, () -> partnerHandler.applyExplicitPricelist(patient, new Partner()));
+
+        when(odooClient.searchAndRead(eq("product.pricelist"), any(), any()))
+                .thenReturn(new Object[] {Map.of("id", 1), Map.of("id", 2)});
+        assertThrows(EIPException.class, () -> partnerHandler.applyExplicitPricelist(patient, new Partner()));
+    }
+
     private Map<String, Object> getPartnerMap() {
         Map<String, Object> partnerMap = new HashMap<>();
         partnerMap.put("id", 12);
@@ -176,6 +220,7 @@ class PartnerHandlerTest {
         partnerMap.put("city", "Berlin");
         partnerMap.put("active", true);
         partnerMap.put("comment", PARTNER_IDENTIFIER_ID);
+        partnerMap.put("property_product_pricelist", new Object[] {42, "Insurance 50%"});
         return partnerMap;
     }
 
@@ -187,6 +232,25 @@ class PartnerHandlerTest {
         partner.setPartnerCity("Berlin");
         partner.setPartnerActive(true);
         partner.setPartnerComment(PARTNER_IDENTIFIER_ID);
+        partner.setPartnerPricelistId(42);
         return partner;
+    }
+
+    private void addInsuranceTier(Patient patient, String tier) {
+        Extension attribute = new Extension("http://fhir.openmrs.org/ext/person-attribute");
+        patient.addExtension(attribute);
+        attribute.addExtension(new Extension(
+                "http://fhir.openmrs.org/ext/person-attribute-type", new StringType("Insurance Coverage Tier")));
+        attribute.addExtension(new Extension(
+                "http://fhir.openmrs.org/ext/person-attribute-value", new CodeableConcept().setText(tier)));
+    }
+
+    private Patient patientWithTier(String tier) {
+        Patient patient = new Patient();
+        patient.setId(PATIENT_ID);
+        if (tier != null) {
+            addInsuranceTier(patient, tier);
+        }
+        return patient;
     }
 }
