@@ -14,6 +14,8 @@ public class Constants {
 
     public static final String SALE_ORDER_LINE_MODEL = "sale.order.line";
 
+    public static final String ACCOUNT_MOVE_MODEL = "account.move";
+
     public static final String COUNTRY_STATE_MODEL = "res.country.state";
 
     public static final String COUNTRY_MODEL = "res.country";
