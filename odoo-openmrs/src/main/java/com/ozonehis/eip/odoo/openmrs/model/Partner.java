@@ -66,4 +66,7 @@ public class Partner implements OdooResource {
 
     @JsonProperty("property_product_pricelist")
     private Integer partnerPricelistId;
+
+    @JsonProperty("base_insurance_id")
+    private Integer partnerBaseInsuranceId;
 }

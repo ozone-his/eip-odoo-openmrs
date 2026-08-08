@@ -51,6 +51,7 @@ public class PatientProcessor implements Processor {
             }
 
             partnerHandler.validateCoverageTier(patient);
+            partnerHandler.applyAddonModelCoverage(patient, partner);
             String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
             Partner fetchedPartner = partnerHandler.getPartnerByID(partner.getPartnerRef());
             if (fetchedPartner != null) {
