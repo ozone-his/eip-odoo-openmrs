@@ -50,7 +50,7 @@ public class PatientProcessor implements Processor {
                 return;
             }
 
-            partnerHandler.applyExplicitPricelist(patient, partner);
+            partnerHandler.validateCoverageTier(patient);
             String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
             Partner fetchedPartner = partnerHandler.getPartnerByID(partner.getPartnerRef());
             if (fetchedPartner != null) {

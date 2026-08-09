@@ -93,7 +93,7 @@ public class PartnerHandler {
             int partnerId = fetchedPartner.getPartnerId();
             log.info("Partner with reference id {} already exists, updating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
-            applyExplicitPricelist(patient, partner);
+            validateCoverageTier(patient);
             partner.setPartnerId(partnerId);
             partner.setPartnerCompanyId(companyId);
             sendPartner(producerTemplate, "direct:odoo-update-partner-route", partner);
@@ -101,37 +101,38 @@ public class PartnerHandler {
         } else {
             log.info("Partner with reference id {} does not exist, creating...", patient.getIdPart());
             Partner partner = partnerMapper.toOdoo(patient);
-            applyExplicitPricelist(patient, partner);
+            validateCoverageTier(patient);
             partner.setPartnerCompanyId(companyId);
             sendPartner(producerTemplate, "direct:odoo-create-partner-route", partner);
             return getPartnerByID(partner.getPartnerRef());
         }
     }
 
-    public void applyExplicitPricelist(Patient patient, Partner partner) {
+    /**
+     * Fail-closed insurance coverage tier validation (issue #189): a patient
+     * without the Insurance Coverage Tier person attribute, or with an
+     * unsupported value, is rejected instead of silently falling back to a
+     * default plan/pricelist. Pricing itself is the insurance_coverage addon's
+     * job (issue #184): the addon splits full-priced invoices between the
+     * payers, so the EIP deliberately does NOT assign a discount pricelist to
+     * the partner (a discounted sale order would make the invoice carry the
+     * patient share instead of the full service value, breaking the split).
+     */
+    public void validateCoverageTier(Patient patient) {
         String tier = extractCoverageTier(patient);
         if (tier == null || tier.isBlank()) {
             throw new EIPException(String.format("Patient %s is missing required %s person attribute", patient.getIdPart(), INSURANCE_COVERAGE_ATTRIBUTE_NAME));
         }
-        String pricelistName = switch (tier.trim()) {
-            case "50", "50%", "Insurance 50%" -> "Insurance 50%";
-            case "60", "60%", "Insurance 60%" -> "Insurance 60%";
-            case "70", "70%", "Insurance 70%" -> "Insurance 70%";
-            case "80", "80%", "Insurance 80%" -> "Insurance 80%";
-            case "90", "90%", "Insurance 90%" -> "Insurance 90%";
-            case "100", "100%", "Insurance 100%" -> "Insurance 100%";
+        int percent = switch (tier.trim()) {
+            case "50", "50%", "Insurance 50%" -> 50;
+            case "60", "60%", "Insurance 60%" -> 60;
+            case "70", "70%", "Insurance 70%" -> 70;
+            case "80", "80%", "Insurance 80%" -> 80;
+            case "90", "90%", "Insurance 90%" -> 90;
+            case "100", "100%", "Insurance 100%" -> 100;
             default -> throw new EIPException(String.format("Unsupported %s value %s for patient %s", INSURANCE_COVERAGE_ATTRIBUTE_NAME, tier, patient.getIdPart()));
         };
-        Object[] records = odooClient.searchAndRead(
-                "product.pricelist", List.of(asList("name", "=", pricelistName)), List.of("id", "name"));
-        if (records == null || records.length != 1) {
-            throw new EIPException(String.format("Expected exactly one Odoo pricelist named %s for patient %s", pricelistName, patient.getIdPart()));
-        }
-        Object id = ((Map<String, Object>) records[0]).get("id");
-        if (id == null) {
-            throw new EIPException(String.format("Odoo pricelist %s has no id for patient %s", pricelistName, patient.getIdPart()));
-        }
-        partner.setPartnerPricelistId(Integer.parseInt(id.toString()));
+        log.info("Patient {} has insurance coverage tier {}%", patient.getIdPart(), percent);
     }
 
     private String extractCoverageTier(Patient patient) {

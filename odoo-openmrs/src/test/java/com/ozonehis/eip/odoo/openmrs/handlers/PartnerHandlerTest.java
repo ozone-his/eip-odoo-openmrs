@@ -177,17 +177,11 @@ class PartnerHandlerTest {
     }
 
     @Test
-    public void shouldMapEverySupportedTierToItsExactPricelist() {
+    public void shouldAcceptEverySupportedTier() {
         for (String tier : List.of("50%", "60%", "70%", "80%", "90%", "100%")) {
             Patient patient = patientWithTier(tier);
-            Partner partner = new Partner();
-            String expectedName = "Insurance " + tier;
-            when(odooClient.searchAndRead(eq("product.pricelist"), any(), any()))
-                    .thenReturn(new Object[] {Map.of("id", 42, "name", expectedName)});
-
-            partnerHandler.applyExplicitPricelist(patient, partner);
-
-            assertEquals(42, partner.getPartnerPricelistId());
+            // must not throw
+            partnerHandler.validateCoverageTier(patient);
         }
     }
 
@@ -196,20 +190,20 @@ class PartnerHandlerTest {
         for (String tier : asList(null, "", "   ", "95%")) {
             Patient patient = patientWithTier(tier);
             EIPException error = assertThrows(EIPException.class,
-                    () -> partnerHandler.applyExplicitPricelist(patient, new Partner()));
+                    () -> partnerHandler.validateCoverageTier(patient));
             assertNotNull(error.getMessage());
         }
     }
 
     @Test
-    public void shouldFailClosedWhenPricelistIsMissingOrDuplicated() {
-        Patient patient = patientWithTier("100%");
-        when(odooClient.searchAndRead(eq("product.pricelist"), any(), any())).thenReturn(new Object[] {});
-        assertThrows(EIPException.class, () -> partnerHandler.applyExplicitPricelist(patient, new Partner()));
-
-        when(odooClient.searchAndRead(eq("product.pricelist"), any(), any()))
-                .thenReturn(new Object[] {Map.of("id", 1), Map.of("id", 2)});
-        assertThrows(EIPException.class, () -> partnerHandler.applyExplicitPricelist(patient, new Partner()));
+    public void shouldFailClosedInsideCreateOrUpdatePartner() {
+        Patient patient = patientWithTier(null);
+        when(odooClient.searchAndRead(
+                        eq(Constants.PARTNER_MODEL), eq(List.of(asList("ref", "=", patient.getIdPart()))), any()))
+                .thenReturn(new Object[] {});
+        ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
+        assertThrows(EIPException.class,
+                () -> partnerHandler.createOrUpdatePartner(producerTemplate, patient, null));
     }
 
     private Map<String, Object> getPartnerMap() {
