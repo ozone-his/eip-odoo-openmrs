@@ -13,8 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
@@ -220,21 +220,38 @@ class PartnerHandlerTest {
         partnerHandler.applyAddonModelCoverage(patient, partner);
 
         assertEquals(42, partner.getPartnerBaseInsuranceId());
-        verify(odooClient).create(eq(Constants.PARTNER_MODEL), eq(List.of(Map.of(
-                "name", "Insurance 50%",
-                "ref", "INS-50",
-                "is_insurance", true,
-                "insurance_type", "base"))));
-        verify(odooClient).create(eq("insurance.product.coverage"), eq(List.of(Map.of(
-                "insurance_id", 42,
-                "product_id", 1,
-                "coverage_percentage", 50.0,
-                "covered_base_mode", "full"))));
-        verify(odooClient).create(eq("insurance.product.coverage"), eq(List.of(Map.of(
-                "insurance_id", 42,
-                "product_id", 2,
-                "coverage_percentage", 50.0,
-                "covered_base_mode", "full"))));
+        verify(odooClient)
+                .create(
+                        eq(Constants.PARTNER_MODEL),
+                        eq(List.of(Map.of(
+                                "name", "Insurance 50%",
+                                "ref", "INS-50",
+                                "is_insurance", true,
+                                "insurance_type", "base"))));
+        verify(odooClient)
+                .create(
+                        eq("insurance.product.coverage"),
+                        eq(List.of(Map.of(
+                                "insurance_id",
+                                42,
+                                "product_id",
+                                1,
+                                "coverage_percentage",
+                                50.0,
+                                "covered_base_mode",
+                                "full"))));
+        verify(odooClient)
+                .create(
+                        eq("insurance.product.coverage"),
+                        eq(List.of(Map.of(
+                                "insurance_id",
+                                42,
+                                "product_id",
+                                2,
+                                "coverage_percentage",
+                                50.0,
+                                "covered_base_mode",
+                                "full"))));
     }
 
     @Test
@@ -254,11 +271,18 @@ class PartnerHandlerTest {
         assertEquals(7, partner.getPartnerBaseInsuranceId());
         verify(odooClient, never()).create(eq(Constants.PARTNER_MODEL), any());
         verify(odooClient, times(1)).create(eq("insurance.product.coverage"), any());
-        verify(odooClient).create(eq("insurance.product.coverage"), eq(List.of(Map.of(
-                "insurance_id", 7,
-                "product_id", 2,
-                "coverage_percentage", 100.0,
-                "covered_base_mode", "full"))));
+        verify(odooClient)
+                .create(
+                        eq("insurance.product.coverage"),
+                        eq(List.of(Map.of(
+                                "insurance_id",
+                                7,
+                                "product_id",
+                                2,
+                                "coverage_percentage",
+                                100.0,
+                                "covered_base_mode",
+                                "full"))));
     }
 
     @Test
@@ -270,8 +294,7 @@ class PartnerHandlerTest {
     private void stubAddonModelLookups(String planRef) {
         when(odooClient.searchAndRead(eq(Constants.PARTNER_MODEL), eq(List.of(asList("ref", "=", planRef))), any()))
                 .thenReturn(new Object[] {Map.of("id", 42, "name", "Insurance 50%")});
-        when(odooClient.searchAndRead(eq("product.product"), any(), any()))
-                .thenReturn(new Object[] {});
+        when(odooClient.searchAndRead(eq("product.product"), any(), any())).thenReturn(new Object[] {});
         when(odooClient.searchAndRead(eq("insurance.product.coverage"), any(), any()))
                 .thenReturn(new Object[] {});
     }

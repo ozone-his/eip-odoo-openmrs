@@ -166,7 +166,9 @@ public class PartnerHandler {
     private int resolveTierPercent(Patient patient) {
         String tier = extractCoverageTier(patient);
         if (tier == null || tier.isBlank()) {
-            throw new EIPException(String.format("Patient %s is missing required %s person attribute", patient.getIdPart(), INSURANCE_COVERAGE_ATTRIBUTE_NAME));
+            throw new EIPException(String.format(
+                    "Patient %s is missing required %s person attribute",
+                    patient.getIdPart(), INSURANCE_COVERAGE_ATTRIBUTE_NAME));
         }
         return switch (tier.trim()) {
             case "50", "50%", "Insurance 50%" -> 50;
@@ -175,7 +177,9 @@ public class PartnerHandler {
             case "80", "80%", "Insurance 80%" -> 80;
             case "90", "90%", "Insurance 90%" -> 90;
             case "100", "100%", "Insurance 100%" -> 100;
-            default -> throw new EIPException(String.format("Unsupported %s value %s for patient %s", INSURANCE_COVERAGE_ATTRIBUTE_NAME, tier, patient.getIdPart()));
+            default -> throw new EIPException(String.format(
+                    "Unsupported %s value %s for patient %s",
+                    INSURANCE_COVERAGE_ATTRIBUTE_NAME, tier, patient.getIdPart()));
         };
     }
 
@@ -192,13 +196,12 @@ public class PartnerHandler {
             }
             return Integer.parseInt(id.toString());
         }
-        Integer planId = odooClient.create(Constants.PARTNER_MODEL, List.of(Map.of(
-                "name", planName,
-                "ref", planRef,
-                "is_insurance", true,
-                "insurance_type", "base")));
+        Integer planId = odooClient.create(
+                Constants.PARTNER_MODEL,
+                List.of(Map.of("name", planName, "ref", planRef, "is_insurance", true, "insurance_type", "base")));
         if (planId == null || planId <= 0) {
-            throw new EIPException(String.format("Failed to create Odoo insurance plan partner %s (%s)", planName, planRef));
+            throw new EIPException(
+                    String.format("Failed to create Odoo insurance plan partner %s (%s)", planName, planRef));
         }
         return planId;
     }
@@ -231,10 +234,14 @@ public class PartnerHandler {
                 continue;
             }
             coverageRows.add(Map.of(
-                    "insurance_id", planId,
-                    "product_id", pid,
-                    "coverage_percentage", (double) coveragePercentage,
-                    "covered_base_mode", "full"));
+                    "insurance_id",
+                    planId,
+                    "product_id",
+                    pid,
+                    "coverage_percentage",
+                    (double) coveragePercentage,
+                    "covered_base_mode",
+                    "full"));
         }
         for (Map<String, Object> row : coverageRows) {
             Integer created = odooClient.create(COVERAGE_MODEL, List.of(row));
