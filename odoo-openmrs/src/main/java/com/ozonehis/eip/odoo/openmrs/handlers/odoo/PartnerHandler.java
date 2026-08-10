@@ -121,17 +121,22 @@ public class PartnerHandler {
     public void validateCoverageTier(Patient patient) {
         String tier = extractCoverageTier(patient);
         if (tier == null || tier.isBlank()) {
-            throw new EIPException(String.format("Patient %s is missing required %s person attribute", patient.getIdPart(), INSURANCE_COVERAGE_ATTRIBUTE_NAME));
+            throw new EIPException(String.format(
+                    "Patient %s is missing required %s person attribute",
+                    patient.getIdPart(), INSURANCE_COVERAGE_ATTRIBUTE_NAME));
         }
-        int percent = switch (tier.trim()) {
-            case "50", "50%", "Insurance 50%" -> 50;
-            case "60", "60%", "Insurance 60%" -> 60;
-            case "70", "70%", "Insurance 70%" -> 70;
-            case "80", "80%", "Insurance 80%" -> 80;
-            case "90", "90%", "Insurance 90%" -> 90;
-            case "100", "100%", "Insurance 100%" -> 100;
-            default -> throw new EIPException(String.format("Unsupported %s value %s for patient %s", INSURANCE_COVERAGE_ATTRIBUTE_NAME, tier, patient.getIdPart()));
-        };
+        int percent =
+                switch (tier.trim()) {
+                    case "50", "50%", "Insurance 50%" -> 50;
+                    case "60", "60%", "Insurance 60%" -> 60;
+                    case "70", "70%", "Insurance 70%" -> 70;
+                    case "80", "80%", "Insurance 80%" -> 80;
+                    case "90", "90%", "Insurance 90%" -> 90;
+                    case "100", "100%", "Insurance 100%" -> 100;
+                    default -> throw new EIPException(String.format(
+                            "Unsupported %s value %s for patient %s",
+                            INSURANCE_COVERAGE_ATTRIBUTE_NAME, tier, patient.getIdPart()));
+                };
         log.info("Patient {} has insurance coverage tier {}%", patient.getIdPart(), percent);
     }
 
@@ -152,7 +157,8 @@ public class PartnerHandler {
             if (INSURANCE_COVERAGE_ATTRIBUTE_NAME.equals(attributeName)) {
                 if (attributeValue instanceof CodeableConcept codeableConcept) {
                     if (codeableConcept.hasText()) return codeableConcept.getText();
-                    if (!codeableConcept.getCoding().isEmpty()) return codeableConcept.getCodingFirstRep().getCode();
+                    if (!codeableConcept.getCoding().isEmpty())
+                        return codeableConcept.getCodingFirstRep().getCode();
                 }
                 return attributeValue == null ? null : attributeValue.primitiveValue();
             }

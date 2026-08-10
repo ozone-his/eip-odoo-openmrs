@@ -75,9 +75,6 @@ class PartnerHandlerTest {
         odooUtils = new OdooUtils();
         odooUtils.setEnvironment(mockEnvironment);
         partnerHandler.setOdooUtils(odooUtils);
-        when(odooClient.searchAndRead(
-                        eq("product.pricelist"), any(), any()))
-                .thenReturn(new Object[] {Map.of("id", 42, "name", "Insurance 50%")});
     }
 
     @Test
@@ -189,8 +186,7 @@ class PartnerHandlerTest {
     public void shouldFailClosedForMissingBlankAndUnsupportedTier() {
         for (String tier : asList(null, "", "   ", "95%")) {
             Patient patient = patientWithTier(tier);
-            EIPException error = assertThrows(EIPException.class,
-                    () -> partnerHandler.validateCoverageTier(patient));
+            EIPException error = assertThrows(EIPException.class, () -> partnerHandler.validateCoverageTier(patient));
             assertNotNull(error.getMessage());
         }
     }
@@ -202,8 +198,7 @@ class PartnerHandlerTest {
                         eq(Constants.PARTNER_MODEL), eq(List.of(asList("ref", "=", patient.getIdPart()))), any()))
                 .thenReturn(new Object[] {});
         ProducerTemplate producerTemplate = Mockito.mock(ProducerTemplate.class);
-        assertThrows(EIPException.class,
-                () -> partnerHandler.createOrUpdatePartner(producerTemplate, patient, null));
+        assertThrows(EIPException.class, () -> partnerHandler.createOrUpdatePartner(producerTemplate, patient, null));
     }
 
     private Map<String, Object> getPartnerMap() {

@@ -41,9 +41,11 @@ public class OdooUtils {
                 }
                 JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
                 Object value = normalizedData.get(jsonProperty.value());
-                if (value instanceof List<?> values && (field.getType() == Integer.class || field.getType() == int.class)) {
+                if (value instanceof List<?> values
+                        && (field.getType() == Integer.class || field.getType() == int.class)) {
                     normalizedData.put(jsonProperty.value(), values.isEmpty() ? null : values.get(0));
-                } else if (value instanceof Object[] values && (field.getType() == Integer.class || field.getType() == int.class)) {
+                } else if (value instanceof Object[] values
+                        && (field.getType() == Integer.class || field.getType() == int.class)) {
                     normalizedData.put(jsonProperty.value(), values.length == 0 ? null : values[0]);
                 }
             }
