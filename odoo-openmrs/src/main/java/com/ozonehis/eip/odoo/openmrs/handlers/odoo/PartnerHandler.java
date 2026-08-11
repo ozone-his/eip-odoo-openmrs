@@ -149,38 +149,21 @@ public class PartnerHandler {
      * Mirrors the insurance tier into the insurance_coverage addon model (issue #184):
      * find-or-create the base plan partner for the tier, enrol the patient in it and
      * make sure every saleable product has a coverage row for the plan
-     * (coverage_percentage = tier, covered_base_mode = full). Complements the
-     * pricelist mapping: the pricelist prices the sale order, the addon model splits
-     * the invoice. Idempotent by plan ref and the (insurance_id, product_id) unique
-     * constraint. Fails closed on missing/unsupported tiers.
+     * (coverage_percentage = tier, covered_base_mode = full). The addon splits
+     * FULL-priced invoices between the payers, so the EIP deliberately does NOT
+     * assign a discount pricelist to the partner (a discounted sale order would
+     * make the invoice carry the patient share instead of the full service value,
+     * breaking the split). Idempotent by plan ref and the (insurance_id, product_id)
+     * unique constraint. Fails closed on missing/unsupported tiers (the tier
+     * resolution itself lives in validateCoverageTier, PR 1).
      */
     public void applyAddonModelCoverage(Patient patient, Partner partner) {
-        int percent = resolveTierPercent(patient);
+        int percent = validateCoverageTier(patient);
         String planName = String.format(INSURANCE_PLAN_NAME_TEMPLATE, percent);
         String planRef = INSURANCE_PLAN_REF_PREFIX + percent;
         int planId = findOrCreateInsurancePlan(planName, planRef);
         partner.setPartnerBaseInsuranceId(planId);
         ensureCoverageRows(planId, percent);
-    }
-
-    private int resolveTierPercent(Patient patient) {
-        String tier = extractCoverageTier(patient);
-        if (tier == null || tier.isBlank()) {
-            throw new EIPException(String.format(
-                    "Patient %s is missing required %s person attribute",
-                    patient.getIdPart(), INSURANCE_COVERAGE_ATTRIBUTE_NAME));
-        }
-        return switch (tier.trim()) {
-            case "50", "50%", "Insurance 50%" -> 50;
-            case "60", "60%", "Insurance 60%" -> 60;
-            case "70", "70%", "Insurance 70%" -> 70;
-            case "80", "80%", "Insurance 80%" -> 80;
-            case "90", "90%", "Insurance 90%" -> 90;
-            case "100", "100%", "Insurance 100%" -> 100;
-            default -> throw new EIPException(String.format(
-                    "Unsupported %s value %s for patient %s",
-                    INSURANCE_COVERAGE_ATTRIBUTE_NAME, tier, patient.getIdPart()));
-        };
     }
 
     private int findOrCreateInsurancePlan(String planName, String planRef) {
