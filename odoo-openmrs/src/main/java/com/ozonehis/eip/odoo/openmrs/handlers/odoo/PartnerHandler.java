@@ -118,7 +118,7 @@ public class PartnerHandler {
      * the partner (a discounted sale order would make the invoice carry the
      * patient share instead of the full service value, breaking the split).
      */
-    public void validateCoverageTier(Patient patient) {
+    public int validateCoverageTier(Patient patient) {
         String tier = extractCoverageTier(patient);
         if (tier == null || tier.isBlank()) {
             throw new EIPException(String.format(
@@ -138,6 +138,7 @@ public class PartnerHandler {
                             INSURANCE_COVERAGE_ATTRIBUTE_NAME, tier, patient.getIdPart()));
                 };
         log.info("Patient {} has insurance coverage tier {}%", patient.getIdPart(), percent);
+        return percent;
     }
 
     private String extractCoverageTier(Patient patient) {
