@@ -18,6 +18,10 @@ import java.util.Set;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
+import java.util.Date;
+import java.time.format.DateTimeParseException;
+import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -166,7 +170,42 @@ public class RadiologyPaymentTaskProcessor implements Processor {
             String procedureDesc =
                     serviceRequest.getCode().getText() != null ? serviceRequest.getCode().getText() : "";
 
-            processOrderStateCheck(patientUuid, procedureDesc, existingTask);
+            // When this order was placed. Used to reject sale order lines that predate it - see
+            // checkOdooOrderState. Falls back to the resource's lastUpdated if authoredOn is
+            // absent, and to null (meaning "cannot bound it") rather than to "now", because
+            // defaulting to now would reject every legitimate line.
+            Date authoredOn = serviceRequest.getAuthoredOn();
+            if (authoredOn == null && serviceRequest.getMeta() != null) {
+                authoredOn = serviceRequest.getMeta().getLastUpdated();
+            }
+
+            processOrderStateCheck(patientUuid, procedureDesc, authoredOn, existingTask);
+        }
+    }
+
+    /**
+     * Odoo returns datetimes as "yyyy-MM-dd HH:mm:ss" in UTC, with no zone marker and sometimes
+     * with fractional seconds. Returns null rather than throwing when the value is missing or in
+     * an unexpected shape, so the caller can decide what an unknown date means - here, to skip
+     * the line rather than accept it.
+     */
+    private Instant parseOdooDate(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String raw = String.valueOf(value).trim();
+        if (raw.isEmpty() || "false".equals(raw)) {
+            return null;
+        }
+        int dot = raw.indexOf('.');
+        if (dot > 0) {
+            raw = raw.substring(0, dot);
+        }
+        try {
+            return LocalDateTime.parse(raw.replace(' ', 'T')).toInstant(ZoneOffset.UTC);
+        } catch (DateTimeParseException e) {
+            log.warn("Unparseable Odoo create_date '{}'", value);
+            return null;
         }
     }
 
@@ -175,9 +214,10 @@ public class RadiologyPaymentTaskProcessor implements Processor {
                 .anyMatch(coding -> RADIOLOGY_CONCEPT_UUIDS.contains(coding.getCode()));
     }
 
-    private void processOrderStateCheck(String patientUuid, String procedureDesc, Task existingTask) {
+    private void processOrderStateCheck(
+            String patientUuid, String procedureDesc, Date authoredOn, Task existingTask) {
         try {
-            OdooOrderState state = checkOdooOrderState(patientUuid, procedureDesc);
+            OdooOrderState state = checkOdooOrderState(patientUuid, procedureDesc, authoredOn);
             switch (state) {
                 case CONFIRMED:
                     taskHandler.updateTaskStatus(existingTask, Task.TaskStatus.ACCEPTED);
@@ -211,13 +251,14 @@ public class RadiologyPaymentTaskProcessor implements Processor {
      * established OdooClient (XML-RPC), and extended to also check the
      * order's own cancellation state.
      */
-    private OdooOrderState checkOdooOrderState(String patientUuid, String procedureDesc) throws Exception {
+    private OdooOrderState checkOdooOrderState(String patientUuid, String procedureDesc, Date authoredOn)
+            throws Exception {
         List<Object> lineCriteria =
                 Arrays.asList(Arrays.asList("order_id.partner_id.ref", "=", patientUuid));
         Object[] lines = odooClient.searchAndRead(
                 Constants.SALE_ORDER_LINE_MODEL,
                 lineCriteria,
-                Arrays.asList("id", "name", "qty_invoiced", "order_id"));
+                Arrays.asList("id", "name", "qty_invoiced", "order_id", "create_date"));
 
         log.info("DEBUG: lines found = {}", lines == null ? "null" : lines.length);
         if (lines == null || lines.length == 0) {
@@ -229,20 +270,60 @@ public class RadiologyPaymentTaskProcessor implements Processor {
                 ? procedureDesc.substring(0, 6).toLowerCase()
                 : (procedureDesc != null ? procedureDesc.toLowerCase() : "");
 
+        // Only lines that could belong to THIS order, and genuinely the most recent of those.
+        //
+        // This used to take the FIRST line whose name matched the procedure, with no regard to
+        // when it was created - despite the variable being called mostRecentLine. Since the
+        // search is scoped only by patient, any older line for the same procedure answered for a
+        // new order. Measured on UAT: three worklist entries were created on 10 Aug against a
+        // single invoice raised on 7 Aug, worth 1, for orders that had no quotation of their own.
+        // One paid scan therefore authorised unlimited later scans of the same type for that
+        // patient, and unpaid imaging reached the modality.
+        //
+        // Odoo has no per-ServiceRequest link to key on: sale orders are grouped per visit
+        // (client_order_ref = visit uuid) and lines deduplicated per product, so two orders for
+        // the same procedure in one visit share a single line. Until a line carries the
+        // ServiceRequest id, the tightest available bound is time: a line raised BEFORE the order
+        // was authored cannot be payment for it.
+        //
+        // The 60s tolerance absorbs clock skew between OpenMRS and Odoo. It is deliberately small:
+        // the line is written by this bridge seconds after the order, so a legitimate line is
+        // never more than moments older than authoredOn.
         java.util.Map<?, ?> mostRecentLine = null;
+        Instant cutoff = authoredOn == null ? null : authoredOn.toInstant().minusSeconds(60);
+        Instant bestCreated = null;
+
         for (Object lineObj : lines) {
             java.util.Map<?, ?> line = (java.util.Map<?, ?>) lineObj;
             String lineName = String.valueOf(line.get("name")).toLowerCase();
-            if (!matchKey.isEmpty() && lineName.contains(matchKey)) {
+            if (matchKey.isEmpty() || !lineName.contains(matchKey)) {
+                continue;
+            }
+
+            Instant created = parseOdooDate(line.get("create_date"));
+            if (cutoff != null) {
+                if (created == null) {
+                    log.warn("Sale order line {} has no parseable create_date - ignoring it rather than "
+                            + "risk accepting an unrelated older line", line.get("id"));
+                    continue;
+                }
+                if (created.isBefore(cutoff)) {
+                    log.info("Ignoring sale order line {} created {} - predates order authored {}",
+                            line.get("id"), created, authoredOn.toInstant());
+                    continue;
+                }
+            }
+
+            if (bestCreated == null || (created != null && created.isAfter(bestCreated))) {
                 mostRecentLine = line;
-                break;
+                bestCreated = created;
             }
         }
 
         log.info("DEBUG: matchKey={} mostRecentLine={}", matchKey, mostRecentLine);
         if (mostRecentLine == null) {
-            log.debug("Procedure '{}' not found among sale order lines for patient {} - not yet confirmed",
-                    procedureDesc, patientUuid);
+            log.debug("No sale order line for procedure '{}' raised on or after this order was authored "
+                    + "(patient {}) - not yet confirmed", procedureDesc, patientUuid);
             return OdooOrderState.PENDING;
         }
 
