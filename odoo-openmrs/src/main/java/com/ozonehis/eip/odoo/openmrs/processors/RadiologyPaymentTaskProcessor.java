@@ -18,6 +18,9 @@ import java.util.Set;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import org.apache.camel.Processor;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.ServiceRequest;
@@ -94,11 +97,31 @@ public class RadiologyPaymentTaskProcessor implements Processor {
             "d0b5d4a0-1007-0000-0000-000000000001",
             "d0b5d4a0-1008-0000-0000-000000000001"));
 
+    // How far back each poll looks. Comfortably wider than the 30s poll interval, so a request is
+    // still picked up if a cycle is slow or missed, without ever returning the whole table.
+    private static final int LOOKBACK_MINUTES = 30;
+
     @Override
     public void process(Exchange exchange) {
+        // Bounded by _lastUpdated. The unfiltered search this replaces asked OpenMRS for EVERY
+        // ServiceRequest on every 30s poll: on UAT that is 818 records and 1.5MB, and it takes
+        // ~38 SECONDS to answer - so the HAPI client hit its socket read timeout and the
+        // processor never completed a single cycle. Measured on the same server:
+        //
+        //     no filter                     37.7s   818 records
+        //     _lastUpdated=gt<30 min ago>    0.10s     1 record
+        //
+        // Filtering on status would be the natural thing to do and is not possible: OpenMRS's
+        // FHIR2 module rejects `status` as a search parameter with HTTP 400, which is why the
+        // status check below stays client-side.
+        String since = ZonedDateTime.now(ZoneOffset.UTC)
+                .minusMinutes(LOOKBACK_MINUTES)
+                .format(DateTimeFormatter.ISO_INSTANT);
+
         Bundle bundle = openmrsFhirClient
                 .search()
                 .forResource(ServiceRequest.class)
+                .where(new ca.uhn.fhir.rest.gclient.DateClientParam("_lastUpdated").after().second(since))
                 .returnBundle(Bundle.class)
                 .execute();
 
