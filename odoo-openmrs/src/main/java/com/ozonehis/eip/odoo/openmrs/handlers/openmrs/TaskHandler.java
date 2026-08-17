@@ -41,6 +41,18 @@ public class TaskHandler {
 
     /**
      * Finds the existing Task for a given ServiceRequest, if one exists.
+     *
+     * <p>The basedOn link is re-checked here rather than left to the server. OpenMRS's FHIR2 module
+     * accepts {@code ?based-on=} and then ignores it - a query with an all-zero uuid returns every
+     * Task in the system. Combined with findFirst(), that made this method answer "yes, a Task
+     * already exists" for EVERY ServiceRequest as soon as one Task existed anywhere, so no order
+     * after the first ever got a Task of its own and none of them could ever reach the modality
+     * worklist. Measured on UAT: an RX01 order, paid in Odoo, was skipped with
+     * "existingTask status=ACCEPTED" while the only Task in the system belonged to a different
+     * patient's order.
+     *
+     * <p>The query parameter is left in place - harmless, and a real optimisation if OpenMRS ever
+     * implements it - but the filter below is what makes the answer correct.
      */
     public Task getTaskByServiceRequestId(String serviceRequestId) {
         Bundle bundle = openmrsFhirClient
@@ -54,8 +66,23 @@ public class TaskHandler {
                 .map(Bundle.BundleEntryComponent::getResource)
                 .filter(Task.class::isInstance)
                 .map(Task.class::cast)
+                .filter(task -> isBasedOn(task, serviceRequestId))
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Whether a Task's basedOn actually references the given ServiceRequest. References are compared
+     * on the trailing id so "ServiceRequest/&lt;uuid&gt;", a bare uuid and an absolute URL all match.
+     */
+    private boolean isBasedOn(Task task, String serviceRequestId) {
+        if (task.getBasedOn() == null) {
+            return false;
+        }
+        return task.getBasedOn().stream()
+                .map(org.hl7.fhir.r4.model.Reference::getReference)
+                .filter(reference -> reference != null && !reference.isEmpty())
+                .anyMatch(reference -> serviceRequestId.equals(reference.substring(reference.lastIndexOf('/') + 1)));
     }
 
     /**

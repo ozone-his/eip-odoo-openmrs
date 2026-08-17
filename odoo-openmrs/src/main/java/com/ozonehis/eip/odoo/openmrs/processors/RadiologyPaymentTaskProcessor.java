@@ -10,6 +10,7 @@ package com.ozonehis.eip.odoo.openmrs.processors;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.TaskHandler;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -81,6 +82,9 @@ public class RadiologyPaymentTaskProcessor implements Processor {
     @Autowired
     private TaskHandler taskHandler;
 
+    @Autowired
+    private EncounterHandler encounterHandler;
+
     // Radiology concept UUIDs - same whitelist used by the Orthanc bridge's
     // own worklist-creation logic, kept in sync manually across both repos
     // for now.
@@ -101,9 +105,23 @@ public class RadiologyPaymentTaskProcessor implements Processor {
             "d0b5d4a0-1007-0000-0000-000000000001",
             "d0b5d4a0-1008-0000-0000-000000000001"));
 
-    // How far back each poll looks. Comfortably wider than the 30s poll interval, so a request is
-    // still picked up if a cycle is slow or missed, without ever returning the whole table.
-    private static final int LOOKBACK_MINUTES = 30;
+    // How far back each poll looks.
+    //
+    // This must span the whole time an order can wait to be PAID, not just the poll interval. What
+    // this processor is waiting for happens in Odoo - an invoice being settled - and that does not
+    // touch the ServiceRequest, so the order's _lastUpdated never moves. An order therefore has to
+    // stay inside the window from the moment it is placed until someone pays for it.
+    //
+    // An earlier version used 30 minutes, reasoning only about missed poll cycles. Measured on UAT:
+    // an RX01 order placed at 09:45 and paid at 16:20 was never re-examined, so no Task was created
+    // and the scan never reached the modality worklist. The order was simply outside the window by
+    // the time the money arrived.
+    //
+    // Seven days is the practical ceiling on order-to-payment at UVL and matches the window
+    // RadiologyOrderWorklistProcessor uses on the Orthanc side. The query stays cheap because it is
+    // still bounded: the unfiltered search this replaces returned 818 records in 37.7s, a week's
+    // worth returns a handful.
+    private static final int LOOKBACK_DAYS = 7;
 
     @Override
     public void process(Exchange exchange) {
@@ -113,13 +131,13 @@ public class RadiologyPaymentTaskProcessor implements Processor {
         // processor never completed a single cycle. Measured on the same server:
         //
         //     no filter                     37.7s   818 records
-        //     _lastUpdated=gt<30 min ago>    0.10s     1 record
+        //     _lastUpdated=gt<window>         0.10s     1 record
         //
         // Filtering on status would be the natural thing to do and is not possible: OpenMRS's
         // FHIR2 module rejects `status` as a search parameter with HTTP 400, which is why the
         // status check below stays client-side.
         String since = ZonedDateTime.now(ZoneOffset.UTC)
-                .minusMinutes(LOOKBACK_MINUTES)
+                .minusDays(LOOKBACK_DAYS)
                 .format(DateTimeFormatter.ISO_INSTANT);
 
         Bundle bundle = openmrsFhirClient
@@ -179,7 +197,12 @@ public class RadiologyPaymentTaskProcessor implements Processor {
                 authoredOn = serviceRequest.getMeta().getLastUpdated();
             }
 
-            processOrderStateCheck(patientUuid, procedureDesc, authoredOn, existingTask);
+            // The visit this order belongs to, which is what a payment has to share with it.
+            // Null when it cannot be resolved - checkOdooOrderState then falls back to the older,
+            // looser patient-wide match rather than refusing to gate at all.
+            String visitUuid = resolveVisitUuid(serviceRequest);
+
+            processOrderStateCheck(patientUuid, visitUuid, procedureDesc, authoredOn, existingTask);
         }
     }
 
@@ -214,10 +237,35 @@ public class RadiologyPaymentTaskProcessor implements Processor {
                 .anyMatch(coding -> RADIOLOGY_CONCEPT_UUIDS.contains(coding.getCode()));
     }
 
-    private void processOrderStateCheck(
-            String patientUuid, String procedureDesc, Date authoredOn, Task existingTask) {
+    /**
+     * The uuid of the visit an order belongs to, or null if it cannot be resolved.
+     *
+     * <p>Odoo groups a visit's charges into one sale order keyed on this uuid
+     * (client_order_ref), so it is the link between an order and the money paid for it.
+     */
+    private String resolveVisitUuid(ServiceRequest serviceRequest) {
         try {
-            OdooOrderState state = checkOdooOrderState(patientUuid, procedureDesc, authoredOn);
+            if (serviceRequest.getEncounter() == null
+                    || serviceRequest.getEncounter().getReference() == null) {
+                return null;
+            }
+            String encounterId = serviceRequest.getEncounter().getReference().split("/")[1];
+            org.hl7.fhir.r4.model.Encounter encounter = encounterHandler.getEncounterByEncounterID(encounterId);
+            if (encounter == null || encounter.getPartOf() == null || encounter.getPartOf().getReference() == null) {
+                return null;
+            }
+            return encounter.getPartOf().getReference().split("/")[1];
+        } catch (Exception e) {
+            log.warn("Could not resolve the visit for ServiceRequest {}: {}",
+                    serviceRequest.getIdElement().getIdPart(), e.getMessage());
+            return null;
+        }
+    }
+
+    private void processOrderStateCheck(
+            String patientUuid, String visitUuid, String procedureDesc, Date authoredOn, Task existingTask) {
+        try {
+            OdooOrderState state = checkOdooOrderState(patientUuid, visitUuid, procedureDesc, authoredOn);
             switch (state) {
                 case CONFIRMED:
                     taskHandler.updateTaskStatus(existingTask, Task.TaskStatus.ACCEPTED);
@@ -251,10 +299,32 @@ public class RadiologyPaymentTaskProcessor implements Processor {
      * established OdooClient (XML-RPC), and extended to also check the
      * order's own cancellation state.
      */
-    private OdooOrderState checkOdooOrderState(String patientUuid, String procedureDesc, Date authoredOn)
-            throws Exception {
-        List<Object> lineCriteria =
-                Arrays.asList(Arrays.asList("order_id.partner_id.ref", "=", patientUuid));
+    private OdooOrderState checkOdooOrderState(
+            String patientUuid, String visitUuid, String procedureDesc, Date authoredOn) throws Exception {
+        // Scoped to the order's OWN visit, not just its patient.
+        //
+        // Odoo groups a visit's charges into one sale order keyed on the visit uuid, so a payment
+        // for this order can only be a line on that sale order. Searching by patient alone let a
+        // payment made in one visit answer for an order placed in another: measured on UAT, paying
+        // for a chest X-ray today admitted five chest X-rays ordered on 10-14 Aug for the same
+        // patient, none of which had been paid for.
+        //
+        // Time bounding alone could not fix that. It rejects a line OLDER than the order, which is
+        // why the 7 Aug invoice stopped authorising later scans, but says nothing about a NEWER
+        // payment reaching backwards. Sharing a visit is the constraint that does.
+        //
+        // What this still cannot separate is two identical procedures within ONE visit: lines are
+        // deduplicated per product, so both orders share a single line and paying once admits both.
+        // Closing that needs a per-ServiceRequest link on the line, which Odoo does not carry today.
+        List<Object> lineCriteria = visitUuid != null
+                ? Arrays.asList(
+                        Arrays.asList("order_id.partner_id.ref", "=", patientUuid),
+                        Arrays.asList("order_id.client_order_ref", "=", visitUuid))
+                : Arrays.asList(Arrays.asList("order_id.partner_id.ref", "=", patientUuid));
+        if (visitUuid == null) {
+            log.warn("No visit resolved for this order - falling back to a patient-wide payment match, "
+                    + "which can admit a scan paid for in a different visit");
+        }
         Object[] lines = odooClient.searchAndRead(
                 Constants.SALE_ORDER_LINE_MODEL,
                 lineCriteria,
