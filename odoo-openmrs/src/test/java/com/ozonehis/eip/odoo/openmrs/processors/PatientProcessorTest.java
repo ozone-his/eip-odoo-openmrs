@@ -112,6 +112,53 @@ class PatientProcessorTest extends BaseProcessorTest {
     }
 
     @Test
+    void shouldForceCreateEventTypeWhenPartnerMissingAndInboundIsUpdate() {
+        // Arrange — Debezium captures patient.date_changed (operation=u) but the
+        // partner has not been synced to Odoo yet (fetchedPartner = null). Without
+        // the forcing logic the inbound "u" leaks through and the route dispatches
+        // to odoo-update-partner-route, silently no-op'ing on a non-existent partner.
+        Patient patient = new Patient();
+        patient.setId(PATIENT_ID);
+        Partner partner = new Partner();
+        partner.setPartnerRef(PATIENT_ID);
+
+        Exchange exchange = createExchange(patient, "u");
+
+        // Mock behavior — fetchedPartner is null (new patient)
+        when(partnerMapper.toOdoo(patient)).thenReturn(partner);
+        when(partnerHandler.getPartnerByID(partner.getPartnerRef())).thenReturn(null);
+
+        // Act
+        patientProcessor.process(exchange);
+
+        // Assert — header forced to "c" so the route creates the partner
+        assertEquals("c", exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE));
+        verify(partnerMapper, times(1)).toOdoo(patient);
+    }
+
+    @Test
+    void shouldPreserveDeleteEventTypeWhenPartnerMissing() {
+        // Arrange — delete of a partner that was never synced. Should remain "d"
+        // (the route discards or no-op's safely).
+        Patient patient = new Patient();
+        patient.setId(PATIENT_ID);
+        Partner partner = new Partner();
+        partner.setPartnerRef(PATIENT_ID);
+
+        Exchange exchange = createExchange(patient, "d");
+
+        // Mock behavior — fetchedPartner is null
+        when(partnerMapper.toOdoo(patient)).thenReturn(partner);
+        when(partnerHandler.getPartnerByID(partner.getPartnerRef())).thenReturn(null);
+
+        // Act
+        patientProcessor.process(exchange);
+
+        // Assert — "d" preserved, NOT forced to "c"
+        assertEquals("d", exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE));
+    }
+
+    @Test
     void shouldProcessPatientWithDeleteEventType() {
         // Arrange
         Patient patient = new Patient();

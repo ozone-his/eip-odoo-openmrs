@@ -50,18 +50,30 @@ public class PatientProcessor implements Processor {
 
             String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
             Partner fetchedPartner = partnerHandler.getPartnerByID(partner.getPartnerRef());
+            Map<String, Object> headers = new HashMap<>();
             if (fetchedPartner != null) {
                 partner.setPartnerId(fetchedPartner.getPartnerId());
-                Map<String, Object> headers = new HashMap<>();
                 headers.put(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, List.of(partner.getPartnerId()));
 
-                if (eventType.equals("c") || eventType.equals("u")) {
+                if ("c".equals(eventType) || "u".equals(eventType)) {
                     headers.put(HEADER_FHIR_EVENT_TYPE, "u");
                 } else {
                     headers.put(HEADER_FHIR_EVENT_TYPE, "d");
                 }
-                exchange.getMessage().setHeaders(headers);
+            } else {
+                // Partner does not yet exist in Odoo. The inbound event type may be "u"
+                // (e.g. Debezium captured an OpenMRS patient.date_changed UPDATE that is
+                // the patient's first sync to Odoo). Forcing "c" here so the route
+                // dispatches to odoo-create-partner-route; otherwise the message is
+                // silently no-op'd by odoo-update-partner-route on a non-existent
+                // partner, and the new patient never reaches Odoo.
+                if ("d".equals(eventType)) {
+                    headers.put(HEADER_FHIR_EVENT_TYPE, "d");
+                } else {
+                    headers.put(HEADER_FHIR_EVENT_TYPE, "c");
+                }
             }
+            exchange.getMessage().setHeaders(headers);
             exchange.getMessage().setBody(partner);
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing Patient", exchange, e);
