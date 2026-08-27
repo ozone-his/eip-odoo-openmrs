@@ -125,6 +125,43 @@ class PartnerMapperTest {
         assertEquals("Test Address Line 1", partner.getPartnerStreet());
     }
 
+    @Test
+    public void whenBirthDateIsNullThenShouldMapWithoutNpe() {
+        // Setup — Patient with NO birthDate (FHIR resource permits this)
+        Patient patient = new Patient();
+        patient.setId("123");
+        patient.setActive(true);
+        patient.setName(
+                Collections.singletonList(new HumanName().setFamily("Doe").addGiven("John")));
+        patient.setIdentifier(Collections.singletonList(
+                new Identifier().setUse(Identifier.IdentifierUse.OFFICIAL).setValue("10IDH12H")));
+
+        // Act — must NOT throw NullPointerException
+        Partner partner = partnerMapper.toOdoo(patient);
+
+        // Assert — partner created, birthDate left unset (null), other fields populated
+        assertEquals("123", partner.getPartnerRef());
+        assertEquals("John Doe", partner.getPartnerName());
+        assertEquals("10IDH12H", partner.getPartnerComment());
+        assertNull(partner.getPartnerBirthDate());
+    }
+
+    @Test
+    public void whenGivenNameIsEmptyThenShouldMapWithFamilyOnly() {
+        // Setup — HumanName with family but NO given names (e.g. mononyms)
+        Patient patient = new Patient();
+        patient.setId("123");
+        patient.setActive(true);
+        patient.setName(Collections.singletonList(new HumanName().setFamily("Doe")));
+
+        // Act — must NOT throw IndexOutOfBoundsException on getGiven().get(0)
+        Partner partner = partnerMapper.toOdoo(patient);
+
+        // Assert — partner created with family name only
+        assertEquals("123", partner.getPartnerRef());
+        assertEquals("Doe", partner.getPartnerName());
+    }
+
     private static Patient getPatient() {
         Patient patient = new Patient();
         patient.setId("123");

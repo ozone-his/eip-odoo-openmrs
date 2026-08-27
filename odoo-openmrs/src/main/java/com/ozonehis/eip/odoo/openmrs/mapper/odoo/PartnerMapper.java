@@ -52,8 +52,10 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
         partner.setPartnerComment(patientIdentifier);
         partner.setPartnerExternalId(patientIdentifier);
         partner.setPartnerName(patientName);
-        partner.setPartnerBirthDate(
-                OdooUtils.convertEEEMMMddDateToOdooFormat(patient.getBirthDate().toString()));
+        if (patient.getBirthDate() != null) {
+            partner.setPartnerBirthDate(OdooUtils.convertEEEMMMddDateToOdooFormat(
+                    patient.getBirthDate().toString()));
+        }
 
         addAddress(patient, partner);
         return partner;
@@ -67,9 +69,13 @@ public class PartnerMapper implements ToOdooMapping<Patient, Partner> {
     }
 
     protected Optional<String> getPatientName(Patient patient) {
-        return patient.getName().stream()
-                .findFirst()
-                .map(name -> name.getGiven().get(0) + " " + name.getFamily());
+        return patient.getName().stream().findFirst().map(name -> {
+            String given = (name.getGiven() != null && !name.getGiven().isEmpty())
+                    ? name.getGiven().get(0).getValueAsString()
+                    : "";
+            String family = name.getFamily() != null ? name.getFamily() : "";
+            return (given + " " + family).trim();
+        });
     }
 
     protected void addAddress(Patient patient, Partner partner) {
