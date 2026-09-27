@@ -39,6 +39,8 @@ class SaleOrderLineMapperTest {
 
     private static final String TABLET_UNIT = "Tablet";
 
+    private static final String TABLET_CODE = "15AAAAAAAAAAA";
+
     private static final String COMPLETE_BLOOD_COUNT_CODE = "446ac22c-24f2-40ad-98f4-65f026f434e9";
 
     private static final String COMPLETE_BLOOD_COUNT_DISPLAY = "Complete Blood Count";
@@ -115,7 +117,8 @@ class SaleOrderLineMapperTest {
         Quantity quantity = new Quantity();
         quantity.setValue(10);
         quantity.setUnit(TABLET_UNIT);
-        quantity.setCode("15AAAAAAAAAAA");
+        quantity.setCode(TABLET_CODE);
+        quantity.setSystem("http://fhir.openmrs.org/CodeSystem/concept");
         dispenseRequest.setQuantity(quantity);
         medicationRequest.setDispenseRequest(dispenseRequest);
 
@@ -144,7 +147,7 @@ class SaleOrderLineMapperTest {
         // verify
         assertNotNull(saleOrderLine);
         assertEquals(10.0f, saleOrderLine.getSaleOrderLineProductUomQty());
-        assertEquals("15AAAAAAAAAAA", saleOrderLine.getSaleOrderLineProductUom());
+        assertEquals(TABLET_CODE, saleOrderLine.getSaleOrderLineProductUom());
         assertEquals(
                 "medication | 10 Tablet | 7 Tablet - thrice daily - 10 day | Orderer: requester",
                 saleOrderLine.getSaleOrderLineName());
@@ -171,6 +174,7 @@ class SaleOrderLineMapperTest {
         // verify
         assertNotNull(saleOrderLine);
         assertEquals(10.0f, saleOrderLine.getSaleOrderLineProductUomQty());
+        assertEquals(QUANTITY_CODE, saleOrderLine.getSaleOrderLineProductUom());
         assertEquals(ADHESIVE_DISPLAY + " | Orderer: John Doe", saleOrderLine.getSaleOrderLineName());
     }
 
@@ -192,7 +196,7 @@ class SaleOrderLineMapperTest {
         Quantity quantity = new Quantity();
         quantity.setValue(7);
         quantity.setUnit(TABLET_UNIT);
-        quantity.setCode("15AAAAAAAAAAA");
+        quantity.setCode(TABLET_CODE);
         dispenseRequest.setQuantity(quantity);
         medicationRequest.setDispenseRequest(dispenseRequest);
 
@@ -217,7 +221,7 @@ class SaleOrderLineMapperTest {
         // verify
         assertNotNull(saleOrderLine);
         assertEquals(7.0f, saleOrderLine.getSaleOrderLineProductUomQty());
-        assertEquals("15AAAAAAAAAAA", saleOrderLine.getSaleOrderLineProductUom());
+        assertEquals(TABLET_CODE, saleOrderLine.getSaleOrderLineProductUom());
         assertEquals(
                 "medication | 7 Tablet | 10 day - Take 2 pills every 20 minutes | Orderer: requester",
                 saleOrderLine.getSaleOrderLineName());
