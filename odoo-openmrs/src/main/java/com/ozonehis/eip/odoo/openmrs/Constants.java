@@ -57,5 +57,5 @@ public class Constants {
 
     public static final String SNOMED_SYSTEM_IDENTIFIER = "snomed";
 
-    public static final String SNOMED_CT_UOM_PREFIX = "snomed_ct_";
+    public static final String SNOMED_CT_UOM_PREFIX = "snomed_ct-";
 }
