@@ -7,6 +7,9 @@
  */
 package com.ozonehis.eip.odoo.openmrs.mapper.odoo;
 
+import static com.ozonehis.eip.odoo.openmrs.Constants.SNOMED_CT_UOM_PREFIX;
+import static com.ozonehis.eip.odoo.openmrs.Constants.SNOMED_SYSTEM_IDENTIFIER;
+
 import com.ozonehis.eip.odoo.openmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +41,13 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
                     Quantity quantity = medicationRequest.getDispenseRequest().getQuantity();
                     saleOrderLine.setSaleOrderLineProductUomQty(
                             quantity.getValue().floatValue());
-                    saleOrderLine.setSaleOrderLineProductUom(quantity.getCode());
+                    if (quantity.hasSystem() && quantity.getSystem().contains(SNOMED_SYSTEM_IDENTIFIER)) {
+                        saleOrderLine.setSaleOrderLineProductUom(SNOMED_CT_UOM_PREFIX + quantity.getCode());
+                    } else {
+                        saleOrderLine.setSaleOrderLineProductUom(
+                                quantity.getCode()); // Quantity code has Concept UUID is set when dosing units in
+                        // OpenMRS doesn't have SNOMED or RxNORM concept mappings
+                    }
                 }
             }
 
