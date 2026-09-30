@@ -10,6 +10,7 @@ package com.ozonehis.eip.odoo.openmrs.processors;
 import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
 import com.ozonehis.eip.odoo.openmrs.Constants;
+import com.ozonehis.eip.odoo.openmrs.handlers.odoo.InsuranceCoverageHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
@@ -37,25 +38,40 @@ public class PatientProcessor implements Processor {
     @Autowired
     private PartnerHandler partnerHandler;
 
+    @Autowired
+    private InsuranceCoverageHandler insuranceCoverageHandler;
+
     @Override
     public void process(Exchange exchange) {
         try {
             Message message = exchange.getMessage();
             Patient patient = message.getBody(Patient.class);
+            if (patient == null) {
+                return;
+            }
             Partner partner = mapper.toOdoo(patient);
-
-            if (patient == null || partner == null) {
+            if (partner == null) {
                 return;
             }
 
             String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
+            // Delete events carry no billable insurance state: skip tier validation so a
+            // patient without the tier attribute can still be deleted from Odoo (a rejected
+            // delete would leave a stale partner behind).
+            boolean deleteEvent = !("c".equals(eventType) || "u".equals(eventType));
+            if (!deleteEvent) {
+                if (insuranceCoverageHandler.isEnabled()) {
+                    insuranceCoverageHandler.validateCoverageTier(patient);
+                }
+                insuranceCoverageHandler.applyAddonModelCoverage(patient, partner);
+            }
             Partner fetchedPartner = partnerHandler.getPartnerByID(partner.getPartnerRef());
             if (fetchedPartner != null) {
                 partner.setPartnerId(fetchedPartner.getPartnerId());
                 Map<String, Object> headers = new HashMap<>();
                 headers.put(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, List.of(partner.getPartnerId()));
 
-                if (eventType.equals("c") || eventType.equals("u")) {
+                if ("c".equals(eventType) || "u".equals(eventType)) {
                     headers.put(HEADER_FHIR_EVENT_TYPE, "u");
                 } else {
                     headers.put(HEADER_FHIR_EVENT_TYPE, "d");
