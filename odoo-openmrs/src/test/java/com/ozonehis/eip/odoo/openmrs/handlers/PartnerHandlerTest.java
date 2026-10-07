@@ -21,6 +21,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
+import com.ozonehis.eip.odoo.openmrs.handlers.odoo.InsuranceCoverageHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
@@ -51,6 +52,9 @@ class PartnerHandlerTest {
 
     @Mock
     private PartnerMapper partnerMapper;
+
+    @Mock
+    private InsuranceCoverageHandler insuranceCoverageHandler;
 
     @InjectMocks
     private PartnerHandler partnerHandler;
@@ -166,6 +170,21 @@ class PartnerHandlerTest {
         assertEquals(12, result.getPartnerId());
         verify(producerTemplate, times(1))
                 .sendBodyAndHeaders(eq("direct:odoo-create-partner-route"), eq(getPartner()), eq(headers));
+    }
+
+    @Test
+    public void shouldRejectPatientWhenInsuranceCoverageValidationFails() {
+        // Setup
+        Patient patient = new Patient();
+        patient.setId(PARTNER_REF_ID);
+        when(insuranceCoverageHandler.isEnabled()).thenReturn(true);
+        when(insuranceCoverageHandler.validateCoverageTier(patient))
+                .thenThrow(new EIPException("Patient is missing required Insurance Coverage Tier person attribute"));
+
+        // Verify
+        assertThrows(
+                EIPException.class,
+                () -> partnerHandler.createOrUpdatePartner(Mockito.mock(ProducerTemplate.class), patient, null));
     }
 
     private Map<String, Object> getPartnerMap() {

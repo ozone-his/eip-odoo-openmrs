@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -33,15 +34,30 @@ public class OdooUtils {
         ObjectMapper mapper = new ObjectMapper();
         log.debug("OdooUtils: Converting map {} to object {}", data, objectClass.getName());
         try {
-            T obj = mapper.convertValue(data, objectClass);
+            Map<String, Object> normalizedData = new HashMap<>(data);
+            for (Field field : objectClass.getDeclaredFields()) {
+                if (!field.isAnnotationPresent(JsonProperty.class)) {
+                    continue;
+                }
+                JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
+                Object value = normalizedData.get(jsonProperty.value());
+                if (value instanceof List<?> values
+                        && (field.getType() == Integer.class || field.getType() == int.class)) {
+                    normalizedData.put(jsonProperty.value(), values.isEmpty() ? null : values.get(0));
+                } else if (value instanceof Object[] values
+                        && (field.getType() == Integer.class || field.getType() == int.class)) {
+                    normalizedData.put(jsonProperty.value(), values.length == 0 ? null : values[0]);
+                }
+            }
+            T obj = mapper.convertValue(normalizedData, objectClass);
 
             for (Field field : obj.getClass().getDeclaredFields()) {
                 if (field.isAnnotationPresent(JsonProperty.class)) {
                     JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
                     String propertyValue = environment.getProperty(jsonProperty.value());
-                    if (propertyValue != null && data.containsKey(propertyValue)) {
+                    if (propertyValue != null && normalizedData.containsKey(propertyValue)) {
                         field.setAccessible(true);
-                        field.set(obj, convertValueToType(data.get(propertyValue), field.getType()));
+                        field.set(obj, convertValueToType(normalizedData.get(propertyValue), field.getType()));
                     }
                 }
             }
