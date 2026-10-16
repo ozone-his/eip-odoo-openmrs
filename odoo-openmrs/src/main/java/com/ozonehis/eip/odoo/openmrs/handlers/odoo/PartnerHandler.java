@@ -46,6 +46,9 @@ public class PartnerHandler {
     @Autowired
     private OdooUtils odooUtils;
 
+    @Autowired
+    private InsuranceCoverageHandler insuranceCoverageHandler;
+
     public List<String> partnerDefaultAttributes;
 
     public Partner getPartnerByID(String partnerRefID) {
@@ -79,6 +82,9 @@ public class PartnerHandler {
     }
 
     public Partner createOrUpdatePartner(ProducerTemplate producerTemplate, Patient patient, Integer companyId) {
+        if (insuranceCoverageHandler.isEnabled()) {
+            insuranceCoverageHandler.validateCoverageTier(patient);
+        }
         Partner fetchedPartner = getPartnerByID(patient.getIdPart());
         if (fetchedPartner != null && fetchedPartner.getPartnerId() > 0) {
             int partnerId = fetchedPartner.getPartnerId();

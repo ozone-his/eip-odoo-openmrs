@@ -8,12 +8,16 @@
 package com.ozonehis.eip.odoo.openmrs.processors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
+import com.ozonehis.eip.odoo.openmrs.handlers.odoo.InsuranceCoverageHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.mapper.odoo.PartnerMapper;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
@@ -34,6 +38,9 @@ class PatientProcessorTest extends BaseProcessorTest {
 
     @Mock
     private PartnerHandler partnerHandler;
+
+    @Mock
+    private InsuranceCoverageHandler insuranceCoverageHandler;
 
     @InjectMocks
     private PatientProcessor patientProcessor;
@@ -139,5 +146,73 @@ class PatientProcessorTest extends BaseProcessorTest {
         // Assert
         assertEquals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE), "d");
         verify(partnerMapper, times(1)).toOdoo(patient);
+    }
+
+    @Test
+    void shouldNotValidateInsuranceTierWhenIntegrationDisabled() {
+        // Arrange
+        Patient patient = new Patient();
+        patient.setId(PATIENT_ID);
+        Partner partner = new Partner();
+        partner.setPartnerRef(PATIENT_ID);
+
+        Exchange exchange = createExchange(patient, "c");
+
+        // Mock behavior
+        when(partnerMapper.toOdoo(patient)).thenReturn(partner);
+        when(partnerHandler.getPartnerByID(partner.getPartnerRef())).thenReturn(null);
+
+        // Act
+        patientProcessor.process(exchange);
+
+        // Assert
+        verify(insuranceCoverageHandler, never()).validateCoverageTier(any());
+    }
+
+    @Test
+    void shouldValidateInsuranceTierWhenEnabledOnCreateOrUpdateEvent() {
+        // Arrange
+        Patient patient = new Patient();
+        patient.setId(PATIENT_ID);
+        Partner partner = new Partner();
+        partner.setPartnerRef(PATIENT_ID);
+
+        Exchange exchange = createExchange(patient, "c");
+
+        // Mock behavior
+        when(partnerMapper.toOdoo(patient)).thenReturn(partner);
+        when(partnerHandler.getPartnerByID(partner.getPartnerRef())).thenReturn(null);
+        when(insuranceCoverageHandler.isEnabled()).thenReturn(true);
+
+        // Act
+        patientProcessor.process(exchange);
+
+        // Assert
+        verify(insuranceCoverageHandler).validateCoverageTier(eq(patient));
+    }
+
+    @Test
+    void shouldSkipInsuranceValidationOnDeleteEvent() {
+        // Arrange
+        Patient patient = new Patient();
+        patient.setId(PATIENT_ID);
+        Partner partner = new Partner();
+        partner.setPartnerRef(PATIENT_ID);
+
+        Partner fetchedPartner = new Partner();
+        fetchedPartner.setPartnerId(12);
+
+        Exchange exchange = createExchange(patient, "d");
+
+        // Mock behavior
+        when(partnerMapper.toOdoo(patient)).thenReturn(partner);
+        when(partnerHandler.getPartnerByID(partner.getPartnerRef())).thenReturn(fetchedPartner);
+        when(insuranceCoverageHandler.isEnabled()).thenReturn(true);
+
+        // Act
+        patientProcessor.process(exchange);
+
+        // Assert
+        verify(insuranceCoverageHandler, never()).validateCoverageTier(any());
     }
 }
