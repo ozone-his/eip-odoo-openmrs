@@ -83,6 +83,31 @@ class SaleOrderLineHandlerTest {
     }
 
     @Test
+    void shouldBuildVisitLineUsingMappedProductAndDefaultUnit() {
+        var visit = com.ozonehis.eip.odoo.openmrs.VisitTestUtils.visit("2026-10-20T08:00:00Z", null);
+        Product product = new Product();
+        product.setProductResId(PRODUCT_ID);
+        SaleOrder order = new SaleOrder();
+        order.setOrderId(ORDER_ID);
+        when(productHandler.getProduct(visit)).thenReturn(product);
+        when(odooClient.searchAndRead(
+                        Constants.SALE_ORDER_LINE_MODEL,
+                        asList(asList("order_id", "=", ORDER_ID), asList("product_id", "=", PRODUCT_ID)),
+                        null))
+                .thenReturn(new Object[0]);
+        saleOrderLineHandler.setSaleOrderLineMapper(new SaleOrderLineMapper<>());
+
+        SaleOrderLine line = saleOrderLineHandler.buildSaleOrderLineIfProductExists(visit, order);
+
+        assertEquals(PRODUCT_ID, line.getSaleOrderLineProductId());
+        assertEquals(ORDER_ID, line.getSaleOrderLineOrderId());
+        assertEquals(1.0f, line.getSaleOrderLineProductUomQty());
+        assertEquals("Inpatient", line.getSaleOrderLineName());
+        assertNull(line.getSaleOrderLineProductUom());
+        Mockito.verifyNoInteractions(uomHandler);
+    }
+
+    @Test
     public void shouldReturnSaleOrderLineWhenOnlyOneSaleOrderLineExistsWithOrderIdAndProductId() {
         // Setup
         Map<String, Object> saleOrderLineMap =

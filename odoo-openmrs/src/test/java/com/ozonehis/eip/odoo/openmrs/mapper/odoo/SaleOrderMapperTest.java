@@ -20,6 +20,13 @@ import org.junit.jupiter.api.Test;
 
 class SaleOrderMapperTest {
 
+    @org.junit.jupiter.api.Test
+    void shouldUseVisitUuidWithoutPartOfReference() {
+        org.hl7.fhir.r4.model.Encounter visit =
+                com.ozonehis.eip.odoo.openmrs.VisitTestUtils.visit("2026-10-22T00:00:00Z", null);
+        assertEquals("visit-123", new SaleOrderMapper().toOdoo(visit).getOrderClientOrderRef());
+    }
+
     private SaleOrderMapper saleOrderMapper;
 
     @BeforeEach

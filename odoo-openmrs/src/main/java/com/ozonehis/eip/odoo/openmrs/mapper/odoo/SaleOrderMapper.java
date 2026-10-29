@@ -7,6 +7,7 @@
  */
 package com.ozonehis.eip.odoo.openmrs.mapper.odoo;
 
+import com.ozonehis.eip.odoo.openmrs.VisitUtils;
 import com.ozonehis.eip.odoo.openmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import org.hl7.fhir.r4.model.Encounter;
@@ -21,7 +22,11 @@ public class SaleOrderMapper implements ToOdooMapping<Encounter, SaleOrder> {
         if (encounter == null) {
             return null;
         }
-        if (encounter.hasPartOf()) {
+        // TODO: IF can be removed CHECK
+        if (VisitUtils.isVisit(encounter) && encounter.hasId()) {
+            saleOrder.setOrderClientOrderRef(encounter.getIdPart());
+            saleOrder.setOrderState("draft");
+        } else if (encounter.hasPartOf()) {
             String encounterVisitUuid = encounter.getPartOf().getReference().split("/")[1];
             saleOrder.setOrderClientOrderRef(encounterVisitUuid);
             saleOrder.setOrderTypeName("Sales Order");

@@ -42,6 +42,19 @@ import org.mockito.Mockito;
 import org.springframework.core.env.Environment;
 
 class ProductHandlerTest {
+
+    @org.junit.jupiter.api.Test
+    void shouldResolveVisitProductByVisitTypeUuid() {
+        org.hl7.fhir.r4.model.Encounter visit =
+                com.ozonehis.eip.odoo.openmrs.VisitTestUtils.visit("2026-10-22T00:00:00Z", null);
+        when(odooClient.searchAndRead(
+                        Constants.IR_MODEL,
+                        asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", "type-123")),
+                        null))
+                .thenReturn(new Object[] {Map.of("id", 1, "res_id", 42)});
+        assertEquals(42, productHandler.getProduct(visit).getProductResId());
+    }
+
     public static final String MEDICATION_REQUEST_ID = "1cdda1ce-7f98-4bc7-9d20-8b4e953d972a";
 
     public static final String MEDICATION_ID = "c95ab33a-8558-4705-8a7a-3b4e580270c7";

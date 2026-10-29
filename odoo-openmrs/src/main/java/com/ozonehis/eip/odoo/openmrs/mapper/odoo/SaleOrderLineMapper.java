@@ -10,10 +10,13 @@ package com.ozonehis.eip.odoo.openmrs.mapper.odoo;
 import static com.ozonehis.eip.odoo.openmrs.Constants.SNOMED_CT_UOM_PREFIX;
 import static com.ozonehis.eip.odoo.openmrs.Constants.SNOMED_SYSTEM_IDENTIFIER;
 
+import com.ozonehis.eip.odoo.openmrs.VisitUtils;
 import com.ozonehis.eip.odoo.openmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Dosage;
+import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.Reference;
@@ -29,7 +32,11 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
     @Override
     public SaleOrderLine toOdoo(R resource) {
         SaleOrderLine saleOrderLine = new SaleOrderLine();
-        if (resource instanceof ServiceRequest serviceRequest) {
+        if (resource instanceof Encounter visit && VisitUtils.isVisit(visit)) {
+            Coding type = VisitUtils.getVisitType(visit);
+            saleOrderLine.setSaleOrderLineProductUomQty(1.0f);
+            saleOrderLine.setSaleOrderLineName(type.hasDisplay() ? type.getDisplay() : type.getCode());
+        } else if (resource instanceof ServiceRequest serviceRequest) {
             saleOrderLine.setSaleOrderLineProductUomQty(1.0f); // default quantity is 1 for serviceRequests.
             String requesterDisplay = serviceRequest.getRequester().getDisplay();
             String serviceDisplay = serviceRequest.getCode().getText();

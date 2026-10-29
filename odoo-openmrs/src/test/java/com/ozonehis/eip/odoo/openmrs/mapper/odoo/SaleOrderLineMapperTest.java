@@ -69,6 +69,22 @@ class SaleOrderLineMapperTest {
     }
 
     @Test
+    void shouldMapVisitTypeToOneSaleOrderLine() {
+        var visit = com.ozonehis.eip.odoo.openmrs.VisitTestUtils.visit("2026-10-20T08:00:00Z", null);
+        SaleOrderLine line = saleOrderLineMapper.toOdoo(visit);
+        assertEquals(1.0f, line.getSaleOrderLineProductUomQty());
+        assertEquals("Inpatient", line.getSaleOrderLineName());
+        org.junit.jupiter.api.Assertions.assertNull(line.getSaleOrderLineProductUom());
+    }
+
+    @Test
+    void shouldUseVisitTypeCodeWhenDisplayIsMissing() {
+        var visit = com.ozonehis.eip.odoo.openmrs.VisitTestUtils.visit("2026-10-20T08:00:00Z", null);
+        visit.getTypeFirstRep().getCodingFirstRep().setDisplay(null);
+        assertEquals("type-123", saleOrderLineMapper.toOdoo(visit).getSaleOrderLineName());
+    }
+
+    @Test
     public void shouldMapServiceRequestToSaleOrderLine() {
         // setup
         ServiceRequest serviceRequest = new ServiceRequest();

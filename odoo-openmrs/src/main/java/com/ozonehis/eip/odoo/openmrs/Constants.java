@@ -39,8 +39,6 @@ public class Constants {
 
     public static final String HEADER_ODOO_ID_ATTRIBUTE_VALUE = "odoo.attribute.value";
 
-    public static final String EXCHANGE_PROPERTY_SKIP_ENCOUNTER = "skip.encounter";
-
     public static final String FHIR_RESOURCE_TYPE = "fhir.resource.type";
 
     public static final String HEADER_ENABLE_PATIENT_SYNC = "enable.patient.sync";
