@@ -18,14 +18,18 @@ import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.ProductHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Dosage;
+import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Quantity;
@@ -45,8 +49,7 @@ class ProductHandlerTest {
 
     @org.junit.jupiter.api.Test
     void shouldResolveVisitProductByVisitTypeUuid() {
-        org.hl7.fhir.r4.model.Encounter visit =
-                com.ozonehis.eip.odoo.openmrs.VisitTestUtils.visit("2026-10-22T00:00:00Z", null);
+        org.hl7.fhir.r4.model.Encounter visit = visit("2026-10-22T00:00:00Z", null);
         when(odooClient.searchAndRead(
                         Constants.IR_MODEL,
                         asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", "type-123")),
@@ -106,6 +109,7 @@ class ProductHandlerTest {
         odooUtils = new OdooUtils();
         odooUtils.setEnvironment(mockEnvironment);
         productHandler.setOdooUtils(odooUtils);
+        productHandler.setEncounterHandler(new EncounterHandler());
     }
 
     @Test
@@ -284,5 +288,21 @@ class ProductHandlerTest {
         supplyRequest.setStatus(SupplyRequest.SupplyRequestStatus.ACTIVE);
 
         return supplyRequest;
+    }
+
+    public Encounter visit(String start, String end) {
+        Encounter visit = new Encounter();
+        visit.setId("visit-123");
+        visit.getMeta().addTag(Constants.ENCOUNTER_TAG_SYSTEM, "visit", "Visit");
+        visit.addType()
+                .addCoding()
+                .setSystem(Constants.VISIT_TYPE_SYSTEM)
+                .setCode("type-123")
+                .setDisplay("Inpatient");
+        visit.getPeriod().setStart(Date.from(Instant.parse(start)));
+        if (end != null) {
+            visit.getPeriod().setEnd(Date.from(Instant.parse(end)));
+        }
+        return visit;
     }
 }

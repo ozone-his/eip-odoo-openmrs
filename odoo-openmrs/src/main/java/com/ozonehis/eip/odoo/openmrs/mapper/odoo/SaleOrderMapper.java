@@ -7,14 +7,20 @@
  */
 package com.ozonehis.eip.odoo.openmrs.mapper.odoo;
 
-import com.ozonehis.eip.odoo.openmrs.VisitUtils;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.mapper.ToOdooMapping;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
+import lombok.Setter;
 import org.hl7.fhir.r4.model.Encounter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@Setter
 public class SaleOrderMapper implements ToOdooMapping<Encounter, SaleOrder> {
+
+    @Autowired
+    private EncounterHandler encounterHandler;
 
     @Override
     public SaleOrder toOdoo(Encounter encounter) {
@@ -22,8 +28,7 @@ public class SaleOrderMapper implements ToOdooMapping<Encounter, SaleOrder> {
         if (encounter == null) {
             return null;
         }
-        // TODO: IF can be removed CHECK
-        if (VisitUtils.isVisit(encounter) && encounter.hasId()) {
+        if (encounterHandler.isVisit(encounter) && encounter.hasId()) {
             saleOrder.setOrderClientOrderRef(encounter.getIdPart());
             saleOrder.setOrderState("draft");
         } else if (encounter.hasPartOf()) {

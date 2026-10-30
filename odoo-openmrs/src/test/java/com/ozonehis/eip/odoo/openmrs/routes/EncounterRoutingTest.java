@@ -7,32 +7,51 @@
  */
 package com.ozonehis.eip.odoo.openmrs.routes;
 
-import static com.ozonehis.eip.odoo.openmrs.VisitTestUtils.visit;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
-import com.ozonehis.eip.odoo.openmrs.processors.VisitProcessor;
+import com.ozonehis.eip.odoo.openmrs.Constants;
+import com.ozonehis.eip.odoo.openmrs.processors.EncounterProcessor;
+import java.time.Instant;
+import java.util.Date;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.impl.DefaultCamelContext;
+import org.hl7.fhir.r4.model.Encounter;
 import org.junit.jupiter.api.Test;
 
 class EncounterRoutingTest {
     @Test
-    void forwardsFhirEncountersToVisitProcessor() throws Exception {
-        VisitProcessor visits = mock(VisitProcessor.class);
+    void forwardsFhirEncountersToEncounterProcessor() throws Exception {
+        EncounterProcessor encounters = mock(EncounterProcessor.class);
         EncounterRouting route = new EncounterRouting();
-        route.setVisitProcessor(visits);
+        route.setEncounterProcessor(encounters);
         try (DefaultCamelContext context = new DefaultCamelContext()) {
             context.addRoutes(route);
             context.start();
             try (ProducerTemplate producer = context.createProducerTemplate()) {
                 producer.sendBodyAndHeader(
                         "direct:fhir-encounter", visit("2026-10-22T00:00:00Z", null), HEADER_FHIR_EVENT_TYPE, "c");
-                verify(visits).process(any());
+                verify(encounters).process(any());
                 producer.sendBody("direct:fhir-encounter", null);
-                verifyNoMoreInteractions(visits);
+                verifyNoMoreInteractions(encounters);
             }
         }
+    }
+
+    public Encounter visit(String start, String end) {
+        Encounter visit = new Encounter();
+        visit.setId("visit-123");
+        visit.getMeta().addTag(Constants.ENCOUNTER_TAG_SYSTEM, "visit", "Visit");
+        visit.addType()
+                .addCoding()
+                .setSystem(Constants.VISIT_TYPE_SYSTEM)
+                .setCode("type-123")
+                .setDisplay("Inpatient");
+        visit.getPeriod().setStart(Date.from(Instant.parse(start)));
+        if (end != null) {
+            visit.getPeriod().setEnd(Date.from(Instant.parse(end)));
+        }
+        return visit;
     }
 }

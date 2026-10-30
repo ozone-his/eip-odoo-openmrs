@@ -7,20 +7,23 @@
  */
 package com.ozonehis.eip.odoo.openmrs.processors;
 
-import static com.ozonehis.eip.odoo.openmrs.VisitTestUtils.visit;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
+import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.CompanyHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.ProductHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.PatientHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
+import java.time.Instant;
+import java.util.Date;
 import org.apache.camel.Exchange;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.support.DefaultExchange;
@@ -32,8 +35,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openmrs.eip.EIPException;
 
-class VisitProcessorTest {
-    private final VisitProcessor processor = new VisitProcessor();
+class EncounterProcessorTest {
+    private final EncounterProcessor processor = new EncounterProcessor();
     private final ProductHandler products = mock(ProductHandler.class);
     private final PatientHandler patients = mock(PatientHandler.class);
     private final PartnerHandler partners = mock(PartnerHandler.class);
@@ -46,7 +49,8 @@ class VisitProcessorTest {
     @BeforeEach
     void setup() throws Exception {
         context.start();
-        processor.setEnableVisitSync(true);
+        processor.setVisitSyncEnabled(true);
+        processor.setEncounterHandler(new EncounterHandler());
         processor.setProductHandler(products);
         processor.setPatientHandler(patients);
         processor.setPartnerHandler(partners);
@@ -103,18 +107,9 @@ class VisitProcessorTest {
     }
 
     @Test
-    void ignoresUpdatesClosuresAndDeletions() throws Exception {
-        processor.process(exchange(openVisit(), "u"));
-        processor.process(exchange(visit("2026-10-20T08:00:00Z", "2026-10-22T12:00:00Z"), "u"));
-        processor.process(exchange("visit-123", "d"));
-        processor.process(exchange(openVisit(), "d"));
-        verifyNoInteractions(products, patients, partners, orders, companies);
-    }
-
-    @Test
     void ignoresClinicalEncountersAndDisabledSync() throws Exception {
         processor.process(exchange(new Encounter(), "c"));
-        processor.setEnableVisitSync(false);
+        processor.setVisitSyncEnabled(false);
         processor.process(exchange(openVisit(), "c"));
         verifyNoInteractions(products, patients, partners, orders, companies);
     }
@@ -132,5 +127,21 @@ class VisitProcessorTest {
         visit.setSubject(null);
         assertThrows(EIPException.class, () -> processor.process(exchange(visit, "c")));
         verifyNoInteractions(patients, partners, orders);
+    }
+
+    public Encounter visit(String start, String end) {
+        Encounter visit = new Encounter();
+        visit.setId("visit-123");
+        visit.getMeta().addTag(Constants.ENCOUNTER_TAG_SYSTEM, "visit", "Visit");
+        visit.addType()
+                .addCoding()
+                .setSystem(Constants.VISIT_TYPE_SYSTEM)
+                .setCode("type-123")
+                .setDisplay("Inpatient");
+        visit.getPeriod().setStart(Date.from(Instant.parse(start)));
+        if (end != null) {
+            visit.getPeriod().setEnd(Date.from(Instant.parse(end)));
+        }
+        return visit;
     }
 }

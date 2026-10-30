@@ -10,9 +10,9 @@ package com.ozonehis.eip.odoo.openmrs.handlers.odoo;
 import static java.util.Arrays.asList;
 
 import com.ozonehis.eip.odoo.openmrs.Constants;
-import com.ozonehis.eip.odoo.openmrs.VisitUtils;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import java.util.Map;
 import lombok.Setter;
@@ -30,6 +30,9 @@ import org.springframework.stereotype.Component;
 @Setter
 @Component
 public class ProductHandler {
+
+    @Autowired
+    private EncounterHandler encounterHandler;
 
     @Autowired
     private OdooClient odooClient;
@@ -60,8 +63,8 @@ public class ProductHandler {
     }
 
     private String getProductExternalId(Resource resource) {
-        if (resource instanceof Encounter visit && VisitUtils.isVisit(visit)) {
-            return VisitUtils.getVisitType(visit).getCode();
+        if (resource instanceof Encounter encounter && encounterHandler.isVisit(encounter)) {
+            return encounterHandler.getVisitType(encounter).getCode();
         } else if (resource instanceof ServiceRequest serviceRequest) {
             String id = serviceRequest.getCode().getCodingFirstRep().getCode();
             log.debug("ProductHandler: ServiceRequest code {}", id);

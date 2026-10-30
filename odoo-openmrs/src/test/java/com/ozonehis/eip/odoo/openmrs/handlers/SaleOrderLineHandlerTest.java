@@ -21,13 +21,17 @@ import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.ProductHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderLineHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.UomHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.mapper.odoo.SaleOrderLineMapper;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import com.ozonehis.eip.odoo.openmrs.model.Uom;
+import java.time.Instant;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
@@ -84,7 +88,7 @@ class SaleOrderLineHandlerTest {
 
     @Test
     void shouldBuildVisitLineUsingMappedProductAndDefaultUnit() {
-        var visit = com.ozonehis.eip.odoo.openmrs.VisitTestUtils.visit("2026-10-20T08:00:00Z", null);
+        var visit = visit("2026-10-20T08:00:00Z", null);
         Product product = new Product();
         product.setProductResId(PRODUCT_ID);
         SaleOrder order = new SaleOrder();
@@ -95,7 +99,9 @@ class SaleOrderLineHandlerTest {
                         asList(asList("order_id", "=", ORDER_ID), asList("product_id", "=", PRODUCT_ID)),
                         null))
                 .thenReturn(new Object[0]);
-        saleOrderLineHandler.setSaleOrderLineMapper(new SaleOrderLineMapper<>());
+        SaleOrderLineMapper<Resource> mapper = new SaleOrderLineMapper<>();
+        mapper.setEncounterHandler(new EncounterHandler());
+        saleOrderLineHandler.setSaleOrderLineMapper(mapper);
 
         SaleOrderLine line = saleOrderLineHandler.buildSaleOrderLineIfProductExists(visit, order);
 
@@ -276,5 +282,21 @@ class SaleOrderLineHandlerTest {
         return odooUtils.convertToObject(
                 getSaleOrderLineMap(1, "Aspirin 81 mg | 10 Tablet", ORDER_ID, PRODUCT_ID, 5.0f, PRODUCT_UOM_ID),
                 SaleOrderLine.class);
+    }
+
+    public Encounter visit(String start, String end) {
+        Encounter visit = new Encounter();
+        visit.setId("visit-123");
+        visit.getMeta().addTag(Constants.ENCOUNTER_TAG_SYSTEM, "visit", "Visit");
+        visit.addType()
+                .addCoding()
+                .setSystem(Constants.VISIT_TYPE_SYSTEM)
+                .setCode("type-123")
+                .setDisplay("Inpatient");
+        visit.getPeriod().setStart(Date.from(Instant.parse(start)));
+        if (end != null) {
+            visit.getPeriod().setEnd(Date.from(Instant.parse(end)));
+        }
+        return visit;
     }
 }
