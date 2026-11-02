@@ -27,7 +27,6 @@ public class EncounterRouting extends RouteBuilder {
                 .routeId("fhir-encounter-to-sale-order-router")
                 .filter(body().isNotNull())
                 .filter(exchange -> exchange.getMessage().getBody() instanceof Encounter)
-                .to("direct:encounter-to-sale-order-router")
                 .process(encounterProcessor)
                 .end();
     }
