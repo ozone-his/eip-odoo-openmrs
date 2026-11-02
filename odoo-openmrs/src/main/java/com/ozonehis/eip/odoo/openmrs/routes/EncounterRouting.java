@@ -10,6 +10,7 @@ package com.ozonehis.eip.odoo.openmrs.routes;
 import com.ozonehis.eip.odoo.openmrs.processors.EncounterProcessor;
 import lombok.Setter;
 import org.apache.camel.builder.RouteBuilder;
+import org.hl7.fhir.r4.model.Encounter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,8 @@ public class EncounterRouting extends RouteBuilder {
         from("direct:fhir-encounter")
                 .routeId("fhir-encounter-to-sale-order-router")
                 .filter(body().isNotNull())
+                .filter(exchange -> exchange.getMessage().getBody() instanceof Encounter)
+                .to("direct:encounter-to-sale-order-router")
                 .process(encounterProcessor)
                 .end();
     }
