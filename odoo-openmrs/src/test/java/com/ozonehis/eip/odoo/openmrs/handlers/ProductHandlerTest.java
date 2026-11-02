@@ -204,9 +204,9 @@ class ProductHandlerTest {
     public void shouldResolveVisitProductByVisitTypeUuid() {
         Encounter visit = visit("2026-10-22T00:00:00Z", null);
         when(odooClient.searchAndRead(
-                Constants.IR_MODEL,
-                asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", "type-123")),
-                null))
+                        Constants.IR_MODEL,
+                        asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", "type-123")),
+                        null))
                 .thenReturn(new Object[] {Map.of("id", 1, "res_id", 42)});
         assertEquals(42, productHandler.getProduct(visit).getProductResId());
     }
