@@ -132,7 +132,6 @@ class EncounterProcessorTest {
     public Encounter visit(String start, String end) {
         Encounter visit = new Encounter();
         visit.setId("visit-123");
-        visit.getMeta().addTag(Constants.ENCOUNTER_TAG_SYSTEM, "visit", "Visit");
         visit.addType()
                 .addCoding()
                 .setSystem(Constants.VISIT_TYPE_SYSTEM)

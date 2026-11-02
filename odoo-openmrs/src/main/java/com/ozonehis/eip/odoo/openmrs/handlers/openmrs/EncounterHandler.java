@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Encounter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,19 +30,28 @@ public class EncounterHandler {
     private IGenericClient openmrsFhirClient;
 
     public boolean isVisit(Encounter encounter) {
-        return encounter != null
-                && encounter.getMeta().getTag().stream()
-                        .anyMatch(tag -> Constants.ENCOUNTER_TAG_SYSTEM.equals(tag.getSystem())
-                                && "visit".equals(tag.getCode()));
+        if (encounter == null) {
+            return false;
+        }
+        for (CodeableConcept type : encounter.getType()) {
+            for (Coding coding : type.getCoding()) {
+                if (Constants.VISIT_TYPE_SYSTEM.equals(coding.getSystem())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public Coding getVisitType(Encounter encounter) {
-        return encounter.getType().stream()
-                .flatMap(type -> type.getCoding().stream())
-                .filter(coding -> Constants.VISIT_TYPE_SYSTEM.equals(coding.getSystem()) && coding.hasCode())
-                .findFirst()
-                .orElseThrow(
-                        () -> new IllegalArgumentException("Visit " + encounter.getIdPart() + " has no visit type"));
+        for (CodeableConcept type : encounter.getType()) {
+            for (Coding coding : type.getCoding()) {
+                if (Constants.VISIT_TYPE_SYSTEM.equals(coding.getSystem()) && coding.hasCode()) {
+                    return coding;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Visit " + encounter.getIdPart() + " has no visit type");
     }
 
     public Encounter getEncounterByEncounterID(String encounterID) {

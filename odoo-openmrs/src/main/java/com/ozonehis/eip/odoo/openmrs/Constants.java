@@ -49,8 +49,6 @@ public class Constants {
 
     public static final String FHIR_OPENMRS_EXT_PREFIX = FHIR_OPENMRS_SYSTEM_PREFIX + "ext/";
 
-    public static final String ENCOUNTER_TAG_SYSTEM = FHIR_OPENMRS_EXT_PREFIX + "encounter-tag";
-
     public static final String VISIT_TYPE_SYSTEM = FHIR_OPENMRS_SYSTEM_PREFIX + "code-system/visit-type";
 
     public static final String FHIR_OPENMRS_FHIR_EXT_MEDICINE = FHIR_OPENMRS_EXT_PREFIX + "medicine";

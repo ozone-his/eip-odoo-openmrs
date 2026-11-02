@@ -34,7 +34,7 @@ class SaleOrderMapperTest {
     public void shouldMapVisitEncounterWithoutPartOfReferenceToOdooSaleOrder() {
         Encounter encounter = new Encounter();
         encounter.setId("Encounter/visit-123");
-        encounter.getMeta().addTag(Constants.ENCOUNTER_TAG_SYSTEM, "visit", "Visit");
+        encounter.addType().addCoding().setSystem(Constants.VISIT_TYPE_SYSTEM).setCode("type-123");
 
         SaleOrder saleOrder = saleOrderMapper.toOdoo(encounter);
 
