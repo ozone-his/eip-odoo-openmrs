@@ -7,13 +7,19 @@
  */
 package com.ozonehis.eip.odoo.openmrs.processors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.ozonehis.eip.odoo.openmrs.Constants;
-import com.ozonehis.eip.odoo.openmrs.handlers.odoo.CompanyHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.ProductHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderHandler;
@@ -25,36 +31,44 @@ import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import java.time.Instant;
 import java.util.Date;
 import org.apache.camel.Exchange;
-import org.apache.camel.impl.DefaultCamelContext;
-import org.apache.camel.support.DefaultExchange;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.openmrs.eip.EIPException;
 
-class EncounterProcessorTest {
-    private final EncounterProcessor processor = new EncounterProcessor();
-    private final ProductHandler products = mock(ProductHandler.class);
-    private final PatientHandler patients = mock(PatientHandler.class);
-    private final PartnerHandler partners = mock(PartnerHandler.class);
-    private final SaleOrderHandler orders = mock(SaleOrderHandler.class);
-    private final CompanyHandler companies = mock(CompanyHandler.class);
-    private final DefaultCamelContext context = new DefaultCamelContext();
+class EncounterProcessorTest extends BaseProcessorTest {
+
+    @Mock
+    private ProductHandler products;
+
+    @Mock
+    private PatientHandler patients;
+
+    @Mock
+    private PartnerHandler partners;
+
+    @Mock
+    private SaleOrderHandler orders;
+
     private final Partner partner = new Partner();
+
     private final Patient patient = new Patient();
 
+    @InjectMocks
+    private EncounterProcessor encounterProcessor;
+
+    private AutoCloseable mocksCloser;
+
     @BeforeEach
-    void setup() throws Exception {
-        context.start();
-        processor.setVisitSyncEnabled(true);
-        processor.setEncounterHandler(new EncounterHandler());
-        processor.setProductHandler(products);
-        processor.setPatientHandler(patients);
-        processor.setPartnerHandler(partners);
-        processor.setSaleOrderHandler(orders);
+    void setup() {
+        mocksCloser = openMocks(this);
+        encounterProcessor.setVisitSyncEnabled(true);
+        encounterProcessor.setEncounterHandler(new EncounterHandler());
         Product product = new Product();
         product.setProductResId(42);
         when(products.getProduct(any())).thenReturn(product);
@@ -66,14 +80,74 @@ class EncounterProcessorTest {
 
     @AfterEach
     void close() throws Exception {
-        context.close();
+        mocksCloser.close();
     }
 
-    private Exchange exchange(Object body, String event) {
-        Exchange exchange = new DefaultExchange(context);
-        exchange.getMessage().setBody(body);
-        exchange.getMessage().setHeader(HEADER_FHIR_EVENT_TYPE, event);
-        return exchange;
+    @Test
+    void createsPatientSaleOrderAndLineWhenVisitStarts() throws Exception {
+        Encounter encounter = openVisit();
+        Exchange exchange = createExchange(encounter, "c");
+        encounterProcessor.process(exchange);
+        verify(partners).createOrUpdatePartner(any(), eq(patient), isNull());
+        verify(orders)
+                .createSaleOrderWithSaleOrderLine(
+                        eq(encounter), eq(encounter), eq(partner), eq("visit-123"), eq("patient-123"), isNull(), any());
+        verify(orders, never())
+                .updateSaleOrderIfExistsWithSaleOrderLine(any(), any(), any(), anyInt(), any(), any(), any());
+    }
+
+    @Test
+    void addsVisitLineToExistingSaleOrder() throws Exception {
+        Encounter encounter = openVisit();
+        SaleOrder order = new SaleOrder();
+        Exchange exchange = createExchange(encounter, "c");
+
+        when(orders.getDraftSaleOrderIfExistsByVisitId("visit-123", null)).thenReturn(order);
+        encounterProcessor.process(exchange);
+        verify(orders)
+                .updateSaleOrderIfExistsWithSaleOrderLine(
+                        eq(encounter), eq(order), eq("visit-123"), eq(12), eq("patient-123"), isNull(), any());
+        verify(orders, never()).createSaleOrderWithSaleOrderLine(any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void ignoresClinicalEncounters() throws Exception {
+        Exchange exchange = createExchange(new Encounter(), "c");
+
+        encounterProcessor.process(exchange);
+
+        verifyNoInteractions(products, patients, partners, orders);
+    }
+
+    @Test
+    void ignoresVisitsWhenSyncIsDisabled() throws Exception {
+        Exchange exchange = createExchange(openVisit(), "c");
+        encounterProcessor.setVisitSyncEnabled(false);
+
+        encounterProcessor.process(exchange);
+
+        verifyNoInteractions(products, patients, partners, orders);
+    }
+
+    @Test
+    void missingProductFailsBeforeCreatingQuotation() {
+        Exchange exchange = createExchange(openVisit(), "c");
+
+        when(products.getProduct(any())).thenReturn(null);
+        EIPException exception = assertThrows(EIPException.class, () -> encounterProcessor.process(exchange));
+        assertEquals("No Odoo product mapped to visit type type-123", exception.getMessage());
+        verifyNoInteractions(patients, partners, orders);
+    }
+
+    @Test
+    void missingPatientFailsBeforeCreatingQuotation() {
+        Encounter encounter = openVisit();
+        Exchange exchange = createExchange(encounter, "c");
+
+        encounter.setSubject(null);
+        EIPException exception = assertThrows(EIPException.class, () -> encounterProcessor.process(exchange));
+        assertEquals("Visit has no patient reference: visit-123", exception.getMessage());
+        verifyNoInteractions(patients, partners, orders);
     }
 
     private Encounter openVisit() {
@@ -82,54 +156,7 @@ class EncounterProcessorTest {
         return visit;
     }
 
-    @Test
-    void createsPatientSaleOrderAndLineWhenVisitStarts() throws Exception {
-        Encounter visit = openVisit();
-        processor.process(exchange(visit, "c"));
-        verify(partners).createOrUpdatePartner(any(), eq(patient), isNull());
-        verify(orders)
-                .createSaleOrderWithSaleOrderLine(
-                        eq(visit), eq(visit), eq(partner), eq("visit-123"), eq("patient-123"), isNull(), any());
-        verify(orders, never())
-                .updateSaleOrderIfExistsWithSaleOrderLine(any(), any(), any(), anyInt(), any(), any(), any());
-    }
-
-    @Test
-    void addsVisitLineToExistingSaleOrder() throws Exception {
-        Encounter visit = openVisit();
-        SaleOrder order = new SaleOrder();
-        when(orders.getDraftSaleOrderIfExistsByVisitId("visit-123", null)).thenReturn(order);
-        processor.process(exchange(visit, "c"));
-        verify(orders)
-                .updateSaleOrderIfExistsWithSaleOrderLine(
-                        eq(visit), eq(order), eq("visit-123"), eq(12), eq("patient-123"), isNull(), any());
-        verify(orders, never()).createSaleOrderWithSaleOrderLine(any(), any(), any(), any(), any(), any(), any());
-    }
-
-    @Test
-    void ignoresClinicalEncountersAndDisabledSync() throws Exception {
-        processor.process(exchange(new Encounter(), "c"));
-        processor.setVisitSyncEnabled(false);
-        processor.process(exchange(openVisit(), "c"));
-        verifyNoInteractions(products, patients, partners, orders, companies);
-    }
-
-    @Test
-    void missingProductFailsBeforeCreatingQuotation() {
-        when(products.getProduct(any())).thenReturn(null);
-        assertThrows(EIPException.class, () -> processor.process(exchange(openVisit(), "c")));
-        verifyNoInteractions(patients, partners, orders);
-    }
-
-    @Test
-    void missingPatientFailsBeforeCreatingQuotation() {
-        Encounter visit = openVisit();
-        visit.setSubject(null);
-        assertThrows(EIPException.class, () -> processor.process(exchange(visit, "c")));
-        verifyNoInteractions(patients, partners, orders);
-    }
-
-    public Encounter visit(String start, String end) {
+    private Encounter visit(String start, String end) {
         Encounter visit = new Encounter();
         visit.setId("visit-123");
         visit.addType()
