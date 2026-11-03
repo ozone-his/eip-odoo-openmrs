@@ -53,8 +53,8 @@ public class EncounterProcessor implements Processor {
         Message message = exchange.getMessage();
         Encounter encounter = message.getBody(Encounter.class);
 
-        // When enabled, As soon as a Visit is started in OpenMRS a sale order will be created in Odoo and a sale order
-        // line with visit type will be added.
+        // When enabled, As soon as a Visit is started in OpenMRS a sale order will be created in Odoo
+        // and a sale order line with visit type will be added.
         if (isVisitSyncEnabled && encounterHandler.isVisit(encounter)) {
             if (productHandler.getProduct(encounter) == null) {
                 throw new EIPException("No Odoo product mapped to visit type "
