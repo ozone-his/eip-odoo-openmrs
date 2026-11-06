@@ -9,47 +9,91 @@ package com.ozonehis.eip.odoo.openmrs.processors;
 
 import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 
-import com.ozonehis.eip.odoo.openmrs.Constants;
+import com.ozonehis.eip.odoo.openmrs.handlers.odoo.PartnerHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.odoo.ProductHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.PatientHandler;
+import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import lombok.Setter;
+import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
+import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.Patient;
+import org.openmrs.eip.EIPException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
+@Setter
 public class EncounterProcessor implements Processor {
+
+    @Value("${odoo.openmrs.enable.visit.sync}")
+    private boolean isVisitSyncEnabled;
+
+    @Autowired
+    private EncounterHandler encounterHandler;
+
+    @Autowired
+    private PatientHandler patientHandler;
+
+    @Autowired
+    private PartnerHandler partnerHandler;
+
+    @Autowired
+    private ProductHandler productHandler;
 
     @Autowired
     private SaleOrderHandler saleOrderHandler;
 
     @Override
-    public void process(Exchange exchange) {
-        Message message = exchange.getMessage();
-        Encounter encounter = message.getBody(Encounter.class);
-        if (encounter != null && encounter.hasPeriod() && encounter.getPeriod().hasEnd()) {
-            String encounterVisitUuid = encounter.getIdPart(); // TODO: Check if this should be referenceId
-            SaleOrder saleOrder = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid, null);
-            if (saleOrder != null) {
-                Map<String, Object> headers = new HashMap<>();
-                // Check if Sale Order needs to be moved from `draft` state to `sale` state
-                // saleOrder.setOrderState("sale");
-                headers.put(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, List.of(saleOrder.getOrderId()));
-                headers.put(HEADER_FHIR_EVENT_TYPE, "u");
+    public void process(Exchange exchange) throws Exception {
+        try (ProducerTemplate producer = exchange.getContext().createProducerTemplate()) {
+            Message message = exchange.getMessage();
+            Encounter encounter = message.getBody(Encounter.class);
 
-                exchange.getMessage().setHeaders(headers);
-                exchange.getMessage().setBody(saleOrder);
-                exchange.setProperty(Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER, false);
-            } else {
-                exchange.setProperty(Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER, true);
+            // When enabled, As soon as a Visit is started in OpenMRS a sale order will be created in Odoo
+            // and a sale order line with visit type will be added.
+            if (isVisitSyncEnabled && encounterHandler.isVisit(encounter)) {
+                String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
+                if ("c".equals(eventType) || "u".equals(eventType)) {
+                    if (productHandler.getProduct(encounter) == null) {
+                        throw new EIPException("No Odoo product mapped to visit type "
+                                + encounterHandler.getVisitType(encounter).getCode());
+                    }
+                    String patientId =
+                            encounter.getSubject().getReferenceElement().getIdPart();
+                    if (patientId == null || patientId.isBlank()) {
+                        throw new EIPException("Visit has no patient reference: " + encounter.getIdPart());
+                    }
+                    Patient patient = patientHandler.getPatientByPatientID(patientId);
+                    Partner partner = partnerHandler.createOrUpdatePartner(producer, patient, null);
+                    SaleOrder order = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounter.getIdPart(), null);
+                    if (order == null) {
+                        saleOrderHandler.createSaleOrderWithSaleOrderLine(
+                                encounter, encounter, partner, encounter.getIdPart(), patientId, null, producer);
+                    } else {
+                        saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
+                                encounter,
+                                order,
+                                encounter.getIdPart(),
+                                partner.getPartnerId(),
+                                patientId,
+                                null,
+                                producer);
+                    }
+                }
+                if ("d".equals(eventType)) {
+                    saleOrderHandler.deleteSaleOrderLine(encounter, encounter.getIdPart(), null, producer);
+                }
             }
-        } else {
-            exchange.setProperty(Constants.EXCHANGE_PROPERTY_SKIP_ENCOUNTER, true);
+        } catch (Exception e) {
+            throw new CamelExecutionException("Error processing Encounter", exchange, e);
         }
     }
 }

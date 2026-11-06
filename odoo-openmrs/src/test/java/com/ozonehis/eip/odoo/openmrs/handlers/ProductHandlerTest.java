@@ -18,14 +18,18 @@ import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.ProductHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Dosage;
+import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Quantity;
@@ -42,6 +46,7 @@ import org.mockito.Mockito;
 import org.springframework.core.env.Environment;
 
 class ProductHandlerTest {
+
     public static final String MEDICATION_REQUEST_ID = "1cdda1ce-7f98-4bc7-9d20-8b4e953d972a";
 
     public static final String MEDICATION_ID = "c95ab33a-8558-4705-8a7a-3b4e580270c7";
@@ -93,6 +98,7 @@ class ProductHandlerTest {
         odooUtils = new OdooUtils();
         odooUtils.setEnvironment(mockEnvironment);
         productHandler.setOdooUtils(odooUtils);
+        productHandler.setEncounterHandler(new EncounterHandler());
     }
 
     @Test
@@ -194,6 +200,17 @@ class ProductHandlerTest {
         assertThrows(IllegalArgumentException.class, () -> productHandler.getProduct(resource));
     }
 
+    @Test
+    public void shouldResolveVisitProductByVisitTypeUuid() {
+        Encounter visit = visit("2026-10-22T00:00:00Z", null);
+        when(odooClient.searchAndRead(
+                        Constants.IR_MODEL,
+                        asList(asList("model", "=", Constants.PRODUCT_MODEL), asList("name", "=", "type-123")),
+                        null))
+                .thenReturn(new Object[] {Map.of("id", 1, "res_id", 42)});
+        assertEquals(42, productHandler.getProduct(visit).getProductResId());
+    }
+
     public Map<String, Object> getProductMap(int id, String name, int resId, String displayName) {
         Map<String, Object> uomMap = new HashMap<>();
         uomMap.put("id", id);
@@ -271,5 +288,20 @@ class ProductHandlerTest {
         supplyRequest.setStatus(SupplyRequest.SupplyRequestStatus.ACTIVE);
 
         return supplyRequest;
+    }
+
+    public Encounter visit(String start, String end) {
+        Encounter visit = new Encounter();
+        visit.setId("visit-123");
+        visit.addType()
+                .addCoding()
+                .setSystem(Constants.VISIT_TYPE_SYSTEM)
+                .setCode("type-123")
+                .setDisplay("Inpatient");
+        visit.getPeriod().setStart(Date.from(Instant.parse(start)));
+        if (end != null) {
+            visit.getPeriod().setEnd(Date.from(Instant.parse(end)));
+        }
+        return visit;
     }
 }

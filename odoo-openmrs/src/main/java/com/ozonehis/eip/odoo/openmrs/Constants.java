@@ -39,8 +39,6 @@ public class Constants {
 
     public static final String HEADER_ODOO_ID_ATTRIBUTE_VALUE = "odoo.attribute.value";
 
-    public static final String EXCHANGE_PROPERTY_SKIP_ENCOUNTER = "skip.encounter";
-
     public static final String FHIR_RESOURCE_TYPE = "fhir.resource.type";
 
     public static final String HEADER_ENABLE_PATIENT_SYNC = "enable.patient.sync";
@@ -48,6 +46,8 @@ public class Constants {
     public static final String FHIR_OPENMRS_SYSTEM_PREFIX = "http://fhir.openmrs.org/";
 
     public static final String FHIR_OPENMRS_EXT_PREFIX = FHIR_OPENMRS_SYSTEM_PREFIX + "ext/";
+
+    public static final String VISIT_TYPE_SYSTEM = FHIR_OPENMRS_SYSTEM_PREFIX + "code-system/visit-type";
 
     public static final String FHIR_OPENMRS_FHIR_EXT_MEDICINE = FHIR_OPENMRS_EXT_PREFIX + "medicine";
 

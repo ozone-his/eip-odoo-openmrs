@@ -164,10 +164,12 @@ public class SaleOrderHandler {
         // Add Patient DOB to Odoo Quotation
         newSaleOrder.setPartnerBirthDate(partner.getPartnerBirthDate());
         // Add Patient Id to Odoo Quotation
-        newSaleOrder.setOdooCustomerId(partner.getPartnerExternalId().replaceAll("(?i)</?p>", ""));
+        if (partner.getPartnerExternalId() != null) {
+            newSaleOrder.setOdooCustomerId(partner.getPartnerExternalId().replaceAll("(?i)</?p>", ""));
+        }
         String patientWeight = getPartnerWeight(patientID);
         if (patientWeight != null) {
-            newSaleOrder.setPartnerWeight(getPartnerWeight(patientID));
+            newSaleOrder.setPartnerWeight(patientWeight);
         }
 
         sendSaleOrder(producerTemplate, "direct:odoo-create-sale-order-route", newSaleOrder);

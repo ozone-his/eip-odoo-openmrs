@@ -12,10 +12,12 @@ import static java.util.Arrays.asList;
 import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.client.OdooClient;
 import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
@@ -28,6 +30,9 @@ import org.springframework.stereotype.Component;
 @Setter
 @Component
 public class ProductHandler {
+
+    @Autowired
+    private EncounterHandler encounterHandler;
 
     @Autowired
     private OdooClient odooClient;
@@ -58,7 +63,9 @@ public class ProductHandler {
     }
 
     private String getProductExternalId(Resource resource) {
-        if (resource instanceof ServiceRequest serviceRequest) {
+        if (resource instanceof Encounter encounter && encounterHandler.isVisit(encounter)) {
+            return encounterHandler.getVisitType(encounter).getCode();
+        } else if (resource instanceof ServiceRequest serviceRequest) {
             String id = serviceRequest.getCode().getCodingFirstRep().getCode();
             log.debug("ProductHandler: ServiceRequest code {}", id);
             return id;

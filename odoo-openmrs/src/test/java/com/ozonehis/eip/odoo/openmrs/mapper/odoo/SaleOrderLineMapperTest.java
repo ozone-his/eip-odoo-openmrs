@@ -9,14 +9,18 @@ package com.ozonehis.eip.odoo.openmrs.mapper.odoo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.ozonehis.eip.odoo.openmrs.Constants;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import java.util.Collections;
 import java.util.List;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Dosage;
+import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Quantity;
@@ -66,6 +70,23 @@ class SaleOrderLineMapperTest {
     @BeforeEach
     public void setUp() {
         saleOrderLineMapper = new SaleOrderLineMapper<>();
+        saleOrderLineMapper.setEncounterHandler(new EncounterHandler());
+    }
+
+    @Test
+    void shouldMapVisitTypeToOneSaleOrderLine() {
+        Encounter visit = createVisitEncounter();
+        SaleOrderLine line = saleOrderLineMapper.toOdoo(visit);
+        assertEquals(1.0f, line.getSaleOrderLineProductUomQty());
+        assertEquals("Inpatient", line.getSaleOrderLineName());
+        assertNull(line.getSaleOrderLineProductUom());
+    }
+
+    @Test
+    void shouldUseVisitTypeCodeWhenDisplayIsMissing() {
+        Encounter visit = createVisitEncounter();
+        visit.getTypeFirstRep().getCodingFirstRep().setDisplay(null);
+        assertEquals("type-123", saleOrderLineMapper.toOdoo(visit).getSaleOrderLineName());
     }
 
     @Test
@@ -232,5 +253,16 @@ class SaleOrderLineMapperTest {
     public void shouldThrowExceptionForUnsupportedResourceType() {
         Resource unsupportedResource = new Patient();
         assertThrows(IllegalArgumentException.class, () -> saleOrderLineMapper.toOdoo(unsupportedResource));
+    }
+
+    private Encounter createVisitEncounter() {
+        Encounter visit = new Encounter();
+        visit.setId("visit-123");
+        visit.addType()
+                .addCoding()
+                .setSystem(Constants.VISIT_TYPE_SYSTEM)
+                .setCode("type-123")
+                .setDisplay("Inpatient");
+        return visit;
     }
 }
