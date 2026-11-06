@@ -7,6 +7,8 @@
  */
 package com.ozonehis.eip.odoo.openmrs.processors;
 
+import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
+
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.ProductHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderHandler;
@@ -15,6 +17,7 @@ import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.PatientHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import lombok.Setter;
+import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
@@ -50,32 +53,47 @@ public class EncounterProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        Message message = exchange.getMessage();
-        Encounter encounter = message.getBody(Encounter.class);
+        try (ProducerTemplate producer = exchange.getContext().createProducerTemplate()) {
+            Message message = exchange.getMessage();
+            Encounter encounter = message.getBody(Encounter.class);
 
-        // When enabled, As soon as a Visit is started in OpenMRS a sale order will be created in Odoo
-        // and a sale order line with visit type will be added.
-        if (isVisitSyncEnabled && encounterHandler.isVisit(encounter)) {
-            if (productHandler.getProduct(encounter) == null) {
-                throw new EIPException("No Odoo product mapped to visit type "
-                        + encounterHandler.getVisitType(encounter).getCode());
-            }
-            String patientId = encounter.getSubject().getReferenceElement().getIdPart();
-            if (patientId == null || patientId.isBlank()) {
-                throw new EIPException("Visit has no patient reference: " + encounter.getIdPart());
-            }
-            Patient patient = patientHandler.getPatientByPatientID(patientId);
-            try (ProducerTemplate producer = exchange.getContext().createProducerTemplate()) {
-                Partner partner = partnerHandler.createOrUpdatePartner(producer, patient, null);
-                SaleOrder order = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounter.getIdPart(), null);
-                if (order == null) {
-                    saleOrderHandler.createSaleOrderWithSaleOrderLine(
-                            encounter, encounter, partner, encounter.getIdPart(), patientId, null, producer);
-                } else {
-                    saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
-                            encounter, order, encounter.getIdPart(), partner.getPartnerId(), patientId, null, producer);
+            // When enabled, As soon as a Visit is started in OpenMRS a sale order will be created in Odoo
+            // and a sale order line with visit type will be added.
+            if (isVisitSyncEnabled && encounterHandler.isVisit(encounter)) {
+                String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
+                if ("c".equals(eventType) || "u".equals(eventType)) {
+                    if (productHandler.getProduct(encounter) == null) {
+                        throw new EIPException("No Odoo product mapped to visit type "
+                                + encounterHandler.getVisitType(encounter).getCode());
+                    }
+                    String patientId =
+                            encounter.getSubject().getReferenceElement().getIdPart();
+                    if (patientId == null || patientId.isBlank()) {
+                        throw new EIPException("Visit has no patient reference: " + encounter.getIdPart());
+                    }
+                    Patient patient = patientHandler.getPatientByPatientID(patientId);
+                    Partner partner = partnerHandler.createOrUpdatePartner(producer, patient, null);
+                    SaleOrder order = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounter.getIdPart(), null);
+                    if (order == null) {
+                        saleOrderHandler.createSaleOrderWithSaleOrderLine(
+                                encounter, encounter, partner, encounter.getIdPart(), patientId, null, producer);
+                    } else {
+                        saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
+                                encounter,
+                                order,
+                                encounter.getIdPart(),
+                                partner.getPartnerId(),
+                                patientId,
+                                null,
+                                producer);
+                    }
+                }
+                if ("d".equals(eventType)) {
+                    saleOrderHandler.deleteSaleOrderLine(encounter, encounter.getIdPart(), null, producer);
                 }
             }
+        } catch (Exception e) {
+            throw new CamelExecutionException("Error processing Encounter", exchange, e);
         }
     }
 }

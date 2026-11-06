@@ -16,6 +16,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
@@ -261,6 +263,74 @@ class SaleOrderHandlerTest {
         // Verify
         verify(saleOrderLineHandler, times(1))
                 .sendSaleOrderLine(producerTemplate, "direct:odoo-delete-sale-order-line-route", saleOrderLine);
+    }
+
+    @Test
+    void shouldDeleteVisitLineFromDraftQuotation() {
+        Encounter visit = new Encounter();
+        visit.setId(VISIT_ID_1);
+        Product product = new Product();
+        product.setProductResId(42);
+        SaleOrderLine line = new SaleOrderLine();
+        line.setSaleOrderLineId(123);
+        ProducerTemplate producer = Mockito.mock(ProducerTemplate.class);
+        when(odooClient.searchAndRead(
+                        eq(Constants.SALE_ORDER_MODEL),
+                        eq(List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft"))),
+                        any()))
+                .thenReturn(new Object[] {getSaleOrderMap(1, VISIT_ID_1, "draft", 12)});
+        when(productHandler.getProduct(visit)).thenReturn(product);
+        when(saleOrderLineHandler.getSaleOrderLineIfExists(1, 42)).thenReturn(line);
+
+        saleOrderHandler.deleteSaleOrderLine(visit, VISIT_ID_1, null, producer);
+
+        verify(saleOrderLineHandler).sendSaleOrderLine(producer, "direct:odoo-delete-sale-order-line-route", line);
+        verifyNoInteractions(saleOrderMapper, observationHandler, producer);
+    }
+
+    @Test
+    void shouldSkipVisitLineDeletionWhenNoDraftQuotationExists() {
+        ProducerTemplate producer = Mockito.mock(ProducerTemplate.class);
+        when(odooClient.searchAndRead(
+                        eq(Constants.SALE_ORDER_MODEL),
+                        eq(List.of(asList("client_order_ref", "=", VISIT_ID_1), asList("state", "=", "draft"))),
+                        any()))
+                .thenReturn(new Object[0]);
+
+        saleOrderHandler.deleteSaleOrderLine(new Encounter(), VISIT_ID_1, null, producer);
+
+        verifyNoInteractions(productHandler, saleOrderLineHandler, producer);
+    }
+
+    @Test
+    void shouldSkipVisitLineDeletionWhenLineIsAbsent() {
+        Encounter visit = new Encounter();
+        Product product = new Product();
+        product.setProductResId(42);
+        ProducerTemplate producer = Mockito.mock(ProducerTemplate.class);
+        when(odooClient.searchAndRead(eq(Constants.SALE_ORDER_MODEL), any(), any()))
+                .thenReturn(new Object[] {getSaleOrderMap(1, VISIT_ID_1, "draft", 12)});
+        when(productHandler.getProduct(visit)).thenReturn(product);
+        when(saleOrderLineHandler.getSaleOrderLineIfExists(1, 42)).thenReturn(null);
+
+        saleOrderHandler.deleteSaleOrderLine(visit, VISIT_ID_1, null, producer);
+
+        verify(saleOrderLineHandler).getSaleOrderLineIfExists(1, 42);
+        verifyNoMoreInteractions(saleOrderLineHandler);
+        verifyNoInteractions(producer);
+    }
+
+    @Test
+    void shouldSkipVisitLineDeletionWhenProductIsNotMapped() {
+        Encounter visit = new Encounter();
+        ProducerTemplate producer = Mockito.mock(ProducerTemplate.class);
+        when(odooClient.searchAndRead(eq(Constants.SALE_ORDER_MODEL), any(), any()))
+                .thenReturn(new Object[] {getSaleOrderMap(1, VISIT_ID_1, "draft", 12)});
+        when(productHandler.getProduct(visit)).thenReturn(null);
+
+        saleOrderHandler.deleteSaleOrderLine(visit, VISIT_ID_1, null, producer);
+
+        verifyNoInteractions(saleOrderLineHandler, producer);
     }
 
     @Test
