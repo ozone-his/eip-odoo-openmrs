@@ -7,6 +7,8 @@
  */
 package com.ozonehis.eip.odoo.openmrs.routes;
 
+import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
+
 import com.ozonehis.eip.odoo.openmrs.processors.EncounterProcessor;
 import lombok.Setter;
 import org.apache.camel.builder.RouteBuilder;
@@ -26,7 +28,8 @@ public class EncounterRouting extends RouteBuilder {
         from("direct:fhir-encounter")
                 .routeId("fhir-encounter-to-sale-order-router")
                 .filter(body().isNotNull())
-                .filter(exchange -> exchange.getMessage().getBody() instanceof Encounter)
+                .filter(exchange -> "d".equals(exchange.getMessage().getHeader(HEADER_FHIR_EVENT_TYPE, String.class))
+                        || exchange.getMessage().getBody() instanceof Encounter)
                 .process(encounterProcessor)
                 .end();
     }

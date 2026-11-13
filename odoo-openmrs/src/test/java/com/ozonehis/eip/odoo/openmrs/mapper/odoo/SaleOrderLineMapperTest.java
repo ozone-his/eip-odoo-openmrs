@@ -77,6 +77,7 @@ class SaleOrderLineMapperTest {
     void shouldMapVisitTypeToOneSaleOrderLine() {
         Encounter visit = createVisitEncounter();
         SaleOrderLine line = saleOrderLineMapper.toOdoo(visit);
+        assertEquals("visit-123", line.getResourceUuid());
         assertEquals(1.0f, line.getSaleOrderLineProductUomQty());
         assertEquals("Inpatient", line.getSaleOrderLineName());
         assertNull(line.getSaleOrderLineProductUom());

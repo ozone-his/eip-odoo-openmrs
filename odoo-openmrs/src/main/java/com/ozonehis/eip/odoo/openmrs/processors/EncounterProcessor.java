@@ -55,12 +55,25 @@ public class EncounterProcessor implements Processor {
     public void process(Exchange exchange) throws Exception {
         try (ProducerTemplate producer = exchange.getContext().createProducerTemplate()) {
             Message message = exchange.getMessage();
+            String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
+            if (!isVisitSyncEnabled) {
+                return;
+            }
+            if ("d".equals(eventType)) {
+                Object body = message.getBody();
+                String resourceUuid =
+                        body instanceof Encounter encounter ? encounter.getIdPart() : message.getBody(String.class);
+                if (resourceUuid == null || resourceUuid.isBlank()) {
+                    throw new EIPException("Encounter delete event has no resource UUID");
+                }
+                saleOrderHandler.deleteVisitSaleOrderLines(resourceUuid, producer);
+                return;
+            }
             Encounter encounter = message.getBody(Encounter.class);
 
-            // When enabled, As soon as a Visit is started in OpenMRS a sale order will be created in Odoo
+            // When isVisitSyncEnabled is enabled, As soon as a Visit is started in OpenMRS a sale order will be created in Odoo
             // and a sale order line with visit type will be added.
-            if (isVisitSyncEnabled && encounterHandler.isVisit(encounter)) {
-                String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
+            if (encounterHandler.isVisit(encounter)) {
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     if (productHandler.getProduct(encounter) == null) {
                         throw new EIPException("No Odoo product mapped to visit type "
@@ -87,9 +100,6 @@ public class EncounterProcessor implements Processor {
                                 null,
                                 producer);
                     }
-                }
-                if ("d".equals(eventType)) {
-                    saleOrderHandler.deleteSaleOrderLine(encounter, encounter.getIdPart(), null, producer);
                 }
             }
         } catch (Exception e) {

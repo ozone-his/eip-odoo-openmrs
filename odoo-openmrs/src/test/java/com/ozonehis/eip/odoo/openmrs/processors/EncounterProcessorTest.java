@@ -128,7 +128,7 @@ class EncounterProcessorTest extends BaseProcessorTest {
 
         encounterProcessor.process(createExchange(encounter, "d"));
 
-        verify(orders).deleteSaleOrderLine(eq(encounter), eq("visit-123"), isNull(), any());
+        verify(orders).deleteVisitSaleOrderLines(eq("visit-123"), any());
         verifyNoMoreInteractions(orders);
         verifyNoInteractions(products, patients, partners);
     }
@@ -140,16 +140,19 @@ class EncounterProcessorTest extends BaseProcessorTest {
 
         encounterProcessor.process(createExchange(encounter, "d"));
 
-        verify(orders).deleteSaleOrderLine(eq(encounter), eq("visit-123"), isNull(), any());
+        verify(orders).deleteVisitSaleOrderLines(eq("visit-123"), any());
         verifyNoMoreInteractions(orders);
         verifyNoInteractions(products, patients, partners);
     }
 
     @Test
-    void ignoresDeletedClinicalEncounters() throws Exception {
-        encounterProcessor.process(createExchange(new Encounter(), "d"));
+    void deletesVisitLineFromUuidOnlyEvent() throws Exception {
+        Exchange exchange = createExchange(openVisit(), "d");
+        exchange.getMessage().setBody("visit-123");
+        encounterProcessor.process(exchange);
 
-        verifyNoInteractions(products, patients, partners, orders);
+        verify(orders).deleteVisitSaleOrderLines(eq("visit-123"), any());
+        verifyNoInteractions(products, patients, partners);
     }
 
     @Test
@@ -214,14 +217,14 @@ class EncounterProcessorTest extends BaseProcessorTest {
         Encounter encounter = openVisit();
         Exchange exchange = createExchange(encounter, "d");
         EIPException failure = new EIPException("Odoo unlink failed");
-        doThrow(failure).when(orders).deleteSaleOrderLine(eq(encounter), eq("visit-123"), isNull(), any());
+        doThrow(failure).when(orders).deleteVisitSaleOrderLines(eq("visit-123"), any());
 
         CamelExecutionException exception =
                 assertThrows(CamelExecutionException.class, () -> encounterProcessor.process(exchange));
 
         assertTrue(exception.getMessage().contains("Error processing Encounter"));
         assertSame(failure, exception.getCause());
-        verify(orders).deleteSaleOrderLine(eq(encounter), eq("visit-123"), isNull(), any());
+        verify(orders).deleteVisitSaleOrderLines(eq("visit-123"), any());
         verifyNoMoreInteractions(orders);
         verifyNoInteractions(products, patients, partners);
     }

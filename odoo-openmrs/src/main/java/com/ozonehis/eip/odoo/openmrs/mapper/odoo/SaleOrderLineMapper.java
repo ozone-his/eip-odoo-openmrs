@@ -39,6 +39,7 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
     public SaleOrderLine toOdoo(R resource) {
         SaleOrderLine saleOrderLine = new SaleOrderLine();
         if (resource instanceof Encounter encounter && encounterHandler.isVisit(encounter)) {
+            saleOrderLine.setResourceUuid(encounter.getIdPart());
             Coding type = encounterHandler.getVisitType(encounter);
             saleOrderLine.setSaleOrderLineProductUomQty(1.0f);
             saleOrderLine.setSaleOrderLineName(type.hasDisplay() ? type.getDisplay() : type.getCode());
