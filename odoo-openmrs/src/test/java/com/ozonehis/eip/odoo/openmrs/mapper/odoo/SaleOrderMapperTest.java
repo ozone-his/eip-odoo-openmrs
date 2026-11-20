@@ -12,6 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.ozonehis.eip.odoo.openmrs.Constants;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Reference;
@@ -25,6 +27,20 @@ class SaleOrderMapperTest {
     @BeforeEach
     public void setup() {
         saleOrderMapper = new SaleOrderMapper();
+        saleOrderMapper.setEncounterHandler(new EncounterHandler());
+    }
+
+    @Test
+    public void shouldMapVisitEncounterWithoutPartOfReferenceToOdooSaleOrder() {
+        Encounter encounter = new Encounter();
+        encounter.setId("Encounter/visit-123");
+        encounter.addType().addCoding().setSystem(Constants.VISIT_TYPE_SYSTEM).setCode("type-123");
+
+        SaleOrder saleOrder = saleOrderMapper.toOdoo(encounter);
+
+        assertNotNull(saleOrder);
+        assertEquals("visit-123", saleOrder.getOrderClientOrderRef());
+        assertEquals("draft", saleOrder.getOrderState());
     }
 
     @Test

@@ -114,6 +114,27 @@ public class SaleOrderLineHandler {
         }
     }
 
+    public SaleOrderLine getDraftSaleOrderLineByResourceUuid(String resourceUuid) {
+        Object[] records = odooClient.searchAndRead(
+                Constants.SALE_ORDER_LINE_MODEL,
+                asList(asList("x_resource_uuid", "=", resourceUuid), asList("order_id.state", "=", "draft")),
+                asList("id", "order_id"));
+        if (records == null) {
+            throw new EIPException("Got null response while fetching visit sale order lines for " + resourceUuid);
+        } else if (records.length == 1) {
+            SaleOrderLine saleOrderLine =
+                    odooUtils.convertToObject((Map<String, Object>) records[0], SaleOrderLine.class);
+            log.debug("Sale order line exists with resource id {} sale order line {}", resourceUuid, saleOrderLine);
+            return saleOrderLine;
+        } else if (records.length == 0) {
+            log.warn("No Sale order line found with resource id {}", resourceUuid);
+            return null;
+        } else {
+            log.warn("Multiple Sale order line found with resource id {}", resourceUuid);
+            throw new EIPException(String.format("Multiple Sale order line found with resource id %s", resourceUuid));
+        }
+    }
+
     public void sendSaleOrderLine(ProducerTemplate producerTemplate, String endpointUri, SaleOrderLine saleOrderLine) {
         Map<String, Object> saleOrderLineHeaders = new HashMap<>();
         if (endpointUri.contains("update") || endpointUri.contains("delete")) {

@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
@@ -21,13 +22,19 @@ import com.ozonehis.eip.odoo.openmrs.client.OdooUtils;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.ProductHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderLineHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.UomHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.mapper.odoo.SaleOrderLineMapper;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import com.ozonehis.eip.odoo.openmrs.model.Uom;
+import java.time.Instant;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.apache.camel.ProducerTemplate;
+import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
@@ -67,6 +74,8 @@ class SaleOrderLineHandlerTest {
 
     private static final String PRODUCT_UOM_ID = "16";
 
+    private static final String VISIT_ID = "e5ca6578-fb37-4900-a054-c68db82a551c";
+
     @AfterAll
     public static void close() throws Exception {
         mocksCloser.close();
@@ -80,6 +89,66 @@ class SaleOrderLineHandlerTest {
         odooUtils = new OdooUtils();
         odooUtils.setEnvironment(mockEnvironment);
         saleOrderLineHandler.setOdooUtils(odooUtils);
+    }
+
+    @Test
+    void deletesDraftVisitLineByResourceUuid() {
+        ProducerTemplate producer = Mockito.mock(ProducerTemplate.class);
+        when(odooClient.searchAndRead(
+                        Constants.SALE_ORDER_LINE_MODEL,
+                        asList(asList("x_resource_uuid", "=", VISIT_ID), asList("order_id.state", "=", "draft")),
+                        asList("id", "order_id")))
+                .thenReturn(new Object[] {Map.of("id", 21, "order_id", List.of(ORDER_ID, "S00014"))});
+
+        SaleOrderLine line = saleOrderLineHandler.getDraftSaleOrderLineByResourceUuid(VISIT_ID);
+        assertNotNull(line);
+        assertEquals(21, line.getSaleOrderLineId());
+        saleOrderLineHandler.sendSaleOrderLine(producer, "direct:odoo-delete-sale-order-line-route", line);
+
+        verify(producer)
+                .sendBodyAndHeaders(
+                        "direct:odoo-delete-sale-order-line-route",
+                        line,
+                        Map.of(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, List.of(21)));
+        Mockito.verifyNoInteractions(productHandler);
+    }
+
+    @Test
+    void returnsNoDraftVisitLineWhenResourceUuidDoesNotMatch() {
+        when(odooClient.searchAndRead(
+                        Constants.SALE_ORDER_LINE_MODEL,
+                        asList(asList("x_resource_uuid", "=", VISIT_ID), asList("order_id.state", "=", "draft")),
+                        asList("id", "order_id")))
+                .thenReturn(new Object[0]);
+
+        assertNull(saleOrderLineHandler.getDraftSaleOrderLineByResourceUuid(VISIT_ID));
+    }
+
+    @Test
+    void shouldBuildVisitLineUsingMappedProductAndDefaultUnit() {
+        var visit = visit("2026-10-20T08:00:00Z", null);
+        Product product = new Product();
+        product.setProductResId(PRODUCT_ID);
+        SaleOrder order = new SaleOrder();
+        order.setOrderId(ORDER_ID);
+        when(productHandler.getProduct(visit)).thenReturn(product);
+        when(odooClient.searchAndRead(
+                        Constants.SALE_ORDER_LINE_MODEL,
+                        asList(asList("order_id", "=", ORDER_ID), asList("product_id", "=", PRODUCT_ID)),
+                        null))
+                .thenReturn(new Object[0]);
+        SaleOrderLineMapper<Resource> mapper = new SaleOrderLineMapper<>();
+        mapper.setEncounterHandler(new EncounterHandler());
+        saleOrderLineHandler.setSaleOrderLineMapper(mapper);
+
+        SaleOrderLine line = saleOrderLineHandler.buildSaleOrderLineIfProductExists(visit, order);
+
+        assertEquals(PRODUCT_ID, line.getSaleOrderLineProductId());
+        assertEquals(ORDER_ID, line.getSaleOrderLineOrderId());
+        assertEquals(1.0f, line.getSaleOrderLineProductUomQty());
+        assertEquals("Inpatient", line.getSaleOrderLineName());
+        assertNull(line.getSaleOrderLineProductUom());
+        Mockito.verifyNoInteractions(uomHandler);
     }
 
     @Test
@@ -251,5 +320,20 @@ class SaleOrderLineHandlerTest {
         return odooUtils.convertToObject(
                 getSaleOrderLineMap(1, "Aspirin 81 mg | 10 Tablet", ORDER_ID, PRODUCT_ID, 5.0f, PRODUCT_UOM_ID),
                 SaleOrderLine.class);
+    }
+
+    public Encounter visit(String start, String end) {
+        Encounter visit = new Encounter();
+        visit.setId("visit-123");
+        visit.addType()
+                .addCoding()
+                .setSystem(Constants.VISIT_TYPE_SYSTEM)
+                .setCode("type-123")
+                .setDisplay("Inpatient");
+        visit.getPeriod().setStart(Date.from(Instant.parse(start)));
+        if (end != null) {
+            visit.getPeriod().setEnd(Date.from(Instant.parse(end)));
+        }
+        return visit;
     }
 }
