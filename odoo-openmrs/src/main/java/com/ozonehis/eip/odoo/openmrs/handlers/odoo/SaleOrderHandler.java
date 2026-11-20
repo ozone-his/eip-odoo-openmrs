@@ -20,10 +20,8 @@ import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
@@ -200,44 +198,6 @@ public class SaleOrderHandler {
         }
     }
 
-    /** Removes visit lines using the identifier supplied by UUID-only encounter delete events. */
-    public void deleteVisitSaleOrderLines(String resourceUuid, ProducerTemplate producerTemplate) {
-        Object[] records = odooClient.searchAndRead(
-                Constants.SALE_ORDER_LINE_MODEL,
-                asList(asList("x_resource_uuid", "=", resourceUuid), asList("order_id.state", "=", "draft")),
-                asList("id", "order_id"));
-        if (records == null) {
-            throw new EIPException("Got null response while fetching visit sale order lines for " + resourceUuid);
-        }
-        Set<Integer> orderIds = new HashSet<>();
-        for (Object record : records) {
-            SaleOrderLine line = odooUtils.convertToObject((Map<String, Object>) record, SaleOrderLine.class);
-            Integer orderId = (Integer) toMany2oneId(line.getSaleOrderLineOrderId());
-            producerTemplate.requestBodyAndHeader(
-                    "direct:odoo-delete-sale-order-line-route",
-                    line,
-                    Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE,
-                    List.of(line.getSaleOrderLineId()));
-            orderIds.add(orderId);
-        }
-        for (Integer orderId : orderIds) {
-            Object[] remainingLines = odooClient.searchAndRead(
-                    Constants.SALE_ORDER_LINE_MODEL, asList(asList("order_id", "=", orderId)), asList("id"));
-            if (remainingLines == null) {
-                throw new EIPException("Got null response while checking remaining lines for sale order " + orderId);
-            }
-            if (remainingLines.length == 0) {
-                SaleOrder order = new SaleOrder();
-                order.setOrderId(orderId);
-                producerTemplate.requestBodyAndHeader(
-                        "direct:odoo-delete-sale-order-route",
-                        order,
-                        Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE,
-                        List.of(orderId));
-            }
-        }
-    }
-
     public void deleteSaleOrderLine(
             Resource resource, String encounterVisitUuid, Integer companyId, ProducerTemplate producerTemplate) {
         SaleOrder saleOrder = getDraftSaleOrderIfExistsByVisitId(encounterVisitUuid, companyId);
@@ -262,7 +222,9 @@ public class SaleOrderHandler {
                 && (saleOrder.getOrderLine() == null || saleOrder.getOrderLine().isEmpty())) {
             log.debug("SaleOrderHandler: Count of sale order line {}", saleOrder.getOrderLine());
             saleOrder.setOrderState("cancel");
-            saleOrder.setOrderPartnerId((Integer) partnerId);
+            if (partnerId != 0) {
+                saleOrder.setOrderPartnerId((Integer) partnerId);
+            }
             sendSaleOrder(producerTemplate, "direct:odoo-update-sale-order-route", saleOrder);
         }
     }

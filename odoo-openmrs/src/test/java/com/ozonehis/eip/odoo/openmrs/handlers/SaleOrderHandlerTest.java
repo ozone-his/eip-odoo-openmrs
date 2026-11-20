@@ -85,41 +85,6 @@ class SaleOrderHandlerTest {
 
     private static final String PATIENT_IDENTIFIER = "10000Y";
 
-    @org.junit.jupiter.params.ParameterizedTest
-    @org.junit.jupiter.params.provider.ValueSource(booleans = {true, false})
-    void deletesVisitLineAndDeletesOrderOnlyWhenEmpty(boolean empty) {
-        ProducerTemplate producer = Mockito.mock(ProducerTemplate.class);
-        when(odooClient.searchAndRead(
-                        Constants.SALE_ORDER_LINE_MODEL,
-                        asList(asList("x_resource_uuid", "=", VISIT_ID_1), asList("order_id.state", "=", "draft")),
-                        asList("id", "order_id")))
-                .thenReturn(new Object[] {Map.of("id", 21, "order_id", List.of(12, "S00012"))});
-        when(odooClient.searchAndRead(
-                        Constants.SALE_ORDER_LINE_MODEL, asList(asList("order_id", "=", 12)), asList("id")))
-                .thenReturn(empty ? new Object[0] : new Object[] {Map.of("id", 22)});
-
-        saleOrderHandler.deleteVisitSaleOrderLines(VISIT_ID_1, producer);
-
-        verify(producer)
-                .requestBodyAndHeader(
-                        eq("direct:odoo-delete-sale-order-line-route"), any(SaleOrderLine.class),
-                        eq(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE), eq(List.of(21)));
-        verify(producer, times(empty ? 1 : 0))
-                .requestBodyAndHeader(
-                        eq("direct:odoo-delete-sale-order-route"), any(SaleOrder.class),
-                        eq(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE), eq(List.of(12)));
-        verifyNoInteractions(productHandler);
-    }
-
-    @Test
-    void repeatedVisitDeletionDoesNothingWhenNoLinesMatch() {
-        ProducerTemplate producer = Mockito.mock(ProducerTemplate.class);
-        when(odooClient.searchAndRead(eq(Constants.SALE_ORDER_LINE_MODEL), any(), any()))
-                .thenReturn(new Object[0]);
-        saleOrderHandler.deleteVisitSaleOrderLines(VISIT_ID_1, producer);
-        verifyNoInteractions(producer, productHandler);
-    }
-
     @AfterAll
     public static void close() throws Exception {
         mocksCloser.close();

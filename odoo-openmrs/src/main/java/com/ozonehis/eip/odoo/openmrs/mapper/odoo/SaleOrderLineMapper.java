@@ -44,12 +44,14 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
             saleOrderLine.setSaleOrderLineProductUomQty(1.0f);
             saleOrderLine.setSaleOrderLineName(type.hasDisplay() ? type.getDisplay() : type.getCode());
         } else if (resource instanceof ServiceRequest serviceRequest) {
+            saleOrderLine.setResourceUuid(serviceRequest.getIdPart());
             saleOrderLine.setSaleOrderLineProductUomQty(1.0f); // default quantity is 1 for serviceRequests.
             String requesterDisplay = serviceRequest.getRequester().getDisplay();
             String serviceDisplay = serviceRequest.getCode().getText();
             saleOrderLine.setSaleOrderLineName(serviceDisplay + " | Orderer: " + requesterDisplay);
 
         } else if (resource instanceof MedicationRequest medicationRequest) {
+            saleOrderLine.setResourceUuid(medicationRequest.getIdPart());
             if (medicationRequest.hasDispenseRequest()) {
                 if (medicationRequest.getDispenseRequest().hasQuantity()) {
                     Quantity quantity = medicationRequest.getDispenseRequest().getQuantity();
@@ -74,6 +76,7 @@ public class SaleOrderLineMapper<R extends Resource> implements ToOdooMapping<R,
         } else if (resource instanceof SupplyRequest supplyRequest) {
             log.info("In SaleOrderLineMapper {}", supplyRequest.getQuantity());
 
+            saleOrderLine.setResourceUuid(supplyRequest.getIdPart());
             if (supplyRequest.hasQuantity()) {
                 Quantity quantity = supplyRequest.getQuantity();
                 saleOrderLine.setSaleOrderLineProductUomQty(quantity.getValue().floatValue());

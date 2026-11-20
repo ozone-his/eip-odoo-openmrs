@@ -12,10 +12,12 @@ import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.ProductHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderLineHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.PatientHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
+import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import lombok.Setter;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
@@ -51,9 +53,12 @@ public class EncounterProcessor implements Processor {
     @Autowired
     private SaleOrderHandler saleOrderHandler;
 
+    @Autowired
+    private SaleOrderLineHandler saleOrderLineHandler;
+
     @Override
     public void process(Exchange exchange) throws Exception {
-        try (ProducerTemplate producer = exchange.getContext().createProducerTemplate()) {
+        try (ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate()) {
             Message message = exchange.getMessage();
             String eventType = message.getHeader(HEADER_FHIR_EVENT_TYPE, String.class);
             if (!isVisitSyncEnabled) {
@@ -66,12 +71,18 @@ public class EncounterProcessor implements Processor {
                 if (resourceUuid == null || resourceUuid.isBlank()) {
                     throw new EIPException("Encounter delete event has no resource UUID");
                 }
-                saleOrderHandler.deleteVisitSaleOrderLines(resourceUuid, producer);
+                SaleOrderLine saleOrderLine = saleOrderLineHandler.getDraftSaleOrderLineByResourceUuid(resourceUuid);
+                if (saleOrderLine != null) {
+                    saleOrderLineHandler.sendSaleOrderLine(
+                            producerTemplate, "direct:odoo-delete-sale-order-line-route", saleOrderLine);
+                    saleOrderHandler.cancelSaleOrderWhenNoSaleOrderLine(0, resourceUuid, null, producerTemplate);
+                }
                 return;
             }
             Encounter encounter = message.getBody(Encounter.class);
 
-            // When isVisitSyncEnabled is enabled, As soon as a Visit is started in OpenMRS a sale order will be created in Odoo
+            // When isVisitSyncEnabled is enabled, As soon as a Visit is started in OpenMRS a sale order will be created
+            // in Odoo
             // and a sale order line with visit type will be added.
             if (encounterHandler.isVisit(encounter)) {
                 if ("c".equals(eventType) || "u".equals(eventType)) {
@@ -85,11 +96,17 @@ public class EncounterProcessor implements Processor {
                         throw new EIPException("Visit has no patient reference: " + encounter.getIdPart());
                     }
                     Patient patient = patientHandler.getPatientByPatientID(patientId);
-                    Partner partner = partnerHandler.createOrUpdatePartner(producer, patient, null);
+                    Partner partner = partnerHandler.createOrUpdatePartner(producerTemplate, patient, null);
                     SaleOrder order = saleOrderHandler.getDraftSaleOrderIfExistsByVisitId(encounter.getIdPart(), null);
                     if (order == null) {
                         saleOrderHandler.createSaleOrderWithSaleOrderLine(
-                                encounter, encounter, partner, encounter.getIdPart(), patientId, null, producer);
+                                encounter,
+                                encounter,
+                                partner,
+                                encounter.getIdPart(),
+                                patientId,
+                                null,
+                                producerTemplate);
                     } else {
                         saleOrderHandler.updateSaleOrderIfExistsWithSaleOrderLine(
                                 encounter,
@@ -98,7 +115,7 @@ public class EncounterProcessor implements Processor {
                                 partner.getPartnerId(),
                                 patientId,
                                 null,
-                                producer);
+                                producerTemplate);
                     }
                 }
             }

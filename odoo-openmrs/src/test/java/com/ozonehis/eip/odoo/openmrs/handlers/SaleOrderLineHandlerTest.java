@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
@@ -30,7 +31,9 @@ import com.ozonehis.eip.odoo.openmrs.model.Uom;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.MedicationRequest;
 import org.hl7.fhir.r4.model.Resource;
@@ -71,6 +74,8 @@ class SaleOrderLineHandlerTest {
 
     private static final String PRODUCT_UOM_ID = "16";
 
+    private static final String VISIT_ID = "e5ca6578-fb37-4900-a054-c68db82a551c";
+
     @AfterAll
     public static void close() throws Exception {
         mocksCloser.close();
@@ -84,6 +89,39 @@ class SaleOrderLineHandlerTest {
         odooUtils = new OdooUtils();
         odooUtils.setEnvironment(mockEnvironment);
         saleOrderLineHandler.setOdooUtils(odooUtils);
+    }
+
+    @Test
+    void deletesDraftVisitLineByResourceUuid() {
+        ProducerTemplate producer = Mockito.mock(ProducerTemplate.class);
+        when(odooClient.searchAndRead(
+                        Constants.SALE_ORDER_LINE_MODEL,
+                        asList(asList("x_resource_uuid", "=", VISIT_ID), asList("order_id.state", "=", "draft")),
+                        asList("id", "order_id")))
+                .thenReturn(new Object[] {Map.of("id", 21, "order_id", List.of(ORDER_ID, "S00014"))});
+
+        SaleOrderLine line = saleOrderLineHandler.getDraftSaleOrderLineByResourceUuid(VISIT_ID);
+        assertNotNull(line);
+        assertEquals(21, line.getSaleOrderLineId());
+        saleOrderLineHandler.sendSaleOrderLine(producer, "direct:odoo-delete-sale-order-line-route", line);
+
+        verify(producer)
+                .sendBodyAndHeaders(
+                        "direct:odoo-delete-sale-order-line-route",
+                        line,
+                        Map.of(Constants.HEADER_ODOO_ID_ATTRIBUTE_VALUE, List.of(21)));
+        Mockito.verifyNoInteractions(productHandler);
+    }
+
+    @Test
+    void returnsNoDraftVisitLineWhenResourceUuidDoesNotMatch() {
+        when(odooClient.searchAndRead(
+                        Constants.SALE_ORDER_LINE_MODEL,
+                        asList(asList("x_resource_uuid", "=", VISIT_ID), asList("order_id.state", "=", "draft")),
+                        asList("id", "order_id")))
+                .thenReturn(new Object[0]);
+
+        assertNull(saleOrderLineHandler.getDraftSaleOrderLineByResourceUuid(VISIT_ID));
     }
 
     @Test

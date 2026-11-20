@@ -16,7 +16,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -28,15 +30,18 @@ import com.ozonehis.eip.odoo.openmrs.Constants;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.PartnerHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.ProductHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderHandler;
+import com.ozonehis.eip.odoo.openmrs.handlers.odoo.SaleOrderLineHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.EncounterHandler;
 import com.ozonehis.eip.odoo.openmrs.handlers.openmrs.PatientHandler;
 import com.ozonehis.eip.odoo.openmrs.model.Partner;
 import com.ozonehis.eip.odoo.openmrs.model.Product;
 import com.ozonehis.eip.odoo.openmrs.model.SaleOrder;
+import com.ozonehis.eip.odoo.openmrs.model.SaleOrderLine;
 import java.time.Instant;
 import java.util.Date;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
+import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
@@ -45,6 +50,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.openmrs.eip.EIPException;
@@ -62,6 +69,9 @@ class EncounterProcessorTest extends BaseProcessorTest {
 
     @Mock
     private SaleOrderHandler orders;
+
+    @Mock
+    private SaleOrderLineHandler orderLines;
 
     private final Partner partner = new Partner();
 
@@ -126,11 +136,7 @@ class EncounterProcessorTest extends BaseProcessorTest {
     void deletesVisitLineWhenActiveVisitIsDeleted() throws Exception {
         Encounter encounter = openVisit();
 
-        encounterProcessor.process(createExchange(encounter, "d"));
-
-        verify(orders).deleteVisitSaleOrderLines(eq("visit-123"), any());
-        verifyNoMoreInteractions(orders);
-        verifyNoInteractions(products, patients, partners);
+        assertVisitLineDeleted(createExchange(encounter, "d"));
     }
 
     @Test
@@ -138,21 +144,15 @@ class EncounterProcessorTest extends BaseProcessorTest {
         Encounter encounter = openVisit();
         encounter.setSubject(null);
 
-        encounterProcessor.process(createExchange(encounter, "d"));
-
-        verify(orders).deleteVisitSaleOrderLines(eq("visit-123"), any());
-        verifyNoMoreInteractions(orders);
-        verifyNoInteractions(products, patients, partners);
+        assertVisitLineDeleted(createExchange(encounter, "d"));
     }
 
     @Test
     void deletesVisitLineFromUuidOnlyEvent() throws Exception {
         Exchange exchange = createExchange(openVisit(), "d");
         exchange.getMessage().setBody("visit-123");
-        encounterProcessor.process(exchange);
 
-        verify(orders).deleteVisitSaleOrderLines(eq("visit-123"), any());
-        verifyNoInteractions(products, patients, partners);
+        assertVisitLineDeleted(exchange);
     }
 
     @Test
@@ -161,7 +161,7 @@ class EncounterProcessorTest extends BaseProcessorTest {
 
         encounterProcessor.process(createExchange(openVisit(), "d"));
 
-        verifyNoInteractions(products, patients, partners, orders);
+        verifyNoInteractions(products, patients, partners, orders, orderLines);
     }
 
     @Test
@@ -171,6 +171,24 @@ class EncounterProcessorTest extends BaseProcessorTest {
         encounterProcessor.process(exchange);
 
         verifyNoInteractions(products, patients, partners, orders);
+    }
+
+    private void assertVisitLineDeleted(Exchange exchange) throws Exception {
+        SaleOrderLine line = new SaleOrderLine();
+        line.setSaleOrderLineId(21);
+        when(orderLines.getDraftSaleOrderLineByResourceUuid("visit-123")).thenReturn(line);
+
+        encounterProcessor.process(exchange);
+
+        InOrder deletion = inOrder(orderLines, orders);
+        ArgumentCaptor<ProducerTemplate> producer = ArgumentCaptor.forClass(ProducerTemplate.class);
+        deletion.verify(orderLines).getDraftSaleOrderLineByResourceUuid("visit-123");
+        deletion.verify(orderLines)
+                .sendSaleOrderLine(producer.capture(), eq("direct:odoo-delete-sale-order-line-route"), same(line));
+        deletion.verify(orders)
+                .cancelSaleOrderWhenNoSaleOrderLine(eq(0), eq("visit-123"), isNull(), same(producer.getValue()));
+        verifyNoMoreInteractions(orderLines, orders);
+        verifyNoInteractions(products, patients, partners);
     }
 
     @Test
@@ -217,16 +235,19 @@ class EncounterProcessorTest extends BaseProcessorTest {
         Encounter encounter = openVisit();
         Exchange exchange = createExchange(encounter, "d");
         EIPException failure = new EIPException("Odoo unlink failed");
-        doThrow(failure).when(orders).deleteVisitSaleOrderLines(eq("visit-123"), any());
+        SaleOrderLine line = new SaleOrderLine();
+        when(orderLines.getDraftSaleOrderLineByResourceUuid("visit-123")).thenReturn(line);
+        doThrow(failure)
+                .when(orderLines)
+                .sendSaleOrderLine(any(), eq("direct:odoo-delete-sale-order-line-route"), same(line));
 
         CamelExecutionException exception =
                 assertThrows(CamelExecutionException.class, () -> encounterProcessor.process(exchange));
 
         assertTrue(exception.getMessage().contains("Error processing Encounter"));
         assertSame(failure, exception.getCause());
-        verify(orders).deleteVisitSaleOrderLines(eq("visit-123"), any());
-        verifyNoMoreInteractions(orders);
-        verifyNoInteractions(products, patients, partners);
+        verify(orderLines).sendSaleOrderLine(any(), eq("direct:odoo-delete-sale-order-line-route"), same(line));
+        verifyNoInteractions(products, patients, partners, orders);
     }
 
     private Encounter openVisit() {
